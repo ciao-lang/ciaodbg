@@ -2,7 +2,7 @@
 
 This bundle implements a debugging, testing and profiling framework
 (aka
-[dynamic program analysis](https://en.wikipedia.org/wiki/Dynamic_program_analysis)
+[dynamic program analysis](https://en.wikipedia.org/wiki/Dynamic_program_analysis))
 for Ciao.
 
 As other components in Ciao (like documentation generator and static
