@@ -17,7 +17,7 @@
 :- use_foreign_source(library(hashtable/recycle)).
 :- use_foreign_source(library(hrtime/hrtime)).
 % Add library(hashtable) and library(hrtime) to .h include paths
-% (see profiler:prebuild_bin at profiler.hooks.pl)
+% (see profiler:prepare_build_bin at profiler.hooks.pl)
 :- include(.(profiler_decl_auto)).
 
 :- use_foreign_source(profiler).

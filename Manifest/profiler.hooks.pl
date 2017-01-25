@@ -9,7 +9,7 @@
 :- use_module(library(llists), [flatten/2]).
 
 '$builder_hook'(profiler:lib('lib/profiler')).
-'$builder_hook'(profiler:prebuild_bin) :-
+'$builder_hook'(profiler:prepare_build_bin) :-
 	gen_decl_auto.
 '$builder_hook'(profiler:clean_bin) :- !,
 	% TODO: Remove hook if lib/2 is treated by clean_bin
