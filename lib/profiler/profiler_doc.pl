@@ -3,7 +3,7 @@
 
 :- doc(title, "Profiler").
 
-:- doc(author, "Ciao Development Team").
+:- doc(author, "The Ciao Development Team").
 :- doc(author, "Edison Mera"). % (cost centers, etc.)
 
 :- doc(copyright,"Copyright @copyright{} Manuel Hermenegildo
