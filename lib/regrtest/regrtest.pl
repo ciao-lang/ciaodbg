@@ -1,6 +1,6 @@
 :- module(regrtest,
           [run_regr_tests_in_module/2],
-          [assertions, dcg, regtypes, fsyntax]).
+          [assertions, regtypes, fsyntax]).
 
 :- doc(title, "Regression testing library").
 
@@ -50,7 +50,8 @@ where action is one of:
 :- use_module(library(file_utils),         [output_to_file/2]).
 :- use_module(library(system),             [copy_file/2]).
 :- use_module(library(system_extra),       [del_file_nofail/1]).
-:- use_module(engine(internals), [ciao_root/1]).
+
+:- use_module(library(regrtest/regrtest_aux),[clean_output/3]).
 
 :- doc(section, "unittest-like code").
 
@@ -142,40 +143,3 @@ read_mod_queries_(IStream,[Q|Queries]) :-
         !,
         read_mod_queries_(IStream,Queries).
 read_mod_queries_(_IStream,[]).
-
-% clean_output(Out,In,Unparsed)
-clean_output(Cs) -->
-        { ciao_root(CiaoRoot), atom_codes(CiaoRoot,RootPath) }, % TODO: does not work if testing bundles not in ciao_root!
-        clean_output_(Cs, RootPath).
-
-clean_output_("\n\n{In " || Cs    , RootPath) --> "{In ", !,
-        clean_filename(Cs,Cs0,RootPath),
-        clean_output_(Cs0,RootPath).
-clean_output_(Cs                  , RootPath) --> "Ciao ", !,
-        clean_ciaovers(Cs,Cs0),
-        clean_output_(Cs0, RootPath).
-clean_output_("expanded in " || Cs, RootPath) --> "expanded in ",!,
-        clean_filename(Cs,Cs0,RootPath),
-        clean_output_(Cs0,RootPath).
-clean_output_("\n" || Cs          , RootPath) --> "\n\n\n",!,
-        clean_output_(Cs,RootPath).
-clean_output_([C|Cs]              , RootPath) --> [C], !,
-        clean_output_(Cs, RootPath).
-clean_output_([]                  ,_RootPath) --> [].
-
-clean_filename(Cs, Cs0, RootPath) -->
-        ( cs(RootPath) ->
-            { Cs = "$CIAOROOT" || FileName }
-        ; { Cs = FileName }
-        ),
-        clean_filename_(FileName, Cs0).
-
-clean_filename_(".pl" || Cs, Cs)  --> ".pl", !.
-clean_filename_([C|Cs]     , Cs0) --> [C],
-        clean_filename_(Cs,Cs0).
-
-cs([C|Cs]) --> [C], cs(Cs).
-cs([]    ) --> [].
-
-clean_ciaovers(Cs,Cs)  --> "]", !.
-clean_ciaovers(Cs,Cs0) --> [_], clean_ciaovers(Cs,Cs0).
