@@ -2,7 +2,10 @@
 
 :- doc(filetype, application).
 
-:- doc(title, "Debugging, Testing and Profiling for Ciao").
+%:- doc(title, "Debugging, Testing and Profiling for Ciao").
+:- doc(title, "Run-time Checking, Testing, and Profiling for Ciao").
+:- doc(bug, "add in the main manual a reference for rtchecks documentation here.").
+:- doc(bug, "move debugger here (as chapter), THEN put debugger in title.").
 
 % :- include(ciao_docsrc(common/'ClipAddress')).
 

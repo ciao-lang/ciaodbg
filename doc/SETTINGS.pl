@@ -9,24 +9,22 @@ filepath := ~ciaofilepath_common.
 
 output_name := 'ciaodbg'.
 
-doc_structure := 
+doc_structure :=
         'ciaodbg_ref_man'-[
-	  'unittest/unittest'-
-             ['unittest/unittest_props',
-	      'unittestdecls_doc',
-	      % 'unittest/unittest_utils',
-	      'unittest/unittest_statistics',
-	      'unittest/unittest_examples'
-	     ],
-	  'profiler/profiler_doc'-[
-	     'profiler/profiler_utils',
-	     'profiler/profiler_extra',
-	     'profiler/profiler_auto_conf'
-          ]
+            'rtchecks_tutorial',
+            'unittest/unittest'-[
+                'unittest/unittest_props',
+                'unittestdecls_doc',
+                % 'unittest/unittest_utils',
+                'unittest/unittest_statistics',
+                'unittest/unittest_examples'],
+            'profiler/profiler_doc'-[
+                'profiler/profiler_utils',
+                'profiler/profiler_extra',
+                'profiler/profiler_auto_conf']
         ].
 
 bibfile := ~ciao_bibfile.
 
-% TODO: port this manual
-allow_markdown := no.
-syntax_highlight := no.
+allow_markdown   := yes.
+syntax_highlight := yes.
