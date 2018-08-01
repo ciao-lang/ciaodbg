@@ -1041,7 +1041,7 @@ void profile_flat_dump(prof_frame_t *frame, FILE * streamfile)
     prof=(profile_currents_t *)checkalloc(n*sizeof(profile_currents_t));
     for (j=n-1;j>=0;--j) {
       /* Find how many preds. we have called */
-      keyval=&table->tab.asnode[j];
+      keyval=&table->node[j];
       PROFILE__RESET_PROF(prof[j]);
       if (d=keyval->value.def)
 	{
@@ -1123,7 +1123,7 @@ void profile_flat_dump(prof_frame_t *frame, FILE * streamfile)
     realsize=0;
     realsize_oh=0;
     for (j=n-1;j>=0;--j) {
-      keyval=&table->tab.asnode[j];
+      keyval=&table->node[j];
       if ((d=keyval->value.def) && TOTAL(prof+j,times)) {
 	if (functor_have_overhead(frame, d)) {
 	  pred_table_oh[realsize_oh].prof=prof+j;
