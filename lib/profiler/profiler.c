@@ -500,11 +500,11 @@ void show_func_point2(
 #define FORMAT_TITLE_SEPARATOR						\
   "\n+---------------------------------------------------------------------------------+---------+-------+----------+-------+----------+-------+----------+-------+----------+-------+----------+--------+-------+--------------------+"
 #define FORMAT_ITEM							\
-  "%c(\n %-81s,i(%7ld,%7ld,%10lld,%7ld,%10lld,%7ld,%10lld,%7ld,%10lld,%7ld,%10lld/*%6.2f%%|%6.2f%%|%20s*/))"
+  "%c(\n %-81s,i(%7ld,%7ld,%10" PRId64 ",%7ld,%10" PRId64 ",%7ld,%10" PRId64 ",%7ld,%10" PRId64 ",%7ld,%10" PRId64 "/*%6.2f%%|%6.2f%%|%20s*/))"
 #define FORMAT_CC_TOTAL_PORTS						\
-  "\n %-81s,i(%7ld,%7ld,%10lld,%7ld,%10lld,%7ld,%10lld,%7ld,%10lld,%7ld,%10lld/*%6.2f%%|%6.2f%%|%20s*/),"
+  "\n %-81s,i(%7ld,%7ld,%10" PRId64 ",%7ld,%10" PRId64 ",%7ld,%10" PRId64 ",%7ld,%10" PRId64 ",%7ld,%10" PRId64 "/*%6.2f%%|%6.2f%%|%20s*/),"
 #define FORMAT_TOTAL							\
-  "\n|Total */t(                                                              %9ld,i(%7ld,%7ld,%10lld,%7ld,%10lld,%7ld,%10lld,%7ld,%10lld,%7ld,%10lld/*%6.2f%%|%6.2f%%|%20s*/))"
+  "\n|Total */t(                                                              %9ld,i(%7ld,%7ld,%10" PRId64 ",%7ld,%10" PRId64 ",%7ld,%10" PRId64 ",%7ld,%10" PRId64 ",%7ld,%10" PRId64 "/*%6.2f%%|%6.2f%%|%20s*/))"
 #define FORMAT_OVERHEAD							\
   "\n|CC Overhead (%6.2f%%)                                                                                                                                                                                                           |"
 
@@ -837,7 +837,7 @@ void profile_edge_cc_dump(prof_frame_t *frame, FILE * streamfile)
 	  } while (ht_next(t));
 	if (ecc->hooks) {
 	  if (TOTAL(&eccw_table[realsize].total,times)!=ecc_total_times)
-	    fprintf(streamfile, "/*** Problems when sumarizing counts %lld!=%lld ***/\n",
+	    fprintf(streamfile, "/*** Problems when sumarizing counts %" PRId64 "!=%" PRId64 " ***/\n",
 		    TOTAL(&eccw_table[realsize].total,times), ecc_total_times);
 	}
       }
@@ -1095,10 +1095,10 @@ void profile_flat_dump(prof_frame_t *frame, FILE * streamfile)
 #if defined(PROFILE__PROFTIME)
     if (tick_profiling + tick_not_profiling + TOTAL(&total,times)
 	+ TOTAL(&overhead,times)!=tick_last_addition - tick_start) {
-      fprintf(streamfile, "\n Verification Error %lld != %lld",
+      fprintf(streamfile, "\n Verification Error %" PRId64 " != %" PRId64 "",
 	      tick_profiling + tick_not_profiling + TOTAL(&total,times)
 	      + TOTAL(&overhead,times), tick_last_addition - tick_start);
-      fprintf(streamfile, "\n   %lld+%lld+%lld+%lld != %lld-%lld",
+      fprintf(streamfile, "\n   %" PRId64 "+%" PRId64 "+%" PRId64 "+%" PRId64 " != %" PRId64 "-%" PRId64 "",
 	      tick_profiling, tick_not_profiling, TOTAL(&total,times),
 	      TOTAL(&overhead,times), tick_last_addition, tick_start);
     }
@@ -1106,10 +1106,10 @@ void profile_flat_dump(prof_frame_t *frame, FILE * streamfile)
     /*   tot_ticks=tick_last_addition - tick_start + 1; */
     if (TOTAL(&total,times) + TOTAL(&overhead,times)
 	!= tick_last_addition - tick_start) {
-      fprintf(streamfile, "\n Verification Error %lld != %lld",
+      fprintf(streamfile, "\n Verification Error %" PRId64 " != %" PRId64 "",
 	      TOTAL(&total,times) + TOTAL(&overhead,times),
 	      tick_last_addition - tick_start);
-      fprintf(streamfile, "\n   %lld+%lld != %lld-%lld",
+      fprintf(streamfile, "\n   %" PRId64 "+%" PRId64 " != %" PRId64 "-%" PRId64 "",
 	      TOTAL(&total,times) + TOTAL(&overhead,times),
 	      tick_last_addition, tick_start);
     }
@@ -1209,26 +1209,26 @@ void profile_flat_dump(prof_frame_t *frame, FILE * streamfile)
     total_overhead=0;
   fprintf(streamfile, "/*");
   fprintf(streamfile, FORMAT_SEPARATOR_2);
-  fprintf(streamfile, "*/,oh(\n %12lld /* %8f ms (%6.2f%%) Executing profiler hooks */",
+  fprintf(streamfile, "*/,oh(\n %12" PRId64 " /* %8f ms (%6.2f%%) Executing profiler hooks */",
 	  tick_profiling,
 	  (double)tick_profiling/profile_freq*1.0e3,
 	  (double)tick_profiling/(tick_last_addition - tick_start)*100.0);
 # if defined(PROFILE)
   if (profile_hooks) {
-    fprintf(streamfile, ",\n %12lld /* %8f ms (%6.2f%%) Executing instrumentation code",
+    fprintf(streamfile, ",\n %12" PRId64 " /* %8f ms (%6.2f%%) Executing instrumentation code",
 	    total_overhead,
 	    ((double)total_overhead/profile_freq)*1.0e3,
 	    ((double)total_overhead)/(tick_last_addition - tick_start)*100.0);
     fprintf(streamfile, FORMAT_SEPARATOR);
-    fprintf(streamfile, "*/,\n %12lld /* %8f ms (%6.2f%%) Total overhead",
+    fprintf(streamfile, "*/,\n %12" PRId64 " /* %8f ms (%6.2f%%) Total overhead",
 	    tick_profiling + total_overhead,
 	    ((double)tick_profiling + total_overhead)/profile_freq*1.0e3,
 	    ((double)tick_profiling + total_overhead)/(tick_last_addition - tick_start)*100.0);
-    fprintf(streamfile, "*/,\n %12lld /* %8f ms (%6.2f%%) Executing code with WAM hooks turned off",
+    fprintf(streamfile, "*/,\n %12" PRId64 " /* %8f ms (%6.2f%%) Executing code with WAM hooks turned off",
 	    tick_not_profiling,
 	    ((double)tick_not_profiling)/profile_freq*1.0e3,
 	    ((double)tick_not_profiling)/(tick_last_addition - tick_start)*100.0);
-    fprintf(streamfile, "*/,\n %12lld /* %8f ms (%6.2f%%) Executing code with WAM hooks turned on",
+    fprintf(streamfile, "*/,\n %12" PRId64 " /* %8f ms (%6.2f%%) Executing code with WAM hooks turned on",
 	    TOTAL(&total,times),
 	    ((double)TOTAL(&total,times))/profile_freq*1.0e3,
 	    ((double)TOTAL(&total,times))/(tick_last_addition - tick_start)*100.0);
@@ -1236,9 +1236,9 @@ void profile_flat_dump(prof_frame_t *frame, FILE * streamfile)
     fprintf(streamfile, "*/");
   } else
 # endif
-    fprintf(streamfile, ",0,%lld,%lld,0", tick_profiling,
+    fprintf(streamfile, ",0,%" PRId64 ",%" PRId64 ",0", tick_profiling,
 	    tick_last_addition - tick_start - tick_profiling);
-  fprintf(streamfile, ",\n %12lld /* %8f ms (%6.2f%%) Total Time */)",
+  fprintf(streamfile, ",\n %12" PRId64 " /* %8f ms (%6.2f%%) Total Time */)",
 	  tick_last_addition-tick_start,
 	  ((double)(tick_last_addition-tick_start))/profile_freq*1.0e3,
 	  100.0);
@@ -1318,7 +1318,7 @@ const char * predicate_type(int t)
 
 void profile_dump(prof_frame_t *frame, FILE * streamfile)
 {
-  fprintf(streamfile, "p(%lld", profile_freq);
+  fprintf(streamfile, "p(%" PRId64 "", profile_freq);
   if (frame->edge_table_cc==NULL)
     fprintf(streamfile, ",_,_)\n");
   else {
