@@ -121,7 +121,7 @@ static bool_t functor_is_cost_center(prof_frame_t *frame, definition_t *functor)
 {
   static definition_t *d[1];
   *d=functor;
-  return ht_exists(frame->node_table_cc, (ub1 *)(d), sizeof(*d));
+  return ht_exists(frame->node_table_cc, (ub1 *)(&(d[0])), sizeof(d[0]));
 }
 
 bool_t functor_have_overhead(prof_frame_t *frame, definition_t *functor)
@@ -282,7 +282,7 @@ cc_item_t *add_cc_item(struct ht_tab *ht, definition_t *functor)
   e=(cc_item_t *)checkalloc(sizeof(cc_item_t));
   e->functor=functor;
   PROFILE__RESET_PROF(e->prof);
-  ht_add(ht,(ub1 *)(&(e->functor)),sizeof(functor),e);
+  ht_add(ht,(ub1 *)(&(e->functor)),sizeof(e->functor),e);
   return e;
 }
 
@@ -301,7 +301,7 @@ void add_node_cc(struct ht_tab *vl, definition_t *functor)
   if (!ht_exists(vl,(ub1 *)(&functor), sizeof(functor))) {
     definition_t **d=(definition_t **)checkalloc(sizeof(definition_t *));
     *d=functor;
-    ht_add(vl, (ub1 *)(d), sizeof(*d), d);
+    ht_add(vl, (ub1 *)(&(*d)), sizeof(*d), d);
   }
 }
 
@@ -324,13 +324,13 @@ edge_cc_t *add_edge_cc(struct ht_tab *cct, definition_t *functor[2])
   r->hooks=(profile_rcc||(functor[0]!=NULL));
   r->cc_item_table=ht_create(8);
 #endif
-  ht_add(cct,(ub1 *)(&r->functor),2*sizeof(functor),r);
+  ht_add(cct,(ub1 *)(&r->functor),sizeof(r->functor),r);
   return r;
 }
 
 edge_cc_t *get_edge_cc(struct ht_tab *cct, definition_t *functor[2])
 {
-  if (ht_find(cct,(ub1 *)(functor),2*sizeof(functor)))
+  if (ht_find(cct,(ub1 *)(functor),2*sizeof(definition_t *)))
     return (edge_cc_t *)ht_stuff(cct);
   else
     return add_edge_cc(cct, functor);
