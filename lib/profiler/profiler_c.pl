@@ -37,7 +37,7 @@
 "
 CBOOL__PROTO(prolog_get_profile_active)
 {
-  return cunify(Arg,MakeInteger(Arg,profile),X(0));
+  return cunify(Arg,MakeSmall(profile),X(0));
 }
 ".
 
