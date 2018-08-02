@@ -366,31 +366,25 @@ module_base(Module, Base) :-
 	).
 
 % ----------------------------------------------------------------------
-
 :- doc(test_option/1,"A global option that controls the
-   testing system. The current set of options is:
+        testing system. The current set of options is:
 
-	@begin{itemize}
+        @begin{itemize}
 
-        @item @tt{dump_output}: Show the standard output of the test
-              execution.
+        @item @tt{dump_output}: Show the standard output of the test execution.
 
-	@item @tt{dump_error}: Show the standard error of the test
-	      execution.
+        @item @tt{dump_error}: Show the standard error of the test execution.
 
-	@item @tt{rtc_entry}: Force run-time checking of at least
-	      exported assertions even if the flag runtime_checks has
-	      not been activated. (This is a workaround since
-	      currently we cannot enable runtime checks in system
-	      libraries smoothly).
+        @item @tt{rtc_entry}: Force run-time checking of at least exported
+	      assertions even if the flag runtime_checks has not been activated. (This
+	      is a workaround since currently we cannot enable runtime checks in
+	      system libraries smoothly).
 
-        @item @tt{treat_related} : Run tests in current and all related
-              modules;
+        @item @tt{treat_related} : Run tests in current and all related modules;
 
-        @item @tt{dir_rec} : Run tests in a specified directory
-              recursively.
+        @item @tt{dir_rec} : Run tests in a specified directory recursively.
 
-	@end{itemize}").
+        @end{itemize}").
 
 :- regtype test_option(Opt) # "@var{Opt} is a testing option.".
 
@@ -410,6 +404,7 @@ test_option := treat_related | dir_rec.
 
         @item @tt{show_stats} : print the test results statistics to
               the standard output;
+@comment{
 % TODO: merge with the regrtest
 %        @item @tt{save} : save test results file in @tt{module.testout-saved}
 %              file;
@@ -419,7 +414,7 @@ test_option := treat_related | dir_rec.
 %
 %        @item @tt{compare} : see the differences in the current and saved
 %              test output files in the diff format;
-
+}
         @end{itemize}").
 
 :- regtype test_action(Action) # "@var{Action} is a testing action".
