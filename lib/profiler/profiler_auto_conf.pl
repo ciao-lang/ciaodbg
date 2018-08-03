@@ -39,7 +39,7 @@
 :- use_module(library(system)).
 :- use_module(library(lists)).
 :- use_module(library(llists), [flatten/2]).
-:- use_module(library(file_utils)).
+:- use_module(library(streams_utils)).
 :- use_module(library(write)).
 :- use_module(library(terms),                    [atom_concat/2]).
 :- use_module(library(compiler/c_itf_internal), [defines_module/2]).

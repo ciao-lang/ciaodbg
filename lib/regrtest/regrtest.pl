@@ -47,7 +47,7 @@ where action is one of:
 :- use_module(library(compiler),           [make_po/1]).
 :- use_module(library(strings),            [get_line/1, write_string/1]).
 :- use_module(library(read),               [read/2]).
-:- use_module(library(file_utils),         [output_to_file/2]).
+:- use_module(library(streams_utils),         [output_to_file/2]).
 :- use_module(library(system),             [copy_file/2]).
 :- use_module(library(system_extra),       [del_file_nofail/1]).
 

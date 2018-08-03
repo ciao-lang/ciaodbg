@@ -4,7 +4,7 @@
 
 :- use_module(ciaobld(ciaoc_aux), [clean_tree/1]).
 :- use_module(library(pathnames), [path_dirname/2]).
-:- use_module(library(file_utils), [string_to_file/2]).
+:- use_module(library(streams_utils), [string_to_file/2]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(library(llists), [flatten/2]).
 
