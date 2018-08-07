@@ -1,4 +1,4 @@
-:- module(_, [], [lpdoclib(doccfg)]).
+:- module(_, [], [doccfg]).
 
 %! \title Config for CiaoDbg reference manual
 
