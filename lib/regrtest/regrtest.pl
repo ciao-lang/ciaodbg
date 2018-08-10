@@ -45,7 +45,7 @@ where action is one of:
                                             compute_base_name/4]).
 :- use_module(library(process),            [process_call/3]).
 :- use_module(library(compiler),           [make_po/1]).
-:- use_module(library(streams_utils),      [get_line/1, write_string/1, output_to_file/2]).
+:- use_module(library(stream_utils),      [get_line/1, write_string/1, output_to_file/2]).
 :- use_module(library(read),               [read/2]).
 :- use_module(library(system),             [copy_file/2]).
 :- use_module(library(system_extra),       [del_file_nofail/1]).

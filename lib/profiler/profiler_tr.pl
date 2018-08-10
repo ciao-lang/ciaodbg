@@ -4,7 +4,7 @@
 :- use_module(library(aggregates)).
 :- use_module(library(llists)).
 :- use_module(library(system)).
-:- use_module(library(streams_utils)).
+:- use_module(library(stream_utils)).
 :- use_module(library(assertions/assrt_lib),
 	    [assertion_read/9, assertion_body/7]).
 
