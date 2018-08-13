@@ -19,7 +19,7 @@ clean_output_(Cs                  , RootPath) --> "Ciao ", !,
         clean_ciaovers(Cs,Cs0),
         clean_output_(Cs0, RootPath).
 % clean source expansions (*_co.pl)
-clean_output_(Cs          , RootPath) --> "{Note ",!,
+clean_output_(Cs          , RootPath) --> "{Note: ",!,
         clean_expander(Cs, Cs0),
         clean_output_(Cs0,RootPath).
 %
