@@ -637,7 +637,7 @@ explanation of the effects:
 }
 
 @comment{NS: this actually has not been working for some years
-@comment{TODO: T261 --NS}
+@comment{% TODO:T261 --NS}
 @item @code{rtchecks_inline}
   @begin{itemize}
    @item @code{no}     : Instrument rtchecks using call to library
