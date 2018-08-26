@@ -1,5 +1,8 @@
 :- module(dummy3, [main/0], []).
 
+:- use_module(library(lists), [member/2]).
+:- use_module(engine(io_basic)).
+
 cp :- true.
 cp :- display(so), nl.
 

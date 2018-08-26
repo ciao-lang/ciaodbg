@@ -1,5 +1,7 @@
 :- module(dummy4, _, [profiler]).
 
+:- use_module(engine(io_basic)).
+
 aa(X) :-
 	X is 2.55.
 

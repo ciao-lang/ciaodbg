@@ -9,6 +9,7 @@
 
 :- module(knights, [main/1], []).
 
+:- use_module(library(lists), [member/2]).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(prolog_sys)).
 

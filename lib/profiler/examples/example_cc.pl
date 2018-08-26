@@ -1,5 +1,7 @@
 :- module(_, _, [profiler]).
 
+:- use_module(engine(io_basic)).
+
 :- cost_center p1/0, p2/0, p3/0, q/1, r1/0, r2/0.
 
 p1 :-

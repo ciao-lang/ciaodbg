@@ -25,6 +25,7 @@ popularity in 2005.
 
 ").
 
+:- use_module(engine(io_basic)).
 
 digit(1).
 digit(2).

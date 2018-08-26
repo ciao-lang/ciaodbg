@@ -5,6 +5,7 @@
 	    [assertions, regtypes]).
 
 :- use_module(library(hiordlib), [minimum/3, maplist/3]).
+:- use_module(engine(io_aux), [message/1]). % TODO: it should export output_message/1 (with a different name)
 
 :- doc(author, "Teresa Trigo").
 :- doc(author, "Edison Mera").

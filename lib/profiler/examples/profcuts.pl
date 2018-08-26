@@ -1,5 +1,6 @@
 :- module(profcuts, _, [assertions, profiler]).
 
+:- use_module(library(lists), [member/2]).
 :- use_module(library(profiler/profiler_utils)).
 
 :- cost_center p2/0.

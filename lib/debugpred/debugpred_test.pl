@@ -1,5 +1,7 @@
 :- module(_,_,[debugpred]).
 
+:- use_module(engine(io_basic), [display/1]).
+
 :- debugpredstatus(off).
 
 :- debugpred debug_display/1.

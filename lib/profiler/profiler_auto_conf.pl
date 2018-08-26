@@ -24,6 +24,7 @@
 % :- all_cost_center(nohooks).
 % :- cost_center cc_auto_conf_iter/17.
 
+:- use_module(engine(io_basic)).
 :- use_module(library(profiler/profiler_utils)).
 :- use_module(library(profiler/profiler_base)).
 :- use_module(library(profiler/profiler_extra)).

@@ -10,6 +10,7 @@
 :- doc(bug, "Allow different print levels (grouped, event-based, human
    readable, machine readable, etc.)").
 
+:- use_module(engine(io_aux), [message/1]).
 :- use_module(library(lists), [append/3]).
 
 % trace_level(Level, Mod)

@@ -4,6 +4,7 @@
 :- doc(title,"Testing support lib (generic)").
 
 :- use_module(library(unittest/unittest_base), [read_data/2]).
+:- use_module(engine(stream_basic)).
 
 :- doc(author, "Edison Mera").
 

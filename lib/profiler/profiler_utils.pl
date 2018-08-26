@@ -14,6 +14,8 @@
 :- doc(module, "This module provides predicates to interact with the
    profiler for particular calls.").
 
+:- use_module(engine(io_basic)).
+:- use_module(engine(hiord_rt), [call/1]).
 :- use_module(library(read)).
 :- use_module(library(streams)).
 :- use_module(library(system)).

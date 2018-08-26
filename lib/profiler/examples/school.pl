@@ -1,5 +1,6 @@
 :- module(school, _, [profiler]).
 
+:- use_module(engine(io_basic)).
 :- use_module(library(profiler/profiler_utils)).
 :- use_module(library(profiler/profiler_type)).
 

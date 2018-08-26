@@ -20,6 +20,7 @@
 
 :- if((defined(optim_comp), backend(js_backend))).
 :- else.
+:- use_module(engine(io_basic), [display/1,nl/0]).
 :- use_module(library(stream_utils), [write_string/1]).
 :- use_module(library(prolog_sys), [statistics/2]).
 % Dummy code (just benchmark)

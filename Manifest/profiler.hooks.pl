@@ -7,6 +7,7 @@
 :- use_module(library(stream_utils), [string_to_file/2]).
 :- use_module(library(bundle/bundle_paths), [bundle_path/3]).
 :- use_module(library(llists), [flatten/2]).
+:- use_module(engine(stream_basic), [absolute_file_name/2]).
 
 '$builder_hook'(profiler:lib('lib/profiler')).
 '$builder_hook'(profiler:prepare_build_bin) :-

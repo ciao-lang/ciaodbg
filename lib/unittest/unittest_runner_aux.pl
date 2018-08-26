@@ -4,7 +4,7 @@
           process_runner_args/1,
           testing/4
         ],
-        [assertions]).
+        [assertions, hiord]).
 
 :- doc(title,"Testing support lib (runner)").
 
@@ -28,6 +28,7 @@
             write_data/2,
             file_test_output/1
         ]).
+:- use_module(engine(stream_basic)).
 % ----------------------------------------------------------------------
 
 :- data test_id_db/2.

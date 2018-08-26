@@ -10,10 +10,11 @@
 	    float_random/1,
 	    exp_float_random/1,
 	    exp_float_random_extended/1
-	], [assertions]).
+	], [assertions, hiord]).
 
 :- use_module(library(random), [random/1, random/3]).
 :- use_module(library(aggregates), [findnsols/4]).
+:- use_module(engine(stream_basic), [sourcename/1]).
 
 :- doc(title, "Special properties for testing").
 

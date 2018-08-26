@@ -3,6 +3,7 @@
 	    [assertions]).
 
 :- use_module(library(hrtime)).
+:- use_module(engine(hiord_rt), [call/1]).
 
 :- use_module(library(prolog_sys)).
 

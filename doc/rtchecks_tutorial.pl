@@ -335,6 +335,7 @@ checking levels:
 ```ciao
 :- module(ex_levels,[test/0,foo/2],[assertions,regtypes]).
 
+:- use_module(engine(io_basic), [display/1,nl/0]).
 :- use_package(library(rtchecks_opt/opt_rt_unsafe)).        % no checks
 % :- use_package(library(rtchecks_opt/opt_rt_client_safe)). % interface
 % :- use_package(library(rtchecks_opt/opt_rt_safe_rt)).     % all (interface + internal)

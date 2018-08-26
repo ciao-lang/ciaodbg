@@ -15,6 +15,9 @@
  %% mundo: m(Robot, SituacionOro, ObjetosMundo)
 
 :- module(wumpus, [w_n/1, w/0,w/1]).
+
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic)).
 :- use_module(library(write)).
 :- use_module(library(lists)).
 :- use_module(library(aggregates)).

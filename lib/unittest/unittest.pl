@@ -19,6 +19,10 @@
             ],
 	    [assertions, regtypes, isomodes, nativeprops, dcg, fsyntax, hiord]).
 
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic), [nl/0]).
+:- use_module(engine(io_aux), [display_string/1]).
+:- use_module(engine(io_aux), [message/2]).
 :- use_module(library(unittest/unittest_statistics), [statistical_summary/2]).
 :- use_module(library(terms),      [atom_concat/2]).
 :- use_module(library(sort),       [sort/2]).
@@ -44,6 +48,7 @@
 :- use_module(library(compiler/c_itf), [exports/5, defines_module/2]).
 :- use_module(library(lists),
         [
+	    member/2,
             append/3,
             length/2,
             select/3,
@@ -929,7 +934,7 @@ create_wrapper_mod(Module, TmpDir, RtcEntry) :-
         ( wrapper_file_name(TmpDir, Module, WrapperFile),
           create_module_wrapper(TmpDir, Module, RtcEntry, Base, WrapperFile)
         -> true
-        ; error(['Failure in create_wrapper_mod/4'])
+        ; message(error, ['Failure in create_wrapper_mod/4'])
         ).
 
 module_test_entry(Module, TestEntry, TestId) :-

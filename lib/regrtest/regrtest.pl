@@ -40,6 +40,8 @@ where action is one of:
 
 :- doc(bug, "This module will eventually replace @lib{octesting}").
 
+:- use_module(engine(stream_basic)).
+:- use_module(engine(io_basic)).
 :- use_module(library(lists),              [reverse/2, append/3]).
 :- use_module(library(compiler/c_itf),     [defines_module/2,
                                             compute_base_name/4]).

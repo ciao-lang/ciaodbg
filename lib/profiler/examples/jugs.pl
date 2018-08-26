@@ -58,6 +58,7 @@
 
 :- module(jugs, [solve_jugs_n/1, solve_jugs/1]).
 
+:- use_module(library(lists), [member/2]).
 :- use_module(library(between)).
 
 solve_jugs_n(N) :-

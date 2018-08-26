@@ -2,11 +2,15 @@
 	    [assertions, define_flag]).
 
 :- use_module(library(aggregates)).
+:- use_module(library(lists), [member/2]).
 :- use_module(library(llists)).
 :- use_module(library(system)).
 :- use_module(library(stream_utils)).
 :- use_module(library(assertions/assrt_lib),
 	    [assertion_read/9, assertion_body/7]).
+:- use_module(engine(stream_basic), [absolute_file_name/2]).
+
+:- use_module(engine(prolog_flags), [current_prolog_flag/2]).
 
 define_flag(optimized_profiler, [on, off], off).
 

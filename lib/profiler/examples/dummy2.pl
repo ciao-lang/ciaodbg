@@ -1,5 +1,6 @@
 :- module(dummy2, _, [profiler, expander]).
 %:- module(dummy2,_,[]).
+:- use_module(engine(io_basic)).
 :- use_module(library(profiler/profiler_utils)).
 
 choice1(x) :- display(choice1_x), nl.

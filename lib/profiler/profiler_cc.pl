@@ -4,7 +4,7 @@
 		cost_center_nc/4,
 		cost_center_nf/4,
 		cost_center_ncnf/4],
-	    [assertions, nativeprops, profiler]).
+	    [assertions, nativeprops, profiler, hiord]).
 
 :- use_module(library(profiler/profiler_rt)).
 

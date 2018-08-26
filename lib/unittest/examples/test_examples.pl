@@ -6,12 +6,14 @@
             cut_test5/0,
             display_fail/0
         ],
-        [assertions, nativeprops, basicmodes, rtchecks, unittestdecls]).
+        [assertions, nativeprops, basicmodes, rtchecks, unittestdecls, hiord]).
 
 :- doc(author, "Edison Mera").
 :- doc(author, "Nataliia Stulova").
 
 :- doc(module, "Some examples of unit tests.").
+
+:- use_module(engine(io_basic)).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
