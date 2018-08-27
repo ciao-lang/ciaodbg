@@ -5,8 +5,8 @@
 	    ],
 	    [assertions]).
 
-:- use_module(engine(io_aux), [display_list/1]).
-:- use_module(engine(io_aux), [message/2]).
+:- use_module(engine(messages_basic), [display_list/1]).
+:- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(lists),  [length/2]).
 :- use_module(library(llists), [flatten/2]).
 :- use_module(library(format), [sformat/3]).

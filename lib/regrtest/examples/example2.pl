@@ -1,7 +1,7 @@
 :- module(example2,[p/1],[regrtestdecls,assertions,rtchecks]).
 
 :- use_module(engine(io_basic), [nl/0]).
-:- use_module(engine(io_aux), [display_list/1]).
+:- use_module(engine(messages_basic), [display_list/1]).
 
 :- regr_texec p(1.0).
 

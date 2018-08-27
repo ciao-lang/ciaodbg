@@ -5,7 +5,7 @@
 	    [assertions, regtypes]).
 
 :- use_module(library(hiordlib), [minimum/3, maplist/3]).
-:- use_module(engine(io_aux), [message/1]). % TODO: it should export output_message/1 (with a different name)
+:- use_module(engine(messages_basic), [lformat/1]).
 
 :- doc(author, "Teresa Trigo").
 :- doc(author, "Edison Mera").
@@ -52,67 +52,66 @@ label(A) :- atm(A).
 graph_to_tex(_, _, g([], _)) :- !.
 graph_to_tex(_, _, g(_, [])) :- !.
 graph_to_tex(NodeField, EdgeFields, g(Nodes, Edges)) :-
-	message('\\begin{dot2tex}[dot, straightedges, options=-tmath]'),
-	message('digraph G {'),
-	message('ranksep="0.0";'),
-	message('mindist="0";'),
-	message('node [shape=circle];'),
+	lformat('\\begin{dot2tex}[dot, straightedges, options=-tmath]\n'),
+	lformat('digraph G {\n'),
+	lformat('ranksep="0.0";\n'),
+	lformat('mindist="0";\n'),
+	lformat('node [shape=circle];\n'),
 	transform(Nodes, NodesTrans),
 	rename_nodes(NodesTrans, NodesRen, Equiv, 1),
 	rename_edges(Equiv, Edges, EdgesRen),
 	nodes_to_tex(NodesRen),
 	edges_to_tex(EdgesRen, EdgeFields),
-	message('}'),
-	message('\\end{dot2tex}'),
-	message('\\\\'),
-	message('\\\\'),
+	lformat('}\n'),
+	lformat('\\end{dot2tex}\n'),
+	lformat('\\\\\n'),
+	lformat('\\\\\n'),
 	print_equivalences(NodeField, Equiv, Nodes).
 
 :- pred print_equivalences(Field, Equiv, Nodes) #
 "Prints a list of (cost_center,node_in_the_graph,size_of_node) in a 
         latex table.".
 print_equivalences(Field, Equiv, Nodes) :-
-	message('\\begin{tabular}{|c|c|c|}'),
-	message('\\hline'),
+	lformat('\\begin{tabular}{|c|c|c|}\n'),
+	lformat('\\hline\n'),
 	print_header(Field),
-	message('\\hline'),
+	lformat('\\hline\n'),
 	print_equivalences_(Equiv, Nodes),
-	message('\\end{tabular}').
+	lformat('\\end{tabular}\n').
 
 print_equivalences_([],              []).
 print_equivalences_([(CC, N)|Equiv], [n(CC, Size)|Nodes]) :-
-	message(['cc', N, '&', ''(CC), '&', Size, '\\\\']),
-	message('\\hline'),
+	lformat(['cc', N, '&', ''(CC), '&', Size, '\\\\\n']),
+	lformat('\\hline\n'),
 	print_equivalences_(Equiv, Nodes).
 
 print_header(counts) :-
-	message('Node & Cost Center Name & Cost Center Size (Counts)\\\\').
+	lformat('Node & Cost Center Name & Cost Center Size (Counts)\\\\\n').
 print_header((counts, per)) :-
-	message('Node & Cost Center Name & Cost Center Size (Counts \\%)\\\\').
+	lformat('Node & Cost Center Name & Cost Center Size (Counts \\%)\\\\\n').
 print_header(ticks) :-
-	message('Node & Cost Center Name & Cost Center Size (Ticks)\\\\').
+	lformat('Node & Cost Center Name & Cost Center Size (Ticks)\\\\\n').
 print_header((ticks,per)) :-
-	message('Node & Cost Center Name & Cost Center Size (Ticks \\%)\\\\').
+	lformat('Node & Cost Center Name & Cost Center Size (Ticks \\%)\\\\\n').
 print_header(time(_)) :-
-	message(
-	    'Node & Cost Center Name & Cost Center Size (Execution Time)\\\\').
+	lformat(
+	    'Node & Cost Center Name & Cost Center Size (Execution Time)\\\\\n').
 print_header((time(_),per)) :-
-	message(
-	    'Node & Cost Center Name & Cost Center Size (Execution Time \\%)\\\\').
+	lformat(
+	    'Node & Cost Center Name & Cost Center Size (Execution Time \\%)\\\\\n').
 print_header(Values) :-
-	message(
-	    ['Node & Cost Center Name & Cost Center Size (', Values, ')\\\\']).
+	lformat(
+	    ['Node & Cost Center Name & Cost Center Size (', Values, ')\\\\\n']).
 print_header((Values,per)) :-
-	message(
-	    ['Node & Cost Center Name & Cost Center Size (', Values, '\\%)\\\\']).
+	lformat(
+	    ['Node & Cost Center Name & Cost Center Size (', Values, '\\%)\\\\\n']).
 
 
 nodes_to_tex([]).
 nodes_to_tex([n(N, T)|Nodes]) :-
 	T0 is T/10,
 	color(T, Color),
-	message(['cc', N, '[margin="', T0, '", style="fill= ', Color, '!20"];']
-	),
+	lformat(['cc', N, '[margin="', T0, '", style="fill= ', Color, '!20"];\n']),
 	nodes_to_tex(Nodes).
 
 %% Color the nodes of the graph
@@ -140,19 +139,19 @@ edges_to_tex([e(O, D, Values)|Edges], EdgeFields) :-
 	    Values = [C_E, C_F, R_E, R_F],
 	    (
 		O = D ->
-		message(['cc', O, '->', 'cc', O, ' [label="', C_E, ' ', C_F,
-			',', R_E, R_F, '", topath="loop right"];'])
+		lformat(['cc', O, '->', 'cc', O, ' [label="', C_E, ' ', C_F,
+			',', R_E, R_F, '", topath="loop right"];\n'])
 	    ;
-		message(['cc', O, '->', 'cc', D, ' [label="', C_E, ' ', C_F,
-			',', R_E, ' ', R_F, '"];'])
+		lformat(['cc', O, '->', 'cc', D, ' [label="', C_E, ' ', C_F,
+			',', R_E, ' ', R_F, '"];\n'])
 	    )
 	;
 	    (
 		O = D ->
-		message(['cc', O, '->', 'cc', O, ' [label="', Values,
-			'", topath="loop right"];'])
+		lformat(['cc', O, '->', 'cc', O, ' [label="', Values,
+			'", topath="loop right"];\n'])
 	    ;
-		message(['cc', O, '->', 'cc', D, ' [label="', Values, '"];'])
+		lformat(['cc', O, '->', 'cc', D, ' [label="', Values, '"];\n'])
 	    )
 	),
 	edges_to_tex(Edges, EdgeFields).

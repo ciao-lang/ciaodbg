@@ -10,7 +10,7 @@
 :- doc(bug, "Allow different print levels (grouped, event-based, human
    readable, machine readable, etc.)").
 
-:- use_module(engine(io_aux), [message/1]).
+:- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(lists), [append/3]).
 
 % trace_level(Level, Mod)
@@ -81,7 +81,7 @@ trace(Mod, Msg) :-
 % Print indented message
 print_msg(Mod, Msg) :-
 	indent_msg(Mod, Msg, Msg2),
-	message(Msg2).
+	message(user, Msg2).
 
 % Add indentation marks after each '\n'
 indent_msg(Mod, Xs, Ys) :-

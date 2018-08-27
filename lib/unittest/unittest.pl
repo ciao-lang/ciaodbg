@@ -21,8 +21,8 @@
 
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic), [nl/0]).
-:- use_module(engine(io_aux), [display_string/1]).
-:- use_module(engine(io_aux), [message/2]).
+:- use_module(engine(messages_basic), [display_string/1]).
+:- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(unittest/unittest_statistics), [statistical_summary/2]).
 :- use_module(library(terms),      [atom_concat/2]).
 :- use_module(library(sort),       [sort/2]).
