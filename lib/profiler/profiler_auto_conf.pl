@@ -36,11 +36,11 @@
 :- use_module(library(format)).
 :- use_module(library(hiordlib), [maplist/2, maplist/3, foldl/4, minimum/3]).
 :- use_module(library(compiler), [use_module/1]).
-:- use_module(library(streams)).
 :- use_module(library(system)).
 :- use_module(library(lists)).
 :- use_module(library(llists), [flatten/2]).
 :- use_module(library(stream_utils)).
+:- use_module(library(stream_utils), [open_output/2, close_output/1]).
 :- use_module(library(write)).
 :- use_module(library(terms),                    [atom_concat/2]).
 :- use_module(library(compiler/c_itf_internal), [defines_module/2]).
