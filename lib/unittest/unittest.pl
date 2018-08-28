@@ -21,7 +21,7 @@
 
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic), [nl/0]).
-:- use_module(engine(messages_basic), [display_string/1]).
+:- use_module(library(stream_utils), [write_string/1]).
 :- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(unittest/unittest_statistics), [statistical_summary/2]).
 :- use_module(library(terms),      [atom_concat/2]).
@@ -792,10 +792,10 @@ assert_test_output(test_output_db(A, B)) :-
 assert_test_attributes(test_attributes_db(A, B, C, D, E, F, G, H, I)) :-
 	assertz_fact(test_attributes_db(A, B, C, D, E, F, G, H, I)).
 
-dump_output(yes, StrOut) :- display_string(StrOut).
+dump_output(yes, StrOut) :- write_string(StrOut).
 dump_output(no,  _).
 
-dump_error(yes, StrErr) :- display_string(StrErr).
+dump_error(yes, StrErr) :- write_string(StrErr).
 dump_error(no,  _).
 
 :- pred do_tests(TmpDir, Loader, DumpOutput, DumpError, RunnerArgs)
