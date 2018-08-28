@@ -250,9 +250,10 @@ ERROR: (lns 19-21) Failed in foo:len(L,N).
 }
 ```
 
-@begin{alert} @bf{Bug:} currently all @tt{rtchecks*} packages do not support
-interleaving assertions and predicate clauses. See @tt{rtchecks/rtchecks_tr.pl}
-for details.
+@begin{alert}
+@bf{Bug:} currently not all @tt{rtchecks*} packages support
+interleaving assertions and predicate clauses. See
+@tt{rtchecks/rtchecks_tr.pl} for details.
 @end{alert}
 
 @comment{NS: added example from my thesis. look also at rtchecks_cost?}
@@ -418,11 +419,10 @@ More details are available from the related publication
 
 @subsection{Shallow run-time checking}
 
-
-@begin{alert}
- @bf{Note:} this is a new feature and under active development. The
- documentation may be partial/obsolete.
-@end{alert}
+@begin{note}
+@bf{Note:} this is a new feature and under active development. The
+documentation may be partial/obsolete.
+@end{note}
 
 Shallow run-time checking is an optimization of run-time checks of
 regular types in predicate calls across module boundaries in presence
@@ -432,16 +432,15 @@ package).
 @begin{alert}
 @bf{Bug:} this syntax is currently not working properly, please use this feature
 through an appropriate assertion checking level of @lib{rtchecks_opt}.
-
-@begin{cartouche}
+@end{alert}
+@begin{note}
 To enable property caching in run-time checks use a variant of the
 @lib{rtchecks} package, namely @lib{rtchecks_shallow}, together with
 the @lib{termhide} package:
 ```ciao
 :- module(MOD, _, [assertions,termhide,rtchecks_shallow]).
 ```
-@end{cartouche}
-@end{alert}
+@end{note}
 
 More details are available from the related publication
 @cite{termhide-padl2018}.
@@ -487,7 +486,7 @@ checks w.r.t. this information.
 'tree$shallow'(tree(LC,X,RC)) :- term(LC),term(X),term(RC).
 ```
 
-@begin{alert}
+@begin{note}
 @bf{Note}: currently it is not possible to print/output the inferred
 shallow regular types, as it is implemented as an internal compiler
 pass. However, they can be viewed at the WAM level. To produce the
@@ -529,7 +528,7 @@ clause('bintrees:tree$shallow/1/2',
    ,deallocate
    ,execute(/('basic_props:term',1))]).
 ```
-@end{alert}
+@end{note}
 
 @subsection{Check caching}
 
