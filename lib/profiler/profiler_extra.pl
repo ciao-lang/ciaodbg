@@ -5,7 +5,7 @@
 :- use_module(library(hrtime)).
 :- use_module(engine(hiord_rt), [call/1]).
 
-:- use_module(library(prolog_sys)).
+:- use_module(library(prolog_sys), [statistics/2]).
 
 :- doc(module, "Implementation of some predicates related with the
    profiler, but that don't requires the activation of the profiling
