@@ -258,10 +258,10 @@ interleaving assertions and predicate clauses. See
 
 @comment{NS: added example from my thesis. look also at rtchecks_cost?}
 
-@begin{cartouche}
+@begin{note}
 @bf{Note about performance}: run-time checks usually affect the complexity of
 the program, which results in noticeable run-time overhead.
-@end{cartouche}
+@end{note}
 
 Consider a simplified specification of the @tt{len/2} predicate:
 
@@ -533,8 +533,8 @@ clause('bintrees:tree$shallow/1/2',
 @subsection{Check caching}
 
 @begin{alert}
- @bf{Note:} this is a new feature and under active development. The
- documentation may be partial/obsolete.
+This is a new feature and under active development. This documentation
+may be partial/obsolete.
 @end{alert}
 
 To enable property caching in run-time checks use a variant of the
@@ -711,10 +711,9 @@ explanation of the effects:
 
 @section{Custom property checks}
 
-
 @begin{alert}
- @bf{Note:} this is a new feature and under active development. The
- documentation may be partial/obsolete.
+This is a new feature and under active development. This documentation
+may be partial/obsolete.
 @end{alert}
 
 In some cases declarative property definitions are not efficient enough
@@ -829,8 +828,8 @@ For testing instructions of a specific run-time checks implementation (packages
 
 
 :- doc(appendix,
-        "@begin{alert}
+        "@begin{note}
            @bf{Note:} the @tt{assertions} package must always be included
            together with the @tt{rtchecks} package
            (see @tt{core/lib/compiler/global_module_options.pl} for details).
-         @end{alert}").
+         @end{note}").
