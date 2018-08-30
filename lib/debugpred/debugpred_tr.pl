@@ -1,5 +1,7 @@
 :- module(_,_,[assertions]).
 
+:- use_module(engine(data_facts)).
+
 :- data debugpred/3.
 
 :- data debugpredstatus/2.

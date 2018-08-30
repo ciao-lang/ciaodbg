@@ -14,6 +14,7 @@
 	    ],
 	    [assertions, regtypes, unittestdecls]).
 
+:- use_module(engine(data_facts)).
 :- use_module(library(terms), [atom_concat/2]).
 :- use_module(library(stream_utils), [string_to_file/2]).
 :- use_module(library(system), [mktemp_in_tmp/2, delete_file/1]).

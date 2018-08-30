@@ -32,6 +32,7 @@
 
 :- use_module(library(profiler/graph_to_tex)).
 
+:- use_module(engine(data_facts)).
 :- use_module(library(aggregates)).
 :- use_module(library(format)).
 :- use_module(library(hiordlib), [maplist/2, maplist/3, foldl/4, minimum/3]).

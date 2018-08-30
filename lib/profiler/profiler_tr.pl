@@ -1,6 +1,7 @@
 :- module(profiler_tr, [profiler_def/3, profiler_goal_trans/3, cost_center/4],
 	    [assertions, define_flag]).
 
+:- use_module(engine(data_facts)).
 :- use_module(library(aggregates)).
 :- use_module(library(lists), [member/2]).
 :- use_module(library(llists)).

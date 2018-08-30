@@ -15,6 +15,7 @@
 % TODO: move (parts of) this lib into rtchecks?
 
 % ----------------------------------------------------------------------
+:- use_module(engine(data_facts)).
 :- use_module(library(compiler),   [use_module/1]).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(pathnames),  [path_concat/3]).

@@ -1,4 +1,3 @@
-
 :- module(byrd,
 	[ flipflop/0,
 	  spy/1,
@@ -9,6 +8,7 @@
 	[ assertions
 	]).
 
+:- use_module(engine(data_facts)).
 :- use_module(engine(hiord_rt), [call/1]).
 :- use_module(engine(internals), [module_concat/3, term_to_meta/2]).
 :- use_module(library(messages), [simple_message/2]).

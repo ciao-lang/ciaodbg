@@ -7,6 +7,7 @@
 	[ assertions
 	]).
 
+:- use_module(engine(data_facts)).
 :- use_module(engine(hiord_rt), [call/1]).
 :- use_module(engine(internals), [module_concat/3]).
 :- use_module(library(byrdbox/byrd), [nospy/1, spy/1, trace0/1]).

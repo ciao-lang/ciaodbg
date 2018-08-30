@@ -19,6 +19,7 @@
             ],
 	    [assertions, regtypes, isomodes, nativeprops, dcg, fsyntax, hiord]).
 
+:- use_module(engine(data_facts)).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic), [nl/0]).
 :- use_module(library(stream_utils), [write_string/1]).
