@@ -1,7 +1,7 @@
 :- module(mqu, [queens_n/2, queens/1], []).
 
 :- use_module(library(write),      [write/1]).
-:- use_module(library(prolog_sys), [statistics/2]).
+:- use_module(engine(runtime_control), [statistics/2]).
 :- use_module(library(between)).
 
 queens_n(N, A) :-

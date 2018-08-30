@@ -1,6 +1,6 @@
 :- module(size, [mem/0, mem_/1], []).
 %:- use_module(library(format)).
-%:- use_module(library(prolog_sys), [statistics/2]).
+%:- use_module(engine(runtime_control), [statistics/2]).
 
 /* Test memory usage: construct a large integers list, then double
         copy it, and make another list doubling each element */

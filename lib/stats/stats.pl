@@ -5,10 +5,10 @@
 :- doc(bug, "Code around statistics/2 calls introduce some measure
    noise.").
 
-%:- use_module(library(prolog_sys), [statistics/0]).
+%:- use_module(engine(runtime_control), [statistics/0]).
 :- use_module(engine(io_basic)).
 :- use_module(library(format), [format/3]).
-:- use_module(library(prolog_sys), [statistics/2]).
+:- use_module(engine(runtime_control), [statistics/2]).
 :- use_module(library(between), [between/3]).
 
 :- use_module(engine(internals), ['$empty_gcdef_bin'/0]).

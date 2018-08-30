@@ -22,7 +22,7 @@
 :- else.
 :- use_module(engine(io_basic), [display/1,nl/0]).
 :- use_module(library(stream_utils), [write_string/1]).
-:- use_module(library(prolog_sys), [statistics/2]).
+:- use_module(engine(runtime_control), [statistics/2]).
 % Dummy code (just benchmark)
 :- export(main/0).
 main :-
