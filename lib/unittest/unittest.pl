@@ -17,9 +17,8 @@
                 test_option/1,
                 test_action/1
             ],
-	    [assertions, regtypes, isomodes, nativeprops, dcg, fsyntax, hiord]).
+	    [assertions, regtypes, isomodes, nativeprops, dcg, fsyntax, hiord, datafacts]).
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic), [nl/0]).
 :- use_module(library(stream_utils), [write_string/1]).

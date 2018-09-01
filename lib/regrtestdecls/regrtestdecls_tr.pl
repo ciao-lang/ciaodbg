@@ -1,4 +1,4 @@
-:- module(regrtestdecls_tr,[sentence_tr/4],[assertions]).
+:- module(regrtestdecls_tr,[sentence_tr/4],[assertions,datafacts]).
 
 :- doc(title, "Regression testing syntax support").
 
@@ -35,7 +35,6 @@ relative location w.r.t. the @tt{regr-db} repo of the output for the
 test.
 ").
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(stream_basic)).
 :- use_module(library(write),          [write/2]).
 :- use_module(library(compiler/c_itf), [defines_module/2]).

@@ -1,4 +1,4 @@
-:- module(graphic_trace, [], [assertions]).
+:- module(graphic_trace, [], [assertions, datafacts]).
 
 % Warning: File encoded in UTF-8.
    
@@ -10,7 +10,6 @@
 :- doc(bug, "Allow different print levels (grouped, event-based, human
    readable, machine readable, etc.)").
 
-:- use_module(engine(data_facts)).
 :- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(lists), [append/3]).
 

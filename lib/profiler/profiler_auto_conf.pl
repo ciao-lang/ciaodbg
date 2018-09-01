@@ -9,7 +9,7 @@
 		reset/1,
 		record_time/1,
 		tree_to_tex/2],
-	    [assertions, nativeprops, foreign_interface]).
+	    [assertions, nativeprops, foreign_interface, datafacts]).
 
 :- doc(title, "Profiler Auto Configuration of Cost Centers").
 :- doc(author, "Teresa Trigo").
@@ -32,7 +32,6 @@
 
 :- use_module(library(profiler/graph_to_tex)).
 
-:- use_module(engine(data_facts)).
 :- use_module(library(aggregates)).
 :- use_module(library(format)).
 :- use_module(library(hiordlib), [maplist/2, maplist/3, foldl/4, minimum/3]).

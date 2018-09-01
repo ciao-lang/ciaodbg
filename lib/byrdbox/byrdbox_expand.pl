@@ -1,6 +1,5 @@
-:- module(byrdbox_expand,[ expand_byrdbox/3 ],[ ]).
+:- module(byrdbox_expand, [expand_byrdbox/3], [datafacts]).
 
-:- use_module(engine(data_facts)).
 
 %% Assumed this expansion treats one module at a time!
 
