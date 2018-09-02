@@ -9,7 +9,7 @@
 
 :- doc(copyright,"Copyright @copyright{} Manuel Hermenegildo
 
-@include{DocCopyright.lpdoc}
+@include{FreeDocLicense.lpdoc}
 
 ").
 

@@ -2,7 +2,7 @@
 
 %! \title Config for CiaoDbg reference manual
 
-:- include(ciao_docsrc(common/'LPDOCCOMMON')).
+:- include(core_docsrc(common/'LPDOCCOMMON')).
 
 filepath := at_bundle(ciaodbg, 'lib').
 filepath := ~ciaofilepath_common.

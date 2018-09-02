@@ -7,7 +7,7 @@
 :- doc(bug, "add in the main manual a reference for rtchecks documentation here.").
 :- doc(bug, "move debugger here (as chapter), THEN put debugger in title.").
 
-% :- include(ciao_docsrc(common/'ClipAddress')).
+% :- include(core_docsrc(common/'ClipAddress')).
 
 :- doc(summary, "This bundle implements a debugging, testing, and
 profiling framework (aka
