@@ -2,7 +2,7 @@
 
 % Warning: File encoded in UTF-8.
    
-:- doc(title, "Predicate Tracing Facilities").
+:- doc(title, "Predicate tracing facilities").
 :- doc(author, "Jose F. Morales").
 
 :- doc(bug, "Merge with static_trace library, document").

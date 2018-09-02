@@ -11,7 +11,7 @@
 		tree_to_tex/2],
 	    [assertions, nativeprops, foreign_interface, datafacts]).
 
-:- doc(title, "Profiler Auto Configuration of Cost Centers").
+:- doc(title, "Profiler auto-configuration of cost centers").
 :- doc(author, "Teresa Trigo").
 
 :- doc(module, "This module performs an automatic cost center

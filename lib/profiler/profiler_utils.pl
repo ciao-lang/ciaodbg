@@ -9,7 +9,7 @@
 		deactivate_hooks/0
 	    ], [assertions, nativeprops]).
 
-:- doc(title, "Profiler Utilities").
+:- doc(title, "Profiler utilities").
 
 :- doc(module, "This module provides predicates to interact with the
    profiler for particular calls.").
