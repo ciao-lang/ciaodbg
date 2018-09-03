@@ -1,6 +1,6 @@
 :- module(profiler_extra, [measure/2, measure/3, measure_nf/3,
 		measure_0/3, get_option/1, time_option/2],
-	    [assertions]).
+	    [assertions, datafacts]).
 
 :- use_module(library(hrtime)).
 :- use_module(engine(hiord_rt), [call/1]).
