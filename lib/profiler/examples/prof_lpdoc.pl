@@ -3,6 +3,7 @@
 % TODO: This example is outdated (synchronize with more recent LPdoc versions)
 
 :- use_module(engine(stream_basic), [absolute_file_name/2]).
+:- use_module(library(streams)).
 :- use_module(library(write)).
 :- use_module(library(profiler/profiler_utils)).
 :- use_module(library(profiler/profiler_auto_conf)).

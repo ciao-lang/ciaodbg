@@ -73,7 +73,7 @@
 :- module(witt, [main/1, do_witt/0], [profiler, expander]).
 %:- module(witt, [main/1,do_witt/0], []).
 :- use_module(engine(runtime_control), [statistics/0, statistics/2]).
-:- use_module(engine(io_basic)).
+:- use_module(library(streams)).
 :- use_module(library(write)).
 :- use_module(library(aggregates)).
 :- use_module(library(lists)).

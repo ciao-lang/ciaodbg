@@ -46,6 +46,7 @@ p(S, T, R) :-
 	course(C1, R, _D1), course(C2, R, _D2),
 	\+(C1 = C2).
 
+:- use_module(library(streams)).
 :- use_module(library(write)).
 
 main :-
