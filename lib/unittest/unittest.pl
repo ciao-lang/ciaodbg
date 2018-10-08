@@ -968,9 +968,7 @@ create_module_wrapper(TmpDir, Module, RtcEntry, Src, WrapperFile) :-
                 (:- use_module(library(unittest/unittest_runner_aux))),
                 (:- use_module(library(rtchecks/rtchecks_rt))),
                 (:- use_module(library(rtchecks/rtchecks_basic))),
-		(:- push_prolog_flag(unused_pred_warnings, no)),
 		(:- use_module(library(unittest/unittest_props))),
-		(:- pop_prolog_flag(unused_pred_warnings)),
 		(:- use_module(Src))
         ],
 	collect_test_modules(Src, TestModules),
