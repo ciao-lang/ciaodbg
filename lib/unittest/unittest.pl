@@ -628,7 +628,7 @@ create_loader(TmpDir, RunnerFile) :-
 % Kludge: Wrong behavior if you link RunnerFile in the executable directly.
 create_loader_pl(RunnerFile, LoaderPo) :-
 	Cs = [
-                (:- module(_, [main/1], [])),
+                (:- module(_, [main/1], [hiord])),
 		(:- use_module(library(compiler), [use_module/1])),
 		(main(Args) :- use_module(RunnerFile), _:main_tests(Args))
 	    ],
