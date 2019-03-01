@@ -29,7 +29,7 @@
 
 
 :- export(get_profile_active/1).
-:- true pred get_profile_active(go(Active)) :: int
+:- trust pred get_profile_active(go(Active)) :: int
 	+ (foreign_low(prolog_get_profile_active)) #
  
 	"Unifies Active with 1 if the profiler is turned on, or with 0 otherwise"  -->
@@ -42,7 +42,7 @@ CBOOL__PROTO(prolog_get_profile_active)
 ".
 
 :- export(add_node_cc/2).
-:- true pred add_node_cc(in(Name), in(Arity)) :: atm * int
+:- trust pred add_node_cc(in(Name), in(Arity)) :: atm * int
 	+ (foreign_low(prolog_add_node_cc), not_fails) -->
 "
 void add_node_cc(struct ht_tab *vl, definition_t *functor);
@@ -59,7 +59,7 @@ CBOOL__PROTO(prolog_add_node_cc)
 ".
 
 :- export(profile_init/0).
-:- true pred profile_init + (foreign_low(prolog_profile_init)) -->
+:- trust pred profile_init + (foreign_low(prolog_profile_init)) -->
 
 "
 CBOOL__PROTO(prolog_profile_init)
@@ -70,7 +70,7 @@ CBOOL__PROTO(prolog_profile_init)
 ".
 
 :- export(cc_call/5).
-:- true pred cc_call(in(Name), in(Arity), in(Hooks), go(PrevECC), go(CutTo))
+:- trust pred cc_call(in(Name), in(Arity), in(Hooks), go(PrevECC), go(CutTo))
 	:: atm * int * int * int * int + ( foreign_low(prolog_cc_call),
 	    not_fails ) -->
 "
@@ -84,7 +84,7 @@ CBOOL__PROTO(prolog_cc_call)
 ".
 
 :- export(cc_redo_1/3).
-:- true pred cc_redo_1(in(ChPt0), in(ChPt1), in(CutTo)) :: int * int * int
+:- trust pred cc_redo_1(in(ChPt0), in(ChPt1), in(CutTo)) :: int * int * int
 	+ (foreign_low(prolog_cc_redo_1), not_fails) -->
 "
 CBOOL__PROTO(prolog_cc_redo_1)
@@ -110,7 +110,7 @@ CBOOL__PROTO(prolog_cc_redo_1)
 ".
 
 :- export(cc_redo_1_nf/2).
-:- true pred cc_redo_1_nf(in(ChPt1), in(CutTo)) :: int * int
+:- trust pred cc_redo_1_nf(in(ChPt1), in(CutTo)) :: int * int
 	+ (foreign_low(prolog_cc_redo_1_nf), not_fails) -->
 "
 CBOOL__PROTO(prolog_cc_redo_1_nf)
@@ -135,7 +135,7 @@ CBOOL__PROTO(prolog_cc_redo_1_nf)
 ".
 
 :- export(cc_redo_2/1).
-:- true pred cc_redo_2(in(ActiveCC)) :: int
+:- trust pred cc_redo_2(in(ActiveCC)) :: int
 	+ (foreign_low(prolog_cc_redo_2), fails) -->
 "
 CBOOL__PROTO(prolog_cc_redo_2)
@@ -173,7 +173,7 @@ CBOOL__PROTO(prolog_cc_redo_2)
 ".
 
 :- export(cc_exit/3).
-:- true pred cc_exit(in(PrevECC), go(ActiveCC), go(ChPt))
+:- trust pred cc_exit(in(PrevECC), go(ActiveCC), go(ChPt))
 	:: int * int * int
 	+ (foreign_low(prolog_cc_exit), not_fails) -->
 "
@@ -231,7 +231,7 @@ CBOOL__PROTO(prolog_cc_exit)
 ".
 
 :- export(cc_fail_1/1).
-:- true pred cc_fail_1(go(ChPt)) :: int
+:- trust pred cc_fail_1(go(ChPt)) :: int
 	+ (foreign_low(prolog_cc_fail_1), not_fails) -->
 "
 CBOOL__PROTO(prolog_cc_fail_1)
@@ -246,7 +246,7 @@ CBOOL__PROTO(prolog_cc_fail_1)
 ".
 
 :- export(cc_fail_2/1).
-:- true pred cc_fail_2(in(PrevECC)) :: int
+:- trust pred cc_fail_2(in(PrevECC)) :: int
 	+ (foreign_low(prolog_cc_fail_2), fails) -->
 "
 CBOOL__PROTO(prolog_cc_fail_2)
@@ -292,7 +292,7 @@ CBOOL__PROTO(prolog_cc_fail_2)
 
 
 :- export(cc_exit_nc/2).
-:- true pred cc_exit_nc(in(PrevECC), in(CutTo)) :: int * int
+:- trust pred cc_exit_nc(in(PrevECC), in(CutTo)) :: int * int
 	+ (foreign_low(prolog_cc_exit_nc), not_fails) -->
 "
 CBOOL__PROTO(prolog_cc_exit_nc)
@@ -310,7 +310,7 @@ CBOOL__PROTO(prolog_cc_exit_nc)
 ".
 
 :- export(cc_call_ncnf/4).
-:- true pred cc_call_ncnf(in(Name), in(Arity), in(Hooks), go(PrevECC))
+:- trust pred cc_call_ncnf(in(Name), in(Arity), in(Hooks), go(PrevECC))
 	:: atm * int * int * int
 	+ (foreign_low(prolog_cc_call_ncnf), not_fails) -->
 "
@@ -361,7 +361,7 @@ CBOOL__PROTO(prolog_cc_call_ncnf)
 ".
 
 :- export(cc_exit_ncnf/1).
-:- true pred cc_exit_ncnf(in(PrevECC)) :: int
+:- trust pred cc_exit_ncnf(in(PrevECC)) :: int
 	+ (foreign_low(prolog_cc_exit_ncnf), not_fails) -->
 "
 CBOOL__PROTO(prolog_cc_exit_ncnf)
@@ -376,7 +376,7 @@ CBOOL__PROTO(prolog_cc_exit_ncnf)
 ".
 
 :- export(cc_call_nf/5).
-:- true pred cc_call_nf(in(Name), in(Arity), in(Hooks), go(PrevECC), go(CutTo))
+:- trust pred cc_call_nf(in(Name), in(Arity), in(Hooks), go(PrevECC), go(CutTo))
 	:: atm * int * int * int * int
 	+ (foreign_low(prolog_cc_call_nf), not_fails) -->
 "
@@ -391,7 +391,7 @@ CBOOL__PROTO(prolog_cc_call_nf)
 /* for profiler_utils_native */
 
 :- export(dump_node_table_cc/0).
-:- true pred dump_node_table_cc + (foreign_low(prolog_dump_node_table_cc))
+:- trust pred dump_node_table_cc + (foreign_low(prolog_dump_node_table_cc))
 	--> "
 CBOOL__PROTO(prolog_dump_node_table_cc)
 {
@@ -407,7 +407,7 @@ CBOOL__PROTO(prolog_dump_node_table_cc)
 
 
 :- export(have_overhead/2).
-:- true pred have_overhead(in(Name), in(Arity)) :: atm * int +
+:- trust pred have_overhead(in(Name), in(Arity)) :: atm * int +
 	(foreign_low(prolog_have_overhead)) -->
 "
 CBOOL__PROTO(prolog_have_overhead)
@@ -423,7 +423,7 @@ CBOOL__PROTO(prolog_have_overhead)
 ".
 
 :- export(profile_dump/0).
-:- true pred profile_dump + (foreign_low(prolog_profile_dump)) # "Show the
+:- trust pred profile_dump + (foreign_low(prolog_profile_dump)) # "Show the
    information collected by the profiler." -->
 
 "
@@ -436,7 +436,7 @@ CBOOL__PROTO(prolog_profile_dump)
 ".
 
 :- export(do_profile_reset/0).
-:- true pred do_profile_reset + (foreign_low(prolog_profile_reset)) #
+:- trust pred do_profile_reset + (foreign_low(prolog_profile_reset)) #
 "Restart the profiler.  This option erases previously collected
    information." -->
 
@@ -449,7 +449,7 @@ CBOOL__PROTO(prolog_profile_reset)
 ".
 
 :- export(get_trace_active/1).
-:- true pred get_trace_active(go(Active)) :: int +
+:- trust pred get_trace_active(go(Active)) :: int +
 	(foreign_low(prolog_get_trace_active)) #
 
 	"Return 1 if the trace is active, or 0 otherwise." -->
@@ -466,7 +466,7 @@ CBOOL__PROTO(prolog_get_trace_active)
 ".
 
 :- export(set_trace_active/1).
-:- true pred set_trace_active(in(Active)) :: int +
+:- trust pred set_trace_active(in(Active)) :: int +
 	(foreign_low(prolog_set_trace_active)) #
 
 	"If @var{Active} is 0, turn off the trace, otherwise it is turned on." 
@@ -490,7 +490,7 @@ CBOOL__PROTO(prolog_set_trace_active)
 
 
 :- export(get_hooks_active/1).
-:- true pred get_hooks_active(go(Active)) :: int +
+:- trust pred get_hooks_active(go(Active)) :: int +
 	(foreign_low(prolog_get_hooks_active)) #
 
 	"Return 1 if the hooks are active, or 0 otherwise." -->
@@ -507,7 +507,7 @@ CBOOL__PROTO(prolog_get_hooks_active)
 ".
 
 :- export(set_hooks_active/1).
-:- true pred set_hooks_active(in(Active)) :: int +
+:- trust pred set_hooks_active(in(Active)) :: int +
 	(foreign_low(prolog_set_hooks_active)) #
 
 	"If Active is 0, turn off the hooks, otherwise turn them on." -->
@@ -529,7 +529,7 @@ CBOOL__PROTO(prolog_set_hooks_active)
 ".
 
 :- export(using_timestamp/1).
-:- true pred using_timestamp(go(UsingTimeStamp)) :: int +
+:- trust pred using_timestamp(go(UsingTimeStamp)) :: int +
 	(foreign_low(prolog_using_timestamp)) #
 
 "Unifies @var{UsingTimeStamp} with 1 if the profile is using timestamp
@@ -549,7 +549,7 @@ CBOOL__PROTO(prolog_using_timestamp)
 ".
 
 :- export(total_time/1).
-:- true pred total_time(go(TotalTime)) :: c_double +
+:- trust pred total_time(go(TotalTime)) :: c_double +
 	(foreign(total_time), returns(TotalTime)) -->
 
 "
@@ -560,7 +560,7 @@ double total_time(void)
 ".
 
 :- export(cost_center_edge_counts/7).
-:- true pred cost_center_edge_counts(Name0, Arity0, Name, Arity, Enter,
+:- trust pred cost_center_edge_counts(Name0, Arity0, Name, Arity, Enter,
 	    Leave, Counts) :: atm * int * atm* int * int * int * int
 	+ (foreign_low(prolog_cost_center_edge_counts)) -->
 
@@ -589,7 +589,7 @@ CBOOL__PROTO(prolog_cost_center_edge_counts)
 ".
 
 :- export(cost_center_edge_ticks/7).
-:- true pred cost_center_edge_ticks(Name0, Arity0, Name, Arity, Enter,
+:- trust pred cost_center_edge_ticks(Name0, Arity0, Name, Arity, Enter,
 	    Leave, Ticks) :: atm * int * atm* int * int * int * int
 	+ (foreign_low(prolog_cost_center_edge_ticks)) -->
 
@@ -619,7 +619,7 @@ CBOOL__PROTO(prolog_cost_center_edge_ticks)
 
 
 :- export(cost_center_node_counts/5).
-:- true pred cost_center_node_counts(Name, Arity, Enter,
+:- trust pred cost_center_node_counts(Name, Arity, Enter,
 	    Leave, Counts) :: atm* int * int * int * int
 	+ (foreign_low(prolog_cost_center_node_counts)) -->
 
@@ -653,7 +653,7 @@ CBOOL__PROTO(prolog_cost_center_node_counts)
 ".
 
 :- export(cost_center_node_ticks/5).
-:- true pred cost_center_node_ticks(Name, Arity, Enter,
+:- trust pred cost_center_node_ticks(Name, Arity, Enter,
 	    Leave, Ticks) :: atm* int * int * int * int
 	+ (foreign_low(prolog_cost_center_node_ticks)) -->
 
@@ -687,7 +687,7 @@ CBOOL__PROTO(prolog_cost_center_node_ticks)
 ".
 
 :- export(cost_center_global_counts/3).
-:- true pred cost_center_global_counts(Enter, Leave, Counts) :: int * int * int
+:- trust pred cost_center_global_counts(Enter, Leave, Counts) :: int * int * int
 	+ (foreign_low(prolog_cost_center_global_counts)) -->
 
 "
@@ -715,7 +715,7 @@ CBOOL__PROTO(prolog_cost_center_global_counts)
 ".
 
 :- export(cost_center_global_ticks/3).
-:- true pred cost_center_global_ticks(Enter, Leave, Counts) :: int * int * int
+:- trust pred cost_center_global_ticks(Enter, Leave, Counts) :: int * int * int
 	+ (foreign_low(prolog_cost_center_global_ticks)) -->
 
 "
@@ -807,7 +807,7 @@ static void profile_leave(int output_port) {
 ").
 
 :- export(profile_enter_call/0).
-:- true pred profile_enter_call
+:- trust pred profile_enter_call
 	+ (foreign_low(prolog_profile_enter_call), not_fails)
 #
 	"Turn on the profiler." -->
@@ -828,7 +828,7 @@ CBOOL__PROTO(prolog_profile_enter_call)
 ".
 
 :- export(profile_enter_redo_1/0).
-:- true pred profile_enter_redo_1
+:- trust pred profile_enter_redo_1
 	+ (foreign_low(prolog_profile_enter_redo_1), fails)
 #
 	"Turn on the profiler." -->
@@ -843,7 +843,7 @@ CBOOL__PROTO(prolog_profile_enter_redo_1)
 ".
 
 :- export(profile_leave_exit/0).
-:- true pred profile_leave_exit
+:- trust pred profile_leave_exit
 	+ (foreign_low(prolog_profile_leave_exit), not_fails)
 # "Turn off the profiler." -->
 "
@@ -863,7 +863,7 @@ CBOOL__PROTO(prolog_profile_leave_exit)
 ".
 
 :- export(profile_leave_fail_1/0).
-:- true pred profile_leave_fail_1
+:- trust pred profile_leave_fail_1
 	+ (foreign_low(prolog_profile_leave_fail_1), fails)
 # "Turn off the profiler." -->
 "
@@ -878,7 +878,7 @@ CBOOL__PROTO(prolog_profile_leave_fail_1)
 ".
 
 :- export(profile_leave_error/0).
-:- true pred profile_leave_error + (foreign_low(prolog_profile_leave_error)) #
+:- trust pred profile_leave_error + (foreign_low(prolog_profile_leave_error)) #
 	"Turn off the profiler." -->
 
 "

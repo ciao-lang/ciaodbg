@@ -26,13 +26,13 @@
        be used in test declarations. They are called in general
 	``test commands''.  that are random generators.").
 
-:- true prop test_command(X) + sideff(free) # "@var{X} is a test command.".
+:- trust prop test_command(X) + sideff(free) # "@var{X} is a test command.".
 
 :- meta_predicate test_command(goal).
 
 test_command(Goal) :- call(Goal).
 
-:- true prop times(G,N) + test_command
+:- trust prop times(G,N) + test_command
 # "This test of @var{G} should be repeated @var{N} times.".
 
 :- meta_predicate times(goal, ?).
@@ -45,7 +45,7 @@ times(Goal, Times) :-
     ;
 	true.
 
-:- true prop try_sols(G,N) + test_command # "This test of @var{G} 
+:- trust prop try_sols(G,N) + test_command # "This test of @var{G} 
 	will be executed to get at most @var{N} solutions.".
 
 :- meta_predicate try_sols(goal, ?).
