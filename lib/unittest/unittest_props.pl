@@ -22,6 +22,8 @@
 :- doc(author, "Pedro L@'{o}pez").
 :- doc(author, "Manuel Hermenegildo").
 
+:- doc(stability,beta).
+
 :- doc(module, "This module defines special properties and commands to
        be used in test declarations. They are called in general
 	``test commands''.  that are random generators.").

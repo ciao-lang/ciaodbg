@@ -14,6 +14,8 @@
 :- doc(title,  "Testing statistics").
 :- doc(author, "Alvaro Sevilla San Mateo").
 
+:- doc(stability,beta).
+
 :- doc(module, "This module implements predicates for generating
        statistical summaries for the testing processes.").
 

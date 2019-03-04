@@ -6,6 +6,8 @@
 :- doc(author, "Pedro L@'{o}pez").
 :- doc(author, "Manuel Hermenegildo").
 
+:- doc(stability,beta).
+
 :- doc(module, "Some examples of the use of test assertions.
 
 @section{test_examples.pl}

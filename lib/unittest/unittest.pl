@@ -100,6 +100,8 @@
    used to run tests in modules and gather or pretty print the
    results.").
 
+:- doc(stability,beta).
+
 :- doc(module, "The Ciao assertion language (see @ref{The Ciao
    assertion language}) allows writing @index{tests} (including
    @index{unit tests}) by means of @index{test assertions}. These
