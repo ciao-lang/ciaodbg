@@ -41,8 +41,8 @@
 :- use_module(library(stream_utils)).
 :- use_module(library(stream_utils), [open_output/2, close_output/1]).
 :- use_module(library(write)).
-:- use_module(library(terms),                    [atom_concat/2]).
-:- use_module(library(compiler/c_itf_internal), [defines_module/2]).
+:- use_module(library(terms), [atom_concat/2]).
+:- use_module(library(compiler/c_itf), [defines_module/2]).
 :- use_module(library(compiler/global_module_options)).
 :- use_module(library(pretty_print)).
 
