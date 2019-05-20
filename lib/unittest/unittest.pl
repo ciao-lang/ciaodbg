@@ -22,16 +22,15 @@
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic), [nl/0]).
 :- use_module(library(stream_utils), [write_string/1]).
-:- use_module(engine(messages_basic), [message/2]).
+:- use_module(engine(messages_basic), [message/2, messages/1]).
 :- use_module(library(unittest/unittest_statistics), [statistical_summary/2]).
 :- use_module(library(terms),      [atom_concat/2]).
 :- use_module(library(sort),       [sort/2]).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(rtchecks/rtchecks_pretty),
         [
-            pretty_messages/1,
             pretty_prop/3,
-            rtcheck_to_messages/3
+            rtcheck_to_messages/2
         ]).
 :- use_module(library(assertions/assrt_lib),
         [
@@ -308,7 +307,8 @@ show_untested_exp_preds(Alias) :-
 	cleanup_unittest(TmpDir),
 	get_assertion_info(current, Alias, _Modules),
 	findall(Message, current_untested_pred(Alias, Message), Messages),
-	pretty_messages(Messages).
+	% TODO: rtchecks_pretty:compact_list/2 was called here, needed?
+	messages(Messages).
 
 :- regtype unittest_type/1.
 
@@ -478,7 +478,8 @@ show_test_summaries(IdxTestSummaries0) :-
         % TODO: multiple test results bug
 	flatten(IdxTestSummaries0, IdxTestSummaries),
 	foldl(process_runtime_check, IdxTestSummaries, Messages, []),
-	pretty_messages(Messages).
+	% TODO: rtchecks_pretty:compact_list/2 was called here, needed?
+	messages(Messages).
 
 % ----------------------------------------------------------------------
 
@@ -761,7 +762,7 @@ process_runtime_check_ta(count(ErrorStatus, Count), Module, F, A, Dict,
 			' (Result: ', ''({Result}), [](CountMsg),
 			') Failed test', [](CommentMsg), '.', [](SignalsMsg)])
 	    ],
-	    foldl(rtcheck_to_messages, RTCErrors)
+            foldl(rtcheck_to_messages_, RTCErrors)
 	;
 	    [message_lns(Source, LB, LE, note, [Module, ':', F,
 			'/', A, ' (Result: ', ''({Result}), [](CountMsg),
@@ -769,6 +770,9 @@ process_runtime_check_ta(count(ErrorStatus, Count), Module, F, A, Dict,
 	),
 	!.
 
+rtcheck_to_messages_(E, Msgs, Msgs0) :-
+	rtcheck_to_messages(E, Ys),
+	append(Ys, Msgs0, Msgs).
 
 is_failed_test(st([_|_], _, _)) :- !.
 is_failed_test(st(_,     _, Result)) :- is_failed_test_result(Result).

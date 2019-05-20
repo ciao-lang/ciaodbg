@@ -18,17 +18,34 @@
 :- use_module(library(compiler),   [use_module/1]).
 :- use_module(library(aggregates), [findall/3]).
 :- use_module(library(pathnames),  [path_concat/3]).
-:- use_module(library(rtchecks/rtchecks_utils),
-        [
-            load_rtchecks/1,
-            save_rtchecks/1
-        ]).
 :- use_module(library(unittest/unittest_base),
         [
             write_data/2,
             file_test_output/1
         ]).
 :- use_module(engine(stream_basic)).
+:- use_module(engine(exceptions)).
+
+% ----------------------------------------------------------------------
+
+:- data rtcheck_db/1.
+
+:- meta_predicate save_rtchecks(goal).
+
+:- pred save_rtchecks/1 : callable # "Asserts in rtcheck_db/1 all the
+	run-time check exceptions thrown by the goal.".
+
+save_rtchecks(Goal) :-
+	retractall_fact(rtcheck_db(_)),
+	RTError = rtcheck(_Type, _Pred, _Dict, _Prop, _Valid, _Poss),
+	intercept(Goal, RTError, assertz_fact(rtcheck_db(RTError))). % TODO: wrong?! abort on errors?
+
+:- pred load_rtchecks/1 => list # "retract the
+	rtcheck_db/1 facts and return them in a list.".
+
+load_rtchecks(RTChecks) :-
+	findall(RTCheck, retract_fact(rtcheck_db(RTCheck)), RTChecks).
+
 % ----------------------------------------------------------------------
 
 :- data test_id_db/2.

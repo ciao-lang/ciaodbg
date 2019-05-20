@@ -692,21 +692,6 @@ explanation of the effects:
 			 format. Default.
   @end{itemize}
 
-@item @code{rtchecks_abort_on_error}
-  Controls if run time checks must abort the execution of a program
-  (by raising an exception), or if the execution of the program have
-  to continue.
-
-  Note that this option only affect the default handler and the
-  predicate @pred{call_rtc/1}, so if you use your own handler it will
-  not have effect.
-
-  @begin{itemize}
-   @item @code{yes} : Raising a run time error will abort the program. Default.
-   @item @code{no}  : Raising a run time error will not stop the execution,
-                      but a message will be shown.
-  @end{itemize}
-
 @end{itemize}
 
 
