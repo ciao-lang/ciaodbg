@@ -2,7 +2,7 @@
 		graph_to_tex/3,
 % types:
 		graph/1, node/1, edge/1, label/1],
-	    [assertions, regtypes]).
+	    [hiord_old, assertions, regtypes]).
 
 :- use_module(library(hiordlib), [minimum/3, maplist/3]).
 :- use_module(engine(messages_basic), [lformat/1]).

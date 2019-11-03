@@ -29,7 +29,7 @@
 		get_profile_total_time/2,
 		obtain_edges/3,
 		obtain_nodes/3
-	    ], [assertions, regtypes, dcg]).
+	    ], [assertions, regtypes, hiord_old, dcg]).
 
 % :- max_length_line(80).
 
