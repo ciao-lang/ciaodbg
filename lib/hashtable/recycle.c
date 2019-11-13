@@ -65,7 +65,7 @@ char *renewx(struct reroot *r)
       r->numleft = r->size*((ub4)1<<r->logsize);
       if (r->numleft < REMAX) ++r->logsize;
       temp = (recycle *)remalloc(sizeof(recycle) + r->numleft, 
-				 "recycle.c, data");
+                                 "recycle.c, data");
       temp->next = r->list;
       r->list = temp;
       r->numleft-=r->size;

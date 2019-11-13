@@ -53,9 +53,9 @@ char *functor_name(char *buffer, definition_t *functor);
 bool_t functor_have_overhead(prof_frame_t *frame, definition_t *functor);
 const char * predicate_type(int t);
 void show_func_point(FILE * streamfile, char *label, int call_point,
-		     unsigned int choice, definition_t *functor);
+                     unsigned int choice, definition_t *functor);
 void show_func_point2(FILE * streamfile, char *label, int call_point,
-		      unsigned int choice, definition_t *functor0, definition_t *functor1);
+                      unsigned int choice, definition_t *functor0, definition_t *functor1);
 void profile_init(void);
 void profile_reset(prof_frame_t *frame);
 
@@ -86,16 +86,16 @@ struct profile_currents_ {
   unsigned long int skips;  /* EMM -- Skips over a node in case it is cutted */
 };
 
-#define PROFILE__RESET_PORTS(var)		\
-  {						\
-    var[0][0]=var[0][1]=var[1][0]=var[1][1]=0;	\
+#define PROFILE__RESET_PORTS(var)               \
+  {                                             \
+    var[0][0]=var[0][1]=var[1][0]=var[1][1]=0;  \
   }
 
-#define PROFILE__RESET_CC_COMMON(cc)			\
-  {							\
-    (cc).entry_time=0;					\
-    PROFILE__RESET_PORTS((cc).counts);			\
-    PROFILE__RESET_PORTS((cc).times);			\
+#define PROFILE__RESET_CC_COMMON(cc)                    \
+  {                                                     \
+    (cc).entry_time=0;                                  \
+    PROFILE__RESET_PORTS((cc).counts);                  \
+    PROFILE__RESET_PORTS((cc).times);                   \
   }
 
 #if defined(PROFILE)
@@ -110,11 +110,11 @@ struct cc_item_ {
 
 extern unsigned int last_entry_port;
 
-#define PROFILE__RESET_PROF(prof)		\
-  {						\
-    (prof).skips=0;				\
-    PROFILE__RESET_PORTS((prof).counts);	\
-    PROFILE__RESET_PORTS((prof).times);		\
+#define PROFILE__RESET_PROF(prof)               \
+  {                                             \
+    (prof).skips=0;                             \
+    PROFILE__RESET_PORTS((prof).counts);        \
+    PROFILE__RESET_PORTS((prof).times);         \
   }
 
 extern bool_t hooks_enabled;
@@ -127,13 +127,13 @@ int profile_hooks;
 #define DISABLE_HOOKS {if(hooks_enabled){disable_hooks();last_cci=NULL;}}
 #define ENABLE_HOOKS(f) {if(!hooks_enabled){enable_hooks();last_cci=get_cc_item(active_ecc->cc_item_table, f);}}
 
-#define PROFILE__RESET_CC(cc)		\
-  {					\
-    PROFILE__RESET_CC_COMMON(cc);	\
-    PROFILE__RESET_PORTS((cc).cuts);	\
-    PROFILE__RESET_PORTS((cc).scuts);	\
-    (cc).entry_cuts=			\
-      (cc).entry_scuts=0;		\
+#define PROFILE__RESET_CC(cc)           \
+  {                                     \
+    PROFILE__RESET_CC_COMMON(cc);       \
+    PROFILE__RESET_PORTS((cc).cuts);    \
+    PROFILE__RESET_PORTS((cc).scuts);   \
+    (cc).entry_cuts=                    \
+      (cc).entry_scuts=0;               \
   }
 
 #else
@@ -202,15 +202,15 @@ extern inttime_t tick_end_profiling;
 
 int profile_trace;
 
-# define ShowFuncPoint(filestream, label, call_point, choice, functor)	\
+# define ShowFuncPoint(filestream, label, call_point, choice, functor)  \
   {if(profile_trace) show_func_point((filestream), (label), (call_point), (choice), (functor));}
 # define ShowFuncPoint2(filestream, label, call_point, choice, functor0, functor1) \
   {if(profile_trace) show_func_point2((filestream), (label), (call_point), (choice), (functor0), (functor1));}
-# define ShowSkipNodes(filestream, skips)				\
+# define ShowSkipNodes(filestream, skips)                               \
   {if(profile_trace) fprintf(filestream, "cut skipped %d nodes \n", skips);}
-# define ShowClauseNumber(filestream)					\
+# define ShowClauseNumber(filestream)                                   \
   {if(profile_trace && w->next_alt) fprintf(filestream, "\tclause %d \n", w->next_alt->number);}
-# define ShowNoMoreAlts(filestream)				\
+# define ShowNoMoreAlts(filestream)                             \
   {if(profile_trace) fprintf(filestream, "No more alts\n");}
 
 #else
@@ -223,7 +223,7 @@ int profile_trace;
 
 #endif
 
-#define GET_DEFINITION(NAME, ARITY)					\
+#define GET_DEFINITION(NAME, ARITY)                                     \
   insert_definition(predicates_location,init_atom_check((NAME)),(ARITY),TRUE)
 /*
   example:

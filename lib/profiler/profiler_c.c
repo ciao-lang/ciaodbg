@@ -283,7 +283,7 @@ CBOOL__PROTO(prolog_cc_call_ncnf)
         ENABLE_HOOKS(f[0]);
       }
       else {
-	DISABLE_HOOKS;
+        DISABLE_HOOKS;
       }
     }
 #endif

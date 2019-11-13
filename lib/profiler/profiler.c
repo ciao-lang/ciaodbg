@@ -228,7 +228,7 @@ CVOID__PROTO(profile__hook_fail_)
   streamfile=Output_Stream_Ptr->streamfile;
   ShowFuncPoint(Output_Stream_Ptr->streamfile, "-fail", 0, 0, last_cci->functor);
   ShowFuncPoint2(Output_Stream_Ptr->streamfile, " fail", 0, 0,
-		 active_ecc->functor[0], active_ecc->functor[1]);
+                 active_ecc->functor[0], active_ecc->functor[1]);
   PROFILE__TIME_END;
 }
 
@@ -237,7 +237,7 @@ CVOID__PROTO(profile__hook_proceed_)
   PROFILE__TIME_INI;
   ShowFuncPoint(Output_Stream_Ptr->streamfile,"-proc",0,0,w->node->functor);
   ShowFuncPoint2(Output_Stream_Ptr->streamfile," proc",0,0,
-		 active_ecc->functor[0], active_ecc->functor[1]);
+                 active_ecc->functor[0], active_ecc->functor[1]);
   PROFILE__TIME_END;
 }
 
@@ -246,7 +246,7 @@ CVOID__PROTO(profile__hook_neck_proceed_)
   PROFILE__TIME_INI;
   ShowFuncPoint(Output_Stream_Ptr->streamfile,"-nprc",0,0,w->node->functor);
   ShowFuncPoint2(Output_Stream_Ptr->streamfile," nprc",0,0,
-		 active_ecc->functor[0], active_ecc->functor[1]);
+                 active_ecc->functor[0], active_ecc->functor[1]);
   PROFILE__TIME_END;
 }
 #endif
@@ -260,10 +260,10 @@ CVOID__PROTO(profile__hook_call_, definition_t *functor) {
   streamfile=Output_Stream_Ptr->streamfile;
   ShowFuncPoint(streamfile,"-exit",0,0,last_cci->functor);
   ShowFuncPoint2(streamfile," exit",0,0,
-		 active_ecc->functor[0], active_ecc->functor[1]);
+                 active_ecc->functor[0], active_ecc->functor[1]);
   ShowFuncPoint(streamfile,"+call",0,0,functor);
   ShowFuncPoint2(streamfile," call",0,0,
-		 active_ecc->functor[0],active_ecc->functor[1]);
+                 active_ecc->functor[0],active_ecc->functor[1]);
   last_cci->prof.counts[last_entry_port][LEAVE_EXIT]++;
   last_cci->prof.times[last_entry_port][LEAVE_EXIT]+=profdiff;
   /*     if (functor==cc_call||functor_is_instrumenter(last_cci->functor)) { */
@@ -400,11 +400,11 @@ void profile_init(void)
   int i;
   if (active_frame) {
     for (active_frame=prof_frames; active_frame<prof_frames+MAX_PROF_FRAMES;
-	 active_frame++)
+         active_frame++)
       profile_reset(active_frame);
   } else {
     for (active_frame=prof_frames; active_frame<prof_frames+MAX_PROF_FRAMES;
-	 active_frame++) {
+         active_frame++) {
       active_ecc=NULL;
 #if defined(PROFILE)
       last_cci=NULL;
@@ -414,7 +414,7 @@ void profile_init(void)
     }
   }
   profile_freq=PROFILE__GET_FREQ; /* Assume constant frequency (not
-				     true in some laptops) */
+                                     true in some laptops) */
   active_frame=prof_frames - 1;
   cc_call=GET_DEFINITION("profiler_rt:cc_call", 5);
   cc_call_nf=GET_DEFINITION("profiler_rt:cc_call_nf", 5);
@@ -441,8 +441,8 @@ void profile_init(void)
 }
 
 static void show_func_point_info(
-				 FILE * streamfile,
-				 definition_t *functor)
+                                 FILE * streamfile,
+                                 definition_t *functor)
 {
   if (functor) {
     fprintf(streamfile, "%-6s ", predicate_type(functor->predtyp));
@@ -457,11 +457,11 @@ static void show_func_point_info(
 }
 
 void show_func_point(
-		     FILE * streamfile,
-		     char *label,
-		     int call_point,
-		     unsigned int choice,
-		     definition_t *functor)
+                     FILE * streamfile,
+                     char *label,
+                     int call_point,
+                     unsigned int choice,
+                     definition_t *functor)
 {
   fprintf(streamfile, "%s %d-%d ", label, call_point, choice);
   show_func_point_info(streamfile, functor);
@@ -469,12 +469,12 @@ void show_func_point(
 }
 
 void show_func_point2(
-		     FILE * streamfile,
-		     char *label,
-		     int call_point,
-		     unsigned int choice,
-		     definition_t *functor0,
-		     definition_t *functor1)
+                     FILE * streamfile,
+                     char *label,
+                     int call_point,
+                     unsigned int choice,
+                     definition_t *functor0,
+                     definition_t *functor1)
 {
   fprintf(streamfile, "%s %d-%d ", label, call_point, choice);
   show_func_point_info(streamfile, functor0);
@@ -483,13 +483,13 @@ void show_func_point2(
   fprintf(streamfile, "\n");
 }
 
-#define FORMAT_SEPARATOR						\
+#define FORMAT_SEPARATOR                                                \
   "\n+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+"
-#define FORMAT_SEPARATOR_2						\
+#define FORMAT_SEPARATOR_2                                              \
   "\n+================================================================================================================================================================================================================================+"
-#define FORMAT_TITLE							\
+#define FORMAT_TITLE                                                    \
   "\n| %-79s |         |    CallExits     |    CallFails     |    RedoExits     |    RedoFails     |      Totals      |      (%%)       |      Time(ms)      |"
-#define FORMAT_TITLE_2							\
+#define FORMAT_TITLE_2                                                  \
   "\n| %-79s |  Skips  |Counts |   Ticks  |Counts |   Ticks  |Counts |   Ticks  |Counts |   Ticks  |Counts |  Ticks   | Counts | Ticks |                    |"
 
 #define FORMAT_TITLE_PRED   "Predicates                                                               |"
@@ -497,15 +497,15 @@ void show_func_point2(
 #define FORMAT_TITLE_EDGE   "Edges"
 #define FORMAT_TITLE_EDGE_2 "Called CC                     | Caller CC                     |H| Cuts  | SCuts"
 
-#define FORMAT_TITLE_SEPARATOR						\
+#define FORMAT_TITLE_SEPARATOR                                          \
   "\n+---------------------------------------------------------------------------------+---------+-------+----------+-------+----------+-------+----------+-------+----------+-------+----------+--------+-------+--------------------+"
-#define FORMAT_ITEM							\
+#define FORMAT_ITEM                                                     \
   "%c(\n %-81s,i(%7ld,%7ld,%10" PRId64 ",%7ld,%10" PRId64 ",%7ld,%10" PRId64 ",%7ld,%10" PRId64 ",%7ld,%10" PRId64 "/*%6.2f%%|%6.2f%%|%20s*/))"
-#define FORMAT_CC_TOTAL_PORTS						\
+#define FORMAT_CC_TOTAL_PORTS                                           \
   "\n %-81s,i(%7ld,%7ld,%10" PRId64 ",%7ld,%10" PRId64 ",%7ld,%10" PRId64 ",%7ld,%10" PRId64 ",%7ld,%10" PRId64 "/*%6.2f%%|%6.2f%%|%20s*/),"
-#define FORMAT_TOTAL							\
+#define FORMAT_TOTAL                                                    \
   "\n|Total */t(                                                              %9ld,i(%7ld,%7ld,%10" PRId64 ",%7ld,%10" PRId64 ",%7ld,%10" PRId64 ",%7ld,%10" PRId64 ",%7ld,%10" PRId64 "/*%6.2f%%|%6.2f%%|%20s*/))"
-#define FORMAT_OVERHEAD							\
+#define FORMAT_OVERHEAD                                                 \
   "\n|CC Overhead (%6.2f%%)                                                                                                                                                                                                           |"
 
 #define NULL_VALUE(obj, member, value) (((obj)==NULL)?(value):(obj)->member)
@@ -521,70 +521,70 @@ char *functor_name(char *buffer, definition_t *functor) {
 #if defined(PROFILE)
 
 void print_profile_item(FILE * streamfile,
-			definition_t *functor,
-			char id,
-			char *buffer,
-			profile_currents_t *prof,
-			long int counts, inttime_t times,
-			long int total_counts, inttime_t total_times)
+                        definition_t *functor,
+                        char id,
+                        char *buffer,
+                        profile_currents_t *prof,
+                        long int counts, inttime_t times,
+                        long int total_counts, inttime_t total_times)
 {
   char buffer_time[MAXSTRNUMBERSIZE];
   int arity, i, j;
   
   float_to_string(buffer_time,
-		  ENG_FLT_SIGNIF,
-		  'p',
-		  ((double)times)*1.0e3/profile_freq,
-		  10);
+                  ENG_FLT_SIGNIF,
+                  'p',
+                  ((double)times)*1.0e3/profile_freq,
+                  10);
   fprintf(streamfile,
-	  FORMAT_ITEM,
-	  id,
-	  buffer,
-	  NULL_VALUE(prof, skips, 0),
-	  NULL_VALUE(prof, counts[0][0], 0), NULL_VALUE(prof, times[0][0], 0),
-	  NULL_VALUE(prof, counts[0][1], 0), NULL_VALUE(prof, times[0][1], 0),
-	  NULL_VALUE(prof, counts[1][0], 0), NULL_VALUE(prof, times[1][0], 0),
-	  NULL_VALUE(prof, counts[1][1], 0), NULL_VALUE(prof, times[1][1], 0),
-	  counts,times,
-	  (((double)counts)*100.0)/total_counts,(((double)times)*100.0)/total_times,
-	  buffer_time);
+          FORMAT_ITEM,
+          id,
+          buffer,
+          NULL_VALUE(prof, skips, 0),
+          NULL_VALUE(prof, counts[0][0], 0), NULL_VALUE(prof, times[0][0], 0),
+          NULL_VALUE(prof, counts[0][1], 0), NULL_VALUE(prof, times[0][1], 0),
+          NULL_VALUE(prof, counts[1][0], 0), NULL_VALUE(prof, times[1][0], 0),
+          NULL_VALUE(prof, counts[1][1], 0), NULL_VALUE(prof, times[1][1], 0),
+          counts,times,
+          (((double)counts)*100.0)/total_counts,(((double)times)*100.0)/total_times,
+          buffer_time);
 }
 
 void print_profile_edge(FILE * streamfile,
-			edge_cc_wrap_t * edge_ccw,
-			long int total_counts,
-			inttime_t total_times)
+                        edge_cc_wrap_t * edge_ccw,
+                        long int total_counts,
+                        inttime_t total_times)
 {
   char buffer[2*(STATICMAXATOM+MAXSTRNUMBERSIZE+1)],
     buffer2[STATICMAXATOM+MAXSTRNUMBERSIZE+1],
     buffer3[STATICMAXATOM+MAXSTRNUMBERSIZE+1];
   inttime_t times;
   sprintf(buffer, "%-31s,%-31s,%d,%7ld,%7ld",
-	  functor_name(buffer2, edge_ccw->ecc->functor[0]),
-	  functor_name(buffer3, edge_ccw->ecc->functor[1]),
-	  edge_ccw->ecc->hooks,
-	  TOTAL(edge_ccw->ecc, cuts),
-	  TOTAL(edge_ccw->ecc, scuts));
+          functor_name(buffer2, edge_ccw->ecc->functor[0]),
+          functor_name(buffer3, edge_ccw->ecc->functor[1]),
+          edge_ccw->ecc->hooks,
+          TOTAL(edge_ccw->ecc, cuts),
+          TOTAL(edge_ccw->ecc, scuts));
   if (edge_ccw->ecc->hooks)
     times=TOTAL(&(edge_ccw->total),times);
   else
     times=TOTAL(edge_ccw->ecc, times);
   print_profile_item(streamfile,
-		     edge_ccw->ecc->functor[0],
-		     'e',
-		     buffer,
-		     &(edge_ccw->total),
-		     TOTAL(&(edge_ccw->total),counts),
-		     times,
-		     total_counts,
-		     total_times);
+                     edge_ccw->ecc->functor[0],
+                     'e',
+                     buffer,
+                     &(edge_ccw->total),
+                     TOTAL(&(edge_ccw->total),counts),
+                     times,
+                     total_counts,
+                     total_times);
 }
 
 void print_profile_pred(FILE *streamfile,
-			definition_t *functor,
-			profile_currents_t *prof,
-			long int total_counts,
-			inttime_t total_times)
+                        definition_t *functor,
+                        profile_currents_t *prof,
+                        long int total_counts,
+                        inttime_t total_times)
 {
   const char *predtype;
   char buffer[2*(STATICMAXATOM+MAXSTRNUMBERSIZE+1)],
@@ -596,40 +596,40 @@ void print_profile_pred(FILE *streamfile,
     predtype="remain";
   sprintf(buffer, "%-74s,%-6s", functor_name(buffer2, functor), predtype);
   print_profile_item(streamfile,
-		     functor,
-		     'p',
-		     buffer,
-		     prof,
-		     TOTAL(prof,counts),
-		     TOTAL(prof,times),
-		     total_counts,
-		     total_times);
+                     functor,
+                     'p',
+                     buffer,
+                     prof,
+                     TOTAL(prof,counts),
+                     TOTAL(prof,times),
+                     total_counts,
+                     total_times);
 }
 #endif
 
 void print_profile_total(FILE * streamfile,
-			 profile_currents_t *total,
-			 long int realsize)
+                         profile_currents_t *total,
+                         long int realsize)
 {
   char buffer_time[MAXSTRNUMBERSIZE];
   inttime_t t=TOTAL(total,times);
   float_to_string(buffer_time
-		  ,ENG_FLT_SIGNIF
-		  ,'p'
-		  ,(((double)t)/profile_freq)*1.0e3
-		  ,10);
+                  ,ENG_FLT_SIGNIF
+                  ,'p'
+                  ,(((double)t)/profile_freq)*1.0e3
+                  ,10);
   fprintf(streamfile,
-	  FORMAT_TOTAL,
-	  realsize,
-	  total->skips,
-	  total->counts[0][0],total->times[0][0],
-	  total->counts[0][1],total->times[0][1],
-	  total->counts[1][0],total->times[1][0],
-	  total->counts[1][1],total->times[1][1],
-	  TOTAL(total,counts),t,
-	  100.0,
-	  100.0,
-	  buffer_time);
+          FORMAT_TOTAL,
+          realsize,
+          total->skips,
+          total->counts[0][0],total->times[0][0],
+          total->counts[0][1],total->times[0][1],
+          total->counts[1][0],total->times[1][0],
+          total->counts[1][1],total->times[1][1],
+          TOTAL(total,counts),t,
+          100.0,
+          100.0,
+          buffer_time);
 }
 
 void profile_ccw_dump(prof_frame_t *frame, FILE * streamfile, edge_cc_wrap_t *eccw, int index, long int counts, inttime_t times)
@@ -641,21 +641,21 @@ void profile_ccw_dump(prof_frame_t *frame, FILE * streamfile, edge_cc_wrap_t *ec
     buffer3[STATICMAXATOM+MAXSTRNUMBERSIZE+1];
   char buffer_time[MAXSTRNUMBERSIZE];
   sprintf(buffer, "%-31s,%-31s,%d,%7ld,%7ld",
-	  functor_name(buffer2, eccw->ecc->functor[0]),
-	  functor_name(buffer3, eccw->ecc->functor[1]),
+          functor_name(buffer2, eccw->ecc->functor[0]),
+          functor_name(buffer3, eccw->ecc->functor[1]),
 #if defined(PROFILE)
-	  eccw->ecc->hooks,
-	  TOTAL(eccw->ecc,cuts),
-	  TOTAL(eccw->ecc,scuts)
+          eccw->ecc->hooks,
+          TOTAL(eccw->ecc,cuts),
+          TOTAL(eccw->ecc,scuts)
 #else
-	  0,0l,0l
+          0,0l,0l
 #endif
-	  );
+          );
   float_to_string(buffer_time,
-		  ENG_FLT_SIGNIF,
-		  'p',
-		  ((double)(TOTAL(eccw->ecc, times))/profile_freq)*1.0e3,
-		  10);
+                  ENG_FLT_SIGNIF,
+                  'p',
+                  ((double)(TOTAL(eccw->ecc, times))/profile_freq)*1.0e3,
+                  10);
 #if defined(PROFILE)
   if (profile_hooks) {
     fprintf(streamfile, "/*");
@@ -665,20 +665,20 @@ void profile_ccw_dump(prof_frame_t *frame, FILE * streamfile, edge_cc_wrap_t *ec
 #endif
   fprintf(streamfile, "c(");
   fprintf(streamfile,
-	  FORMAT_CC_TOTAL_PORTS,
-	  buffer,
+          FORMAT_CC_TOTAL_PORTS,
+          buffer,
 #if defined(PROFILE)
-	  eccw->total.skips,
+          eccw->total.skips,
 #else
-	  0l,
+          0l,
 #endif
-	  eccw->ecc->counts[ENTER_CALL][LEAVE_EXIT],eccw->ecc->times[ENTER_CALL][LEAVE_EXIT],
-	  eccw->ecc->counts[ENTER_CALL][LEAVE_FAIL],eccw->ecc->times[ENTER_CALL][LEAVE_FAIL],
-	  eccw->ecc->counts[ENTER_REDO][LEAVE_EXIT],eccw->ecc->times[ENTER_REDO][LEAVE_EXIT],
-	  eccw->ecc->counts[ENTER_REDO][LEAVE_FAIL],eccw->ecc->times[ENTER_REDO][LEAVE_FAIL],
-	  TOTAL(eccw->ecc,counts),TOTAL(eccw->ecc,times),
-	  (double)TOTAL(eccw->ecc,counts)/counts*100.0,(double)TOTAL(eccw->ecc,times)/times*100.0,
-	  buffer_time);
+          eccw->ecc->counts[ENTER_CALL][LEAVE_EXIT],eccw->ecc->times[ENTER_CALL][LEAVE_EXIT],
+          eccw->ecc->counts[ENTER_CALL][LEAVE_FAIL],eccw->ecc->times[ENTER_CALL][LEAVE_FAIL],
+          eccw->ecc->counts[ENTER_REDO][LEAVE_EXIT],eccw->ecc->times[ENTER_REDO][LEAVE_EXIT],
+          eccw->ecc->counts[ENTER_REDO][LEAVE_FAIL],eccw->ecc->times[ENTER_REDO][LEAVE_FAIL],
+          TOTAL(eccw->ecc,counts),TOTAL(eccw->ecc,times),
+          (double)TOTAL(eccw->ecc,counts)/counts*100.0,(double)TOTAL(eccw->ecc,times)/times*100.0,
+          buffer_time);
 #if defined(PROFILE)
   if (profile_hooks) {
     struct ht_tab *t;
@@ -697,13 +697,13 @@ void profile_ccw_dump(prof_frame_t *frame, FILE * streamfile, edge_cc_wrap_t *ec
     i=0;
     j=0;
     if (ht_first(t)) do {
-	e=(cc_item_t *)ht_stuff(t);
-	if (TOTAL(&e->prof,counts)) {
-	  if (functor_have_overhead(frame, e->functor))
-	    cci_table_oh[j++]=e;
-	  else
-	    cci_table[i++]=e;
-	}
+        e=(cc_item_t *)ht_stuff(t);
+        if (TOTAL(&e->prof,counts)) {
+          if (functor_have_overhead(frame, e->functor))
+            cci_table_oh[j++]=e;
+          else
+            cci_table[i++]=e;
+        }
       } while (ht_next(t));
     compare_cci=compare_cci_ticks;
     qsort(cci_table, eccw->realsize, sizeof(cc_item_t *), compare_cci);
@@ -713,7 +713,7 @@ void profile_ccw_dump(prof_frame_t *frame, FILE * streamfile, edge_cc_wrap_t *ec
       if (i != eccw->realsize) fprintf(streamfile, ",");
       e=cci_table[--i];
       print_profile_pred(streamfile, e->functor, PROFILE__FUNCTOR_PROF(e),
-			 TOTAL(&eccw->total,counts), TOTAL(&eccw->total,times));
+                         TOTAL(&eccw->total,counts), TOTAL(&eccw->total,times));
     }
     fprintf(streamfile, "],/*");
     fprintf(streamfile, FORMAT_TITLE_SEPARATOR);
@@ -721,8 +721,8 @@ void profile_ccw_dump(prof_frame_t *frame, FILE * streamfile, edge_cc_wrap_t *ec
     fprintf(streamfile, "/*");
     fprintf(streamfile, FORMAT_SEPARATOR);
     fprintf(streamfile, FORMAT_OVERHEAD,
-	    ((double)TOTAL(&eccw->overhead,times))/(TOTAL(&eccw->total,times) +
-						    TOTAL(&eccw->overhead,times))*100.0);
+            ((double)TOTAL(&eccw->overhead,times))/(TOTAL(&eccw->total,times) +
+                                                    TOTAL(&eccw->overhead,times))*100.0);
     fprintf(streamfile, FORMAT_TITLE_SEPARATOR);
     fprintf(streamfile, "*/,[");
     j=eccw->realsize_oh;
@@ -730,7 +730,7 @@ void profile_ccw_dump(prof_frame_t *frame, FILE * streamfile, edge_cc_wrap_t *ec
       if (j != eccw->realsize_oh) fprintf(streamfile, ",");
       e=cci_table_oh[--j];
       print_profile_pred(streamfile, e->functor, PROFILE__FUNCTOR_PROF(e),
-			 TOTAL(&eccw->overhead,counts), TOTAL(&eccw->overhead,times));
+                         TOTAL(&eccw->overhead,counts), TOTAL(&eccw->overhead,times));
     }
     fprintf(streamfile, "],/*", index);
     fprintf(streamfile, FORMAT_TITLE_SEPARATOR);
@@ -794,7 +794,7 @@ void profile_edge_cc_dump(prof_frame_t *frame, FILE * streamfile)
 #endif
   PROFILE__RESET_CC(total_ecc);
   eccw_table=(edge_cc_wrap_t *)checkalloc(ht_count(frame->edge_table_cc)
-					  * sizeof(edge_cc_wrap_t));
+                                          * sizeof(edge_cc_wrap_t));
   if (ht_first(frame->edge_table_cc)) do {
       ecc=(edge_cc_t *)ht_stuff(frame->edge_table_cc);
       inttime_t ecc_total_times=TOTAL(ecc,times);
@@ -808,43 +808,43 @@ void profile_edge_cc_dump(prof_frame_t *frame, FILE * streamfile)
       PROFILE__RESET_PROF(eccw_table[realsize].total);
       PROFILE__RESET_PROF(eccw_table[realsize].overhead);
       if (profile_hooks) {
-	struct ht_tab *t;
-	t=ecc->cc_item_table;
-	if (ht_first(t)) do {
-	    cc_item_t *e;
-	    e=(cc_item_t *)ht_stuff(t);
-	    if (TOTAL(&(e->prof),counts)) {
-	      if (functor_have_overhead(frame, e->functor)) {
-		eccw_table[realsize].realsize_oh++;
-		for (i=0;i<2;i++)
-		  for (j=0;j<2;j++) {
-		    eccw_table[realsize].overhead.counts[i][j] += e->prof.counts[i][j];
-		    eccw_table[realsize].overhead.times[i][j] += e->prof.times[i][j];
-		  }
-		eccw_table[realsize].overhead.skips += e->prof.skips;
-	      }
-	      else
-		{
-		  eccw_table[realsize].realsize++;
-		  for (i=0;i<2;i++)
-		    for (j=0;j<2;j++) {
-		      eccw_table[realsize].total.counts[i][j] += e->prof.counts[i][j];
-		      eccw_table[realsize].total.times[i][j] += e->prof.times[i][j];
-		    }
-		  eccw_table[realsize].total.skips += e->prof.skips;
-		}
-	    }
-	  } while (ht_next(t));
-	if (ecc->hooks) {
-	  if (TOTAL(&eccw_table[realsize].total,times)!=ecc_total_times)
-	    fprintf(streamfile, "/*** Problems when sumarizing counts %" PRId64 "!=%" PRId64 " ***/\n",
-		    TOTAL(&eccw_table[realsize].total,times), ecc_total_times);
-	}
+        struct ht_tab *t;
+        t=ecc->cc_item_table;
+        if (ht_first(t)) do {
+            cc_item_t *e;
+            e=(cc_item_t *)ht_stuff(t);
+            if (TOTAL(&(e->prof),counts)) {
+              if (functor_have_overhead(frame, e->functor)) {
+                eccw_table[realsize].realsize_oh++;
+                for (i=0;i<2;i++)
+                  for (j=0;j<2;j++) {
+                    eccw_table[realsize].overhead.counts[i][j] += e->prof.counts[i][j];
+                    eccw_table[realsize].overhead.times[i][j] += e->prof.times[i][j];
+                  }
+                eccw_table[realsize].overhead.skips += e->prof.skips;
+              }
+              else
+                {
+                  eccw_table[realsize].realsize++;
+                  for (i=0;i<2;i++)
+                    for (j=0;j<2;j++) {
+                      eccw_table[realsize].total.counts[i][j] += e->prof.counts[i][j];
+                      eccw_table[realsize].total.times[i][j] += e->prof.times[i][j];
+                    }
+                  eccw_table[realsize].total.skips += e->prof.skips;
+                }
+            }
+          } while (ht_next(t));
+        if (ecc->hooks) {
+          if (TOTAL(&eccw_table[realsize].total,times)!=ecc_total_times)
+            fprintf(streamfile, "/*** Problems when sumarizing counts %" PRId64 "!=%" PRId64 " ***/\n",
+                    TOTAL(&eccw_table[realsize].total,times), ecc_total_times);
+        }
       }
 #endif
       if (TOTAL(ecc,counts) != 0) {
-	eccw_table[realsize].ecc=ecc;
-	realsize++;
+        eccw_table[realsize].ecc=ecc;
+        realsize++;
       }
     } while (ht_next(frame->edge_table_cc));
   if (realsize<=1) {
@@ -863,10 +863,10 @@ void profile_edge_cc_dump(prof_frame_t *frame, FILE * streamfile)
     if (!profile_hooks)
 #endif
       {
-	fprintf(streamfile, FORMAT_SEPARATOR);
-	fprintf(streamfile, FORMAT_TITLE, FORMAT_TITLE_EDGE);
-	fprintf(streamfile, FORMAT_TITLE_2, FORMAT_TITLE_EDGE_2);
-	fprintf(streamfile, FORMAT_TITLE_SEPARATOR);
+        fprintf(streamfile, FORMAT_SEPARATOR);
+        fprintf(streamfile, FORMAT_TITLE, FORMAT_TITLE_EDGE);
+        fprintf(streamfile, FORMAT_TITLE_2, FORMAT_TITLE_EDGE_2);
+        fprintf(streamfile, FORMAT_TITLE_SEPARATOR);
       }
     fprintf(streamfile, "*/");
     i=realsize;
@@ -874,56 +874,56 @@ void profile_edge_cc_dump(prof_frame_t *frame, FILE * streamfile)
       --i;
 #if defined(PROFILE)
       if (profile_hooks) {
-	for (j=0;j<2;j++)
-	  for (k=0;k<2;k++) {
-	    total.counts[j][k] += eccw_table[i].total.counts[j][k];
-	    total.times[j][k] += eccw_table[i].total.times[j][k];
-	  }
-	total.skips += eccw_table[i].total.skips;
+        for (j=0;j<2;j++)
+          for (k=0;k<2;k++) {
+            total.counts[j][k] += eccw_table[i].total.counts[j][k];
+            total.times[j][k] += eccw_table[i].total.times[j][k];
+          }
+        total.skips += eccw_table[i].total.skips;
       }
 #endif
       for (j=0;j<2;j++)
-	for (k=0;k<2;k++) {
-	  total_ecc.counts[j][k] += eccw_table[i].ecc->counts[j][k];
-	  total_ecc.times[j][k] += eccw_table[i].ecc->times[j][k];
-	}
+        for (k=0;k<2;k++) {
+          total_ecc.counts[j][k] += eccw_table[i].ecc->counts[j][k];
+          total_ecc.times[j][k] += eccw_table[i].ecc->times[j][k];
+        }
     };
     i=realsize;
     while (i>0) {
       if (i != realsize)
-	fprintf(streamfile, ",");
+        fprintf(streamfile, ",");
       --i;
       profile_ccw_dump(frame, streamfile, eccw_table+i, realsize-i,
-		       TOTAL(&total_ecc, counts), total_times);
+                       TOTAL(&total_ecc, counts), total_times);
     }
     fprintf(streamfile, "],/*");
     fprintf(streamfile, FORMAT_SEPARATOR_2);
     float_to_string(buffer_time,
-		    ENG_FLT_SIGNIF,
-		    'p',
-		    ((double)total_times/profile_freq)*1.0e3,
-		    10);
+                    ENG_FLT_SIGNIF,
+                    'p',
+                    ((double)total_times/profile_freq)*1.0e3,
+                    10);
     sprintf(buffer, "Total Edge Cost Center Counters          */tc(%7ld,%7ld",
 #if defined(PROFILE)
-	    cuts,
-	    scuts
+            cuts,
+            scuts
 #else
-	    0l,0l
+            0l,0l
 #endif
-	    );
+            );
     fprintf(streamfile, FORMAT_CC_TOTAL_PORTS,
-	    buffer,
+            buffer,
 #if defined(PROFILE)
-	    total.skips,
+            total.skips,
 #else
-	    0l,
+            0l,
 #endif
-	    total_ecc.counts[ENTER_CALL][LEAVE_EXIT],total_ecc.times[ENTER_CALL][LEAVE_EXIT],
-	    total_ecc.counts[ENTER_CALL][LEAVE_FAIL],total_ecc.times[ENTER_CALL][LEAVE_FAIL],
-	    total_ecc.counts[ENTER_REDO][LEAVE_EXIT],total_ecc.times[ENTER_REDO][LEAVE_EXIT],
-	    total_ecc.counts[ENTER_REDO][LEAVE_FAIL],total_ecc.times[ENTER_REDO][LEAVE_FAIL],
-	    TOTAL(&total_ecc,counts),total_times, 100.0, 100.0,
-	    buffer_time);
+            total_ecc.counts[ENTER_CALL][LEAVE_EXIT],total_ecc.times[ENTER_CALL][LEAVE_EXIT],
+            total_ecc.counts[ENTER_CALL][LEAVE_FAIL],total_ecc.times[ENTER_CALL][LEAVE_FAIL],
+            total_ecc.counts[ENTER_REDO][LEAVE_EXIT],total_ecc.times[ENTER_REDO][LEAVE_EXIT],
+            total_ecc.counts[ENTER_REDO][LEAVE_FAIL],total_ecc.times[ENTER_REDO][LEAVE_FAIL],
+            TOTAL(&total_ecc,counts),total_times, 100.0, 100.0,
+            buffer_time);
     fprintf(streamfile, "/*");
     fprintf(streamfile, FORMAT_SEPARATOR);
 #if defined(PROFILE)
@@ -939,9 +939,9 @@ void profile_edge_cc_dump(prof_frame_t *frame, FILE * streamfile)
       fprintf(streamfile, "[");
       i=realsize;
       while (i>0) {
-	if (i != realsize) fprintf(streamfile, ",");
-	c=&eccw_table[--i];
-	print_profile_edge(streamfile, c, TOTAL(&total,counts), total_times);
+        if (i != realsize) fprintf(streamfile, ",");
+        c=&eccw_table[--i];
+        print_profile_edge(streamfile, c, TOTAL(&total,counts), total_times);
       }
       fprintf(streamfile, "],");
     } else
@@ -953,26 +953,26 @@ void profile_edge_cc_dump(prof_frame_t *frame, FILE * streamfile)
       fprintf(streamfile, "/*");
       fprintf(streamfile, FORMAT_TITLE_SEPARATOR);
       float_to_string(buffer_time
-		      ,ENG_FLT_SIGNIF
-		      ,'p'
-		      ,(((double)total_times)/profile_freq)*1.0e3
-		      ,10);
+                      ,ENG_FLT_SIGNIF
+                      ,'p'
+                      ,(((double)total_times)/profile_freq)*1.0e3
+                      ,10);
   fprintf(streamfile,
-	  FORMAT_TOTAL,
-	  realsize,
+          FORMAT_TOTAL,
+          realsize,
 #if defined(PROFILE)
-	  total.skips,
+          total.skips,
 #else
-	  0l,
+          0l,
 #endif
-	  total.counts[0][0],total.times[0][0],
-	  total.counts[0][1],total.times[0][1],
-	  total.counts[1][0],total.times[1][0],
-	  total.counts[1][1],total.times[1][1],
-	  TOTAL(&total,counts),total_times,
-	  100.0,
-	  100.0,
-	  buffer_time);
+          total.counts[0][0],total.times[0][0],
+          total.counts[0][1],total.times[0][1],
+          total.counts[1][0],total.times[1][0],
+          total.counts[1][1],total.times[1][1],
+          TOTAL(&total,counts),total_times,
+          100.0,
+          100.0,
+          buffer_time);
       fprintf(streamfile, "/*");
       fprintf(streamfile, FORMAT_SEPARATOR_2);
       fprintf(streamfile, "*/");
@@ -982,7 +982,7 @@ void profile_edge_cc_dump(prof_frame_t *frame, FILE * streamfile)
     fprintf(streamfile, ")");
   }
   checkdealloc((tagged_t *)eccw_table, ht_count(frame->edge_table_cc)
-	       * sizeof(edge_cc_wrap_t));
+               * sizeof(edge_cc_wrap_t));
   fprintf(streamfile, ")");
 }
 
@@ -1044,74 +1044,74 @@ void profile_flat_dump(prof_frame_t *frame, FILE * streamfile)
       keyval=&table->node[j];
       PROFILE__RESET_PROF(prof[j]);
       if (d=keyval->value.def)
-	{
-	  if (ht_first(frame->edge_table_cc)) do {
-	      edge_cc_t *cc=(edge_cc_t *)ht_stuff(frame->edge_table_cc);
-	      if (cc->hooks) {
-		struct ht_tab *t=cc->cc_item_table;
-		if (ht_find(t, (ub1 *)(&d), sizeof(d))) {
-		  cc_item_t *cci=(cc_item_t *)ht_stuff(t);
-		  for (k=0;k<2;k++)
-		    for (l=0;l<2;l++) {
-		      prof[j].counts[k][l] += cci->prof.counts[k][l];
-		      prof[j].times[k][l]  += cci->prof.times[k][l];
-		    }
-		  prof[j].skips+=cci->prof.skips;
-		}
-	      }
-	    } while (ht_next(frame->edge_table_cc));
-	  if (TOTAL(prof+j,times)) {
-	    if (functor_have_overhead(frame, d)) {
-	      realsize_oh++;
-	      for (k=0;k<2;k++)
-		for (l=0;l<2;l++) {
-		  overhead.counts[k][l]+=prof[j].counts[k][l];
-		  overhead.times[k][l]+=prof[j].times[k][l];
-		}
-	      overhead.skips+=prof[j].skips;
-	    }
-	    else {
-	      realsize++;
-	      for (k=0;k<2;k++)
-		for (l=0;l<2;l++) {
-		  total.counts[k][l]+=prof[j].counts[k][l];
-		  total.times[k][l]+=prof[j].times[k][l];
-		}
-	      total.skips+=prof[j].skips;
-	    }
-	  }
-	}
+        {
+          if (ht_first(frame->edge_table_cc)) do {
+              edge_cc_t *cc=(edge_cc_t *)ht_stuff(frame->edge_table_cc);
+              if (cc->hooks) {
+                struct ht_tab *t=cc->cc_item_table;
+                if (ht_find(t, (ub1 *)(&d), sizeof(d))) {
+                  cc_item_t *cci=(cc_item_t *)ht_stuff(t);
+                  for (k=0;k<2;k++)
+                    for (l=0;l<2;l++) {
+                      prof[j].counts[k][l] += cci->prof.counts[k][l];
+                      prof[j].times[k][l]  += cci->prof.times[k][l];
+                    }
+                  prof[j].skips+=cci->prof.skips;
+                }
+              }
+            } while (ht_next(frame->edge_table_cc));
+          if (TOTAL(prof+j,times)) {
+            if (functor_have_overhead(frame, d)) {
+              realsize_oh++;
+              for (k=0;k<2;k++)
+                for (l=0;l<2;l++) {
+                  overhead.counts[k][l]+=prof[j].counts[k][l];
+                  overhead.times[k][l]+=prof[j].times[k][l];
+                }
+              overhead.skips+=prof[j].skips;
+            }
+            else {
+              realsize++;
+              for (k=0;k<2;k++)
+                for (l=0;l<2;l++) {
+                  total.counts[k][l]+=prof[j].counts[k][l];
+                  total.times[k][l]+=prof[j].times[k][l];
+                }
+              total.skips+=prof[j].skips;
+            }
+          }
+        }
     }
     if (ht_first(frame->edge_table_cc)) do {
-	edge_cc_t *cc=(edge_cc_t *)ht_stuff(frame->edge_table_cc);
-	if (!cc->hooks) {
-	  for (k=0;k<2;k++)
-	    for (l=0;l<2;l++)
-	      tick_not_profiling+=cc->times[k][l];
-	}
+        edge_cc_t *cc=(edge_cc_t *)ht_stuff(frame->edge_table_cc);
+        if (!cc->hooks) {
+          for (k=0;k<2;k++)
+            for (l=0;l<2;l++)
+              tick_not_profiling+=cc->times[k][l];
+        }
       } while (ht_next(frame->edge_table_cc));
     /* using the time conservation law, we can obtain the tot_ticks:
        (valid also when time profiling is off)*/
 #if defined(PROFILE__PROFTIME)
     if (tick_profiling + tick_not_profiling + TOTAL(&total,times)
-	+ TOTAL(&overhead,times)!=tick_last_addition - tick_start) {
+        + TOTAL(&overhead,times)!=tick_last_addition - tick_start) {
       fprintf(streamfile, "\n Verification Error %" PRId64 " != %" PRId64 "",
-	      tick_profiling + tick_not_profiling + TOTAL(&total,times)
-	      + TOTAL(&overhead,times), tick_last_addition - tick_start);
+              tick_profiling + tick_not_profiling + TOTAL(&total,times)
+              + TOTAL(&overhead,times), tick_last_addition - tick_start);
       fprintf(streamfile, "\n   %" PRId64 "+%" PRId64 "+%" PRId64 "+%" PRId64 " != %" PRId64 "-%" PRId64 "",
-	      tick_profiling, tick_not_profiling, TOTAL(&total,times),
-	      TOTAL(&overhead,times), tick_last_addition, tick_start);
+              tick_profiling, tick_not_profiling, TOTAL(&total,times),
+              TOTAL(&overhead,times), tick_last_addition, tick_start);
     }
 #else
     /*   tot_ticks=tick_last_addition - tick_start + 1; */
     if (TOTAL(&total,times) + TOTAL(&overhead,times)
-	!= tick_last_addition - tick_start) {
+        != tick_last_addition - tick_start) {
       fprintf(streamfile, "\n Verification Error %" PRId64 " != %" PRId64 "",
-	      TOTAL(&total,times) + TOTAL(&overhead,times),
-	      tick_last_addition - tick_start);
+              TOTAL(&total,times) + TOTAL(&overhead,times),
+              tick_last_addition - tick_start);
       fprintf(streamfile, "\n   %" PRId64 "+%" PRId64 " != %" PRId64 "-%" PRId64 "",
-	      TOTAL(&total,times) + TOTAL(&overhead,times),
-	      tick_last_addition, tick_start);
+              TOTAL(&total,times) + TOTAL(&overhead,times),
+              tick_last_addition, tick_start);
     }
 #endif
     
@@ -1125,14 +1125,14 @@ void profile_flat_dump(prof_frame_t *frame, FILE * streamfile)
     for (j=n-1;j>=0;--j) {
       keyval=&table->node[j];
       if ((d=keyval->value.def) && TOTAL(prof+j,times)) {
-	if (functor_have_overhead(frame, d)) {
-	  pred_table_oh[realsize_oh].prof=prof+j;
-	  pred_table_oh[realsize_oh++].functor=d;
-	}
-	else {
-	  pred_table[realsize].prof=prof+j;
-	  pred_table[realsize++].functor=d;
-	}
+        if (functor_have_overhead(frame, d)) {
+          pred_table_oh[realsize_oh].prof=prof+j;
+          pred_table_oh[realsize_oh++].functor=d;
+        }
+        else {
+          pred_table[realsize].prof=prof+j;
+          pred_table[realsize++].functor=d;
+        }
       }
     }
     compare_func=compare_ticks;
@@ -1151,7 +1151,7 @@ void profile_flat_dump(prof_frame_t *frame, FILE * streamfile)
     if (i != realsize) fprintf(streamfile, ",");
     d=pred_table[--i].functor;
     print_profile_pred(streamfile, d, pred_table[i].prof,
-		       TOTAL(&total,counts), TOTAL(&total,times));
+                       TOTAL(&total,counts), TOTAL(&total,times));
   }
 #endif
   fprintf(streamfile, "],");
@@ -1185,7 +1185,7 @@ void profile_flat_dump(prof_frame_t *frame, FILE * streamfile)
       if (i != realsize_oh) fprintf(streamfile, ",");
       d=pred_table_oh[--i].functor;
       print_profile_pred(streamfile, d, pred_table_oh[i].prof,
-			 TOTAL(&overhead,counts), TOTAL(&overhead,times));
+                         TOTAL(&overhead,counts), TOTAL(&overhead,times));
     }
   }
 #endif
@@ -1210,38 +1210,38 @@ void profile_flat_dump(prof_frame_t *frame, FILE * streamfile)
   fprintf(streamfile, "/*");
   fprintf(streamfile, FORMAT_SEPARATOR_2);
   fprintf(streamfile, "*/,oh(\n %12" PRId64 " /* %8f ms (%6.2f%%) Executing profiler hooks */",
-	  tick_profiling,
-	  (double)tick_profiling/profile_freq*1.0e3,
-	  (double)tick_profiling/(tick_last_addition - tick_start)*100.0);
+          tick_profiling,
+          (double)tick_profiling/profile_freq*1.0e3,
+          (double)tick_profiling/(tick_last_addition - tick_start)*100.0);
 # if defined(PROFILE)
   if (profile_hooks) {
     fprintf(streamfile, ",\n %12" PRId64 " /* %8f ms (%6.2f%%) Executing instrumentation code",
-	    total_overhead,
-	    ((double)total_overhead/profile_freq)*1.0e3,
-	    ((double)total_overhead)/(tick_last_addition - tick_start)*100.0);
+            total_overhead,
+            ((double)total_overhead/profile_freq)*1.0e3,
+            ((double)total_overhead)/(tick_last_addition - tick_start)*100.0);
     fprintf(streamfile, FORMAT_SEPARATOR);
     fprintf(streamfile, "*/,\n %12" PRId64 " /* %8f ms (%6.2f%%) Total overhead",
-	    tick_profiling + total_overhead,
-	    ((double)tick_profiling + total_overhead)/profile_freq*1.0e3,
-	    ((double)tick_profiling + total_overhead)/(tick_last_addition - tick_start)*100.0);
+            tick_profiling + total_overhead,
+            ((double)tick_profiling + total_overhead)/profile_freq*1.0e3,
+            ((double)tick_profiling + total_overhead)/(tick_last_addition - tick_start)*100.0);
     fprintf(streamfile, "*/,\n %12" PRId64 " /* %8f ms (%6.2f%%) Executing code with WAM hooks turned off",
-	    tick_not_profiling,
-	    ((double)tick_not_profiling)/profile_freq*1.0e3,
-	    ((double)tick_not_profiling)/(tick_last_addition - tick_start)*100.0);
+            tick_not_profiling,
+            ((double)tick_not_profiling)/profile_freq*1.0e3,
+            ((double)tick_not_profiling)/(tick_last_addition - tick_start)*100.0);
     fprintf(streamfile, "*/,\n %12" PRId64 " /* %8f ms (%6.2f%%) Executing code with WAM hooks turned on",
-	    TOTAL(&total,times),
-	    ((double)TOTAL(&total,times))/profile_freq*1.0e3,
-	    ((double)TOTAL(&total,times))/(tick_last_addition - tick_start)*100.0);
+            TOTAL(&total,times),
+            ((double)TOTAL(&total,times))/profile_freq*1.0e3,
+            ((double)TOTAL(&total,times))/(tick_last_addition - tick_start)*100.0);
     fprintf(streamfile, FORMAT_SEPARATOR);
     fprintf(streamfile, "*/");
   } else
 # endif
     fprintf(streamfile, ",0,%" PRId64 ",%" PRId64 ",0", tick_profiling,
-	    tick_last_addition - tick_start - tick_profiling);
+            tick_last_addition - tick_start - tick_profiling);
   fprintf(streamfile, ",\n %12" PRId64 " /* %8f ms (%6.2f%%) Total Time */)",
-	  tick_last_addition-tick_start,
-	  ((double)(tick_last_addition-tick_start))/profile_freq*1.0e3,
-	  100.0);
+          tick_last_addition-tick_start,
+          ((double)(tick_last_addition-tick_start))/profile_freq*1.0e3,
+          100.0);
 #else
   fprintf(streamfile, ",_");
 #endif
