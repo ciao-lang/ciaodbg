@@ -53,11 +53,11 @@
 % TODO: wrong type in ht_add2 (Stuff is not an address)
 % add_rec(_,[]).
 % add_rec(HashTable,[D|Ds]) :-
-% 	ht_add2(HashTable, D, '', _X),
-% 	add_rec(HashTable,Ds).
+%       ht_add2(HashTable, D, '', _X),
+%       add_rec(HashTable,Ds).
 
 % main :-
-% 	Dictionary=[one,two,tree,four,five,six,two,four],
-% 	ht_create(8, HashTable),
-% 	add_rec(HashTable,Dictionary),
-% 	ht_destroy(HashTable).
+%       Dictionary=[one,two,tree,four,five,six,two,four],
+%       ht_create(8, HashTable),
+%       add_rec(HashTable,Dictionary),
+%       ht_destroy(HashTable).

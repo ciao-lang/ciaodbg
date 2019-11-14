@@ -1,13 +1,13 @@
 :- module(profiler_utils, [
-		profile/1,
-		profile_call/1,
-		profile_reset/0,
-		profile_info/1,
-		activate_trace/0,
-		deactivate_trace/0,
-		activate_hooks/0,
-		deactivate_hooks/0
-	    ], [assertions, nativeprops]).
+            profile/1,
+            profile_call/1,
+            profile_reset/0,
+            profile_info/1,
+            activate_trace/0,
+            deactivate_trace/0,
+            activate_hooks/0,
+            deactivate_hooks/0
+        ], [assertions, nativeprops]).
 
 :- doc(title, "Profiler utilities").
 
@@ -43,17 +43,17 @@
 % Note that undo/1 can not be used here (we need to cut the choice points).
 
 profile_call(Goal) :-
-%	term_to_meta(Goal0, Goal),
-	'$metachoice'(CP),
-	profile_leave_fail,
-	'$metachoice'(C0),
-	profile_enter_call,
-	call(Goal),
-%	'$meta_call'(Goal0),
-	profile_leave_exit,
-	'$metachoice'(C1),
-	profile_enter_redo,
-	(C0==C1 -> '$metacut'(CP) ; true).
+%       term_to_meta(Goal0, Goal),
+    '$metachoice'(CP),
+    profile_leave_fail,
+    '$metachoice'(C0),
+    profile_enter_call,
+    call(Goal),
+%       '$meta_call'(Goal0),
+    profile_leave_exit,
+    '$metachoice'(C1),
+    profile_enter_redo,
+    (C0==C1 -> '$metacut'(CP) ; true).
 
 :- meta_predicate profile(goal).
 
@@ -62,38 +62,38 @@ profile_call(Goal) :-
    information.".
 
 profile(Goal) :-
-	catch(profile_call(Goal), E, profile_error(E)).
+    catch(profile_call(Goal), E, profile_error(E)).
 
 :- pred profile_info/1 => profile_info_type.
 
 % TODO: Wrong! buffer size of pipe/2 is limited
 %
 %% profile_info(ProfileInfo) :-
-%% 	pipe(ReadFrom, WriteTo),
-%% 	current_output(CO),
-%% 	set_output(WriteTo),
-%% 	profile_dump,
-%% 	display('.'),
-%% 	close(WriteTo),
-%% 	set_output(CO),
-%% 	read_term(ReadFrom, ProfileInfo, []),
-%% 	close(ReadFrom).
+%%      pipe(ReadFrom, WriteTo),
+%%      current_output(CO),
+%%      set_output(WriteTo),
+%%      profile_dump,
+%%      display('.'),
+%%      close(WriteTo),
+%%      set_output(CO),
+%%      read_term(ReadFrom, ProfileInfo, []),
+%%      close(ReadFrom).
 
 % TODO: implement a profile_dump/1 that generates terms
 profile_info(ProfileInfo) :-
-	mktemp_in_tmp('profinfoXXXXXX', FileName),
-	open_output(FileName, CO),
-	profile_dump,
-	display('.'),
-	close_output(CO),
-	open_input(FileName, CI),
-	read_term(ProfileInfo, []),
-	close_input(CI),
-	delete_file(FileName).
+    mktemp_in_tmp('profinfoXXXXXX', FileName),
+    open_output(FileName, CO),
+    profile_dump,
+    display('.'),
+    close_output(CO),
+    open_input(FileName, CI),
+    read_term(ProfileInfo, []),
+    close_input(CI),
+    delete_file(FileName).
 
 profile_reset :-
-	do_profile_reset,
-	profile_module_init(_).
+    do_profile_reset,
+    profile_module_init(_).
 
 activate_trace :- set_trace_active(1).
 deactivate_trace :- set_trace_active(0).

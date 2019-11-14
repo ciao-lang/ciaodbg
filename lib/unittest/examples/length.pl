@@ -1,5 +1,5 @@
 :- module(length, [length/2, concat/3],
-	    [assertions, isomodes, metatypes, hiord, nativeprops]).
+        [assertions, isomodes, metatypes, hiord, nativeprops]).
 
 :- doc(author, "Alvaro Sevilla San Mateo").
 
@@ -17,4 +17,4 @@ concat([X|L1], L2, [X|L3]) :- concat(L1, L2, L3).
 :- test length(X, Y) : (X = [a, b, c, d], Y = 5) + fails.
 :- test concat(A, B, C) : (A = [1, 2], B = [3], C = [1, 2, 3]) + not_fails.
 :- test concat(A, B, C) : (A = [1, 2], B = [3], var(C)) => (C=[1, 2, 3])
-	+ not_fails.
+    + not_fails.

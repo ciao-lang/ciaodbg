@@ -7,13 +7,13 @@
 :- use_module(.(size)).
 
 t0 :-
-	cc_auto_conf(ticks, mem, 2, Goals, Tree),
-	write(Goals),
-	nl,
-	write(Tree),
-	nl.
+    cc_auto_conf(ticks, mem, 2, Goals, Tree),
+    write(Goals),
+    nl,
+    write(Tree),
+    nl.
 
 t1 :-
-	profile_reset,
-	profile(mem),
-	profile_dump.
+    profile_reset,
+    profile(mem),
+    profile_dump.

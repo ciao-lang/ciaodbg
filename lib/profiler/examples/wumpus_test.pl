@@ -7,14 +7,14 @@
 :- use_module(.(wumpus)).
 
 t0 :-
-	cc_auto_conf(ticks, w, 3, Goals, Tree),
-	write(Goals),
-	nl,
-	write(Tree),
-	nl,
-        tree_to_tex(ticks,Tree).
+    cc_auto_conf(ticks, w, 3, Goals, Tree),
+    write(Goals),
+    nl,
+    write(Tree),
+    nl,
+    tree_to_tex(ticks,Tree).
 
 t1 :-
-	profile_reset,
-	profile(w),
-	profile_dump.
+    profile_reset,
+    profile(w),
+    profile_dump.

@@ -6,5 +6,5 @@
 :- cost_center main3/1.
 
 main3([A, B]) :-
-	module1:pp(A),
-	module2:pp(B).
+    module1:pp(A),
+    module2:pp(B).

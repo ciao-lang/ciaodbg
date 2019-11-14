@@ -18,24 +18,24 @@ choice2(_, l) :- display(choice2_l), nl.
 choice2(_, m) :- display(choice2_m), nl.
 
 list1 :-
-	choice1(A),
-	display(A), nl,
-	fail.
+    choice1(A),
+    display(A), nl,
+    fail.
 list1.
 
 list2 :-
-	choice2(_, A),
-	display(A), nl,
-	fail.
+    choice2(_, A),
+    display(A), nl,
+    fail.
 list2.
 
 main0 :-
-	list1,
-	list2,
-	choice1(l),
-	choice2(_, l).
-%	findall(A,choice1(A),L),
-%	display(L).
+    list1,
+    list2,
+    choice1(l),
+    choice2(_, l).
+%       findall(A,choice1(A),L),
+%       display(L).
 
 t0 :-
-	profile_reset, main0, profile_dump.
+    profile_reset, main0, profile_dump.

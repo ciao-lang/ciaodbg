@@ -7,13 +7,13 @@
 :- use_module(.(mqu_ov_test)).
 
 t0 :-
-	cc_auto_conf(ticks, queens(s(s(s(s(0))))), 2, Goals, Tree),
-	write(Goals),
-	nl,
-	write(Tree),
-	nl.
+    cc_auto_conf(ticks, queens(s(s(s(s(0))))), 2, Goals, Tree),
+    write(Goals),
+    nl,
+    write(Tree),
+    nl.
 
 t1 :-
-	profile_reset,
-	profile(queens(s(s(s(s(0)))))),
-	profile_dump.
+    profile_reset,
+    profile(queens(s(s(s(s(0)))))),
+    profile_dump.

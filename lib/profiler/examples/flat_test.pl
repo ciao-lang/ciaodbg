@@ -7,13 +7,13 @@
 :- use_module(.(flat)).
 
 t0 :-
-	cc_auto_conf(ticks, flat(f(a,b,g(c)), _), 1, Goals, Tree),
-	write(Goals),
-	nl,
-	write(Tree),
-	nl.
+    cc_auto_conf(ticks, flat(f(a,b,g(c)), _), 1, Goals, Tree),
+    write(Goals),
+    nl,
+    write(Tree),
+    nl.
 
 t1 :-
-	profile_reset,
-	profile(flat(f(a,b,g(c)), _)),
-	profile_dump.
+    profile_reset,
+    profile(flat(f(a,b,g(c)), _)),
+    profile_dump.

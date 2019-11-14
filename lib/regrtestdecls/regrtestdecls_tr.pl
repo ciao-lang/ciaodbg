@@ -43,23 +43,23 @@ test.
 :- data query/2.
 
 sentence_tr(end_of_file, end_of_file, Mod,_Dic) :- !,
-        dump_queries_to_file(Mod),
-        retractall_fact(query(_,_)).
+    dump_queries_to_file(Mod),
+    retractall_fact(query(_,_)).
 sentence_tr(:-(regr_texec(Query)),[], Mod,_Dic) :- !,
-        assertz_fact(query(Query,Mod)).
+    assertz_fact(query(Query,Mod)).
 sentence_tr(X, X,_Mod,_Dic).
 
 % -------------------------------------------------------- writing
 dump_queries_to_file(Mod) :-
-        defines_module(Base,Mod),
-        atom_concat(Base, '_queries.pl', OutFile),
-        open(OutFile, write, IO),
-        write_queries(IO,Mod),
-        close(IO).
+    defines_module(Base,Mod),
+    atom_concat(Base, '_queries.pl', OutFile),
+    open(OutFile, write, IO),
+    write_queries(IO,Mod),
+    close(IO).
 
 write_queries(IO,Mod) :-
-        query(Q,Mod),
-        write(IO,Q),
-        write(IO,'.\n'),
-        fail.
+    query(Q,Mod),
+    write(IO,Q),
+    write(IO,'.\n'),
+    fail.
 write_queries(_IO,_Mod).

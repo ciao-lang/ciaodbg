@@ -9,13 +9,13 @@
 
 %You can also test tes2, test3 and test4
 t0 :-
-	cc_auto_conf(ticks, test1, 2, Goals, Tree),
-	write(Goals),
-	nl,
-	write(Tree),
-	nl.
+    cc_auto_conf(ticks, test1, 2, Goals, Tree),
+    write(Goals),
+    nl,
+    write(Tree),
+    nl.
 
 t1 :-
-	profile_reset,
-	profile(test1),
-	profile_dump.
+    profile_reset,
+    profile(test1),
+    profile_dump.

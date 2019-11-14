@@ -26,31 +26,31 @@
 % Dummy code (just benchmark)
 :- export(main/0).
 main :-
-	repeat_count(N),
-	statistics(runtime, [X0|_]),
-	solve_(N),
-	statistics(runtime, [X|_]),
-%	display(L),
-%	nl,
-	name(Name),
-	display('name: '),
-	write_string(Name),
-	nl,
-	display('count: '),
-	display(N),
-	nl,
-	display('time: '),
-	Y is X - X0,
-	display(Y),
-	nl.
+    repeat_count(N),
+    statistics(runtime, [X0|_]),
+    solve_(N),
+    statistics(runtime, [X|_]),
+%       display(L),
+%       nl,
+    name(Name),
+    display('name: '),
+    write_string(Name),
+    nl,
+    display('count: '),
+    display(N),
+    nl,
+    display('time: '),
+    Y is X - X0,
+    display(Y),
+    nl.
 
 solve_(N) :-
-	( repeat(N),
-	  solve(_L),
-%	  display(_L), nl,
-	  fail
-	; true
-	).
+    ( repeat(N),
+      solve(_L),
+%         display(_L), nl,
+      fail
+    ; true
+    ).
 
 repeat(_N).
 repeat(N) :- N > 1, N1 is N - 1, repeat(N1).

@@ -5,26 +5,26 @@
 :- cost_center p/1, q/1, r/1, s/1, t/1.
 
 p(A) :-
-	q(A).
+    q(A).
 q(A) :-
-	r(A).
+    r(A).
 
 r(a).
 r(b).
 
 s(A) :-
-	t(A).
+    t(A).
 
 t(c).
 t(d).
 
 t0 :-
-	profile(p(_A)),
-	fail
+    profile(p(_A)),
+    fail
  ;
-	s(_B),
-	profile_dump.
+    s(_B),
+    profile_dump.
 
 t1 :-
-	profile(t0),
-	profile_dump.
+    profile(t0),
+    profile_dump.

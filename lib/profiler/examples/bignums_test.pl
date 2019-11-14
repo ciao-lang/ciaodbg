@@ -7,13 +7,13 @@
 :- use_module(.(bignums)).
 
 t0 :-
-	cc_auto_conf(ticks, do_bignums, 2, Goals, Tree),
-	write(Goals),
-	nl,
-	write(Tree),
-	nl.
+    cc_auto_conf(ticks, do_bignums, 2, Goals, Tree),
+    write(Goals),
+    nl,
+    write(Tree),
+    nl.
 
 t1 :-
-	profile_reset,
-	profile(do_bignums),
-	profile_dump.
+    profile_reset,
+    profile(do_bignums),
+    profile_dump.

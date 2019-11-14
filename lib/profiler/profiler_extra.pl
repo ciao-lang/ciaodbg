@@ -1,6 +1,6 @@
 :- module(profiler_extra, [measure/2, measure/3, measure_nf/3,
-		measure_0/3, get_option/1, time_option/2],
-	    [assertions, datafacts]).
+            measure_0/3, get_option/1, time_option/2],
+        [assertions, datafacts]).
 
 :- use_module(library(hrtime)).
 :- use_module(engine(hiord_rt), [call/1]).
@@ -24,45 +24,45 @@ get_option(ticks).
 :- meta_predicate measure(goal, ?).
 
 :- pred measure(Goal, Value) : callable(Goal) => num(Value) #
-	"Same as measure/3, but uses ticks to measure the time.".
+    "Same as measure/3, but uses ticks to measure the time.".
 
 measure(Goal, Value) :-
-	get_option(Option),
-	measure(Option, Goal, Value).
+    get_option(Option),
+    measure(Option, Goal, Value).
 
 :- meta_predicate measure(?, goal, ?).
 
 :- pred measure(Option, Goal, Value) ::
-	(atom(Option), callable(Goal)) => num(Value)
+    (atom(Option), callable(Goal)) => num(Value)
 # "Unifies @var{Value} with the time spent in evaluate @var{Goal},
    using the type of time @var{Option}.".
 
 measure(Option, Goal, Value) :-
-	time_option(Option, T1),
-	\+ \+ call(Goal),
-	time_option(Option, T2),
-	Value is T2 - T1.
+    time_option(Option, T1),
+    \+ \+ call(Goal),
+    time_option(Option, T2),
+    Value is T2 - T1.
 
 :- meta_predicate measure_nf(?, goal, ?).
 
 measure_nf(Option, Goal, Value) :-
-	time_option(Option, T1),
-	(\+ call(Goal) -> true ; true),
-	time_option(Option, T2),
-	Value is T2 - T1.
+    time_option(Option, T1),
+    (\+ call(Goal) -> true ; true),
+    time_option(Option, T2),
+    Value is T2 - T1.
 
 :- meta_predicate measure_0(?, goal, ?).
 
 measure_0(Option, Goal, Value) :-
-	time_option(Option, T1),
-	call(Goal),
-	time_option(Option, T2),
-	Value is T2 - T1.
+    time_option(Option, T1),
+    call(Goal),
+    time_option(Option, T2),
+    Value is T2 - T1.
 
 time_option(ticks, Value) :-
-	!,
-	hrtime(Value).
+    !,
+    hrtime(Value).
 time_option(Option, Value) :-
-	time_option(Option),
-	!,
-	statistics(Option, [Value, _]).
+    time_option(Option),
+    !,
+    statistics(Option, [Value, _]).

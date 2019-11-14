@@ -7,14 +7,14 @@
 :- use_module(.(hanoi)).
 
 t0 :-
-	cc_auto_conf(ticks, hanoi(5, a, b, c, _), 2, Goals, Tree),
-	write(Goals),
-	nl,
-	write(Tree),        
-	nl, 
-        tree_to_tex(ticks, Tree).
+    cc_auto_conf(ticks, hanoi(5, a, b, c, _), 2, Goals, Tree),
+    write(Goals),
+    nl,
+    write(Tree),        
+    nl, 
+    tree_to_tex(ticks, Tree).
 
 t1 :-
-	profile_reset,
-	profile(hanoi(5, a, b, c, _)),
-	profile_dump.
+    profile_reset,
+    profile(hanoi(5, a, b, c, _)),
+    profile_dump.

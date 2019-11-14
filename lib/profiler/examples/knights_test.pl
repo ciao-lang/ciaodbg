@@ -7,13 +7,13 @@
 :- use_module(.(knights)).
 
 t0 :-
-	cc_auto_conf(ticks, main(5), 4, Goals, Tree),
-	write(Goals),
-	nl,
-	write(Tree),
-	nl.
+    cc_auto_conf(ticks, main(5), 4, Goals, Tree),
+    write(Goals),
+    nl,
+    write(Tree),
+    nl.
 
 t1 :-
-	profile_reset,
-	profile(main(5)),
-	profile_dump.
+    profile_reset,
+    profile(main(5)),
+    profile_dump.

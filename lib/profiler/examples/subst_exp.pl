@@ -4,28 +4,28 @@
 
 
 substitute(A + B, Subs, NewA + NewB) :-
-	!,
-	substitute(A, Subs, NewA),
-	substitute(B, Subs, NewB).
+    !,
+    substitute(A, Subs, NewA),
+    substitute(B, Subs, NewB).
 substitute(A * B, Subs, NewA * NewB) :-
-	!,
-	substitute(A, Subs, NewA),
-	substitute(B, Subs, NewB).
+    !,
+    substitute(A, Subs, NewA),
+    substitute(B, Subs, NewB).
 substitute(A - B, Subs, NewA - NewB) :-
-	!,
-	substitute(A, Subs, NewA),
-	substitute(B, Subs, NewB).
+    !,
+    substitute(A, Subs, NewA),
+    substitute(B, Subs, NewB).
 substitute(A = B, Subs, NewA = NewB) :-
-	!,
-	substitute(A, Subs, NewA),
-	substitute(B, Subs, NewB).
+    !,
+    substitute(A, Subs, NewA),
+    substitute(B, Subs, NewB).
 substitute((A ** B), Subs, (NewA ** B)) :-
-	integer(B),
-	!,
-	substitute(A, Subs, NewA).
+    integer(B),
+    !,
+    substitute(A, Subs, NewA).
 substitute(A, Subs, B) :-
-	find_replacement(A, Subs, B),
-	!.
+    find_replacement(A, Subs, B),
+    !.
 substitute(A, _, A).
 
 find_replacement(A, [A = B|_], B).

@@ -1,12 +1,12 @@
 :- module(test_examples,
-        [
-            p/1,
-            display1/1,
-            call_test10/1,
-            cut_test5/0,
-            display_fail/0
-        ],
-        [assertions, nativeprops, basicmodes, rtchecks, unittestdecls, hiord]).
+    [
+        p/1,
+        display1/1,
+        call_test10/1,
+        cut_test5/0,
+        display_fail/0
+    ],
+    [assertions, nativeprops, basicmodes, rtchecks, unittestdecls, hiord]).
 
 :- doc(author, "Edison Mera").
 :- doc(author, "Nataliia Stulova").
@@ -21,27 +21,27 @@
 % tests only with preconditions
 
 :- test p(A) : (A = c)
-        # "test should pass".
+    # "test should pass".
 :- test p(A) : (A = d, A = a)
-        # "test should fail (precondition)".
+    # "test should fail (precondition)".
 :- test p(A) : possible_exceptions([any_exception(A)])
-        # "test should fail (throws exception in precondition)".
+    # "test should fail (throws exception in precondition)".
 :- test p(A) : (A = h)
-        # "test should abort".
+    # "test should abort".
 
 % ----------------------------------------------------------------------
 % tests with preconditions and computational properties
 
 :- test p(A) : (A = a) + not_fails
-        # "test should pass".
+    # "test should pass".
 :- test p(A) : (A = b) + fails
-        # "test should pass".
+    # "test should pass".
 :- test p(A) : (A = c) + exception(error(c, _))
-        # "test should pass".
+    # "test should pass".
 :- test p(A) : (A = c) + fails
-        # "test should fail".
+    # "test should fail".
 :- test p(A) : (A = c) + not_fails
-        # "test should fail".
+    # "test should fail".
 
 % ----------------------------------------------------------------------
 % tests with preconditions and postonditions
@@ -68,20 +68,20 @@ p(h) :- halt(1).                    % rule aborts the execution
 % assertions, it only gives examples of passing tests
 %
 :- texec display1(A) : (A = hello)
-        # "correct texecassertion, test should pass".
+    # "correct texecassertion, test should pass".
 :- texec display1(A) : (A = hello) + times(1)
-        # "correct texec assertion, test should pass".
+    # "correct texec assertion, test should pass".
 :- texec display1(A) : (A = hello) + user_output("hello")
-        # "incorrect texec assertion, test should pass".
+    # "incorrect texec assertion, test should pass".
 % ----------------------------------------------------------------------
 
 % ----------------------------------------------------------------------
 % examples of the alternatives for the texec assertions above
 %
 :- test display1(A) : (A = hello)
-        # "test should pass".
+    # "test should pass".
 :- test display1(A) : (A = hello) + user_output("bye")
-        # "test should fail".
+    # "test should fail".
 % ----------------------------------------------------------------------
 
 display1(A) :- display(A).
@@ -102,15 +102,15 @@ display_fail(_A) :- display(hello), fail.
 :- use_module(library(write), [write/1]).
 
 :- test cut_test5 + (times(3), user_output("Cut disjunction"), fails) #
-	"Test OK".
+    "Test OK".
 
 cut_test5 :- (! ; write('No')), write('Cut disjunction'), fail.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 :- test call_test10(X) : (X=(write(3), call(1)))
-	+ ( user_output("output"),
-	    exception(error(type_error(callable, 1), 'in metacall')) )
+    + ( user_output("output"),
+        exception(error(type_error(callable, 1), 'in metacall')) )
 # "Wrong test".
 
 :- meta_predicate call_test10(goal).
@@ -140,16 +140,16 @@ qs(A, A).
 % processing texec as texec
 
 :- texec case_tx(A, AB) : (A = a)
-         # "test should pass".
+     # "test should pass".
 :- texec case_tx(A, AB) : (A = a) + ( times(2), try_sols(2) )
-         # "test should pass".
+     # "test should pass".
 
 % processing texec as test
 
 :- texec case_tx(A, AB) : (A = a) + is_det
-         # "test should fail, bug: true&false test".
+     # "test should fail, bug: true&false test".
 :- texec case_tx(A, AB) : (A = a) + (try_sols(2), non_det)
-         # "test should pass".
+     # "test should pass".
 
 case_tx(a, a).
 case_tx(a, b).
@@ -161,15 +161,15 @@ case_tx(a, b).
 :- export(case_ts/2).
 
 :- test case_ts(X, Y) : (X = a)
-        # "test should pass".
+    # "test should pass".
 :- test case_ts(X, Y) : (X = a) + try_sols(1)
-        # "test should pass".
+    # "test should pass".
 :- test case_ts(X, Y) : (X = b) + is_det
-        # "test should pass".
+    # "test should pass".
 :- test case_ts(X, Y) : (X = a) => (Y = b) + try_sols(1)
-        # "test should fail".
+    # "test should fail".
 :- test case_ts(X, Y) : (X = b) => (Y = a ; Y = b) + is_det
-        # "test should pass".
+    # "test should pass".
 
 % ----------------------------------------------------------------------
 

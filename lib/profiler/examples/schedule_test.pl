@@ -7,13 +7,13 @@
 :- use_module(.(schedule)).
 
 t0 :-
-	cc_auto_conf(ticks, schedule(10000), 2, Goals, Tree),
-	write(Goals),
-	nl,
-	write(Tree),
-	nl.
+    cc_auto_conf(ticks, schedule(10000), 2, Goals, Tree),
+    write(Goals),
+    nl,
+    write(Tree),
+    nl.
 
 t1 :-
-	profile_reset,
-	profile(schedule(10000)),
-	profile_dump.
+    profile_reset,
+    profile(schedule(10000)),
+    profile_dump.

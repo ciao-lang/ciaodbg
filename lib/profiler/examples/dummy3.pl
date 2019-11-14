@@ -14,7 +14,7 @@ como :- true.
 estas :- true.
 
 aa :- hola, cp, mundo, member(X, [1, 2]), que, contais, display(X), como,
-	estas, !, bb.
+    estas, !, bb.
 
 bb :- cc.
 bb :- cc.
@@ -26,7 +26,7 @@ dd :- ee, X=1, X=2.
 ee :- true.
 
 main :-
-	aa ;
-	(display(choice_), nl).
+    aa ;
+    (display(choice_), nl).
 
 % main :- display(hola_mundo),nl,!.

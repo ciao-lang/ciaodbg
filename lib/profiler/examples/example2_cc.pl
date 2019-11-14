@@ -1,38 +1,38 @@
 :- module(_, _, [profiler]).
 
 list1(P, [_|Xs]) :-
-	list1(P, Xs).
+    list1(P, Xs).
 list1(_, []).
 
 main21 :-
-	list1(a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
-	fail.
+    list1(a, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+    fail.
 main21.
 
 
 list2([_|Xs], P) :-
-	list2(Xs, P).
+    list2(Xs, P).
 list2([], _).
 
 main22 :-
-	list2([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], a),
-	fail.
+    list2([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], a),
+    fail.
 main22.
 
 main :-
-	main21.
+    main21.
 
 ppp.
 
 p :-
-	q.
+    q.
 
 q.
 q.
 
 r :-
-	p,
-	fail.
+    p,
+    fail.
 r.
 
 :- no_cost_center pp0/0, qq/2.

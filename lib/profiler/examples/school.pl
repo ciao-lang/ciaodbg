@@ -41,26 +41,26 @@ course(ma561, ma123,  mon).
 prog(L) :- findall((S, T, R), p(S, T, R), L).
 
 p(S, T, R) :-
-	student(S, C1), student(S, C2),
-	teacher(T, C1), teacher(T, C2),
-	course(C1, R, _D1), course(C2, R, _D2),
-	\+(C1 = C2).
+    student(S, C1), student(S, C2),
+    teacher(T, C1), teacher(T, C2),
+    course(C1, R, _D1), course(C2, R, _D2),
+    \+(C1 = C2).
 
 :- use_module(library(streams)).
 :- use_module(library(write)).
 
 main :-
-	profile_reset, % at this point not necessary, but this is a test.
-	profile(prog(_X)),
-	display(':- module(_,_,[]).\nmain :- true.\n'),
-	profile_dump,
-	display('.'),
-	nl,
-	(
-	    profile_info(A),
-	    profile_info_type(A) ->
-	    true
-	;
-	    display(user_error,
-		'Problems in types, verify the regtype profile_info_type/1.\n')
-	).
+    profile_reset, % at this point not necessary, but this is a test.
+    profile(prog(_X)),
+    display(':- module(_,_,[]).\nmain :- true.\n'),
+    profile_dump,
+    display('.'),
+    nl,
+    (
+        profile_info(A),
+        profile_info_type(A) ->
+        true
+    ;
+        display(user_error,
+            'Problems in types, verify the regtype profile_info_type/1.\n')
+    ).

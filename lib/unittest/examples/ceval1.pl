@@ -15,14 +15,14 @@
 :- export(complex/1).
 
 complex(c(A, B)) :-
-	num(A),
-	num(B).
+    num(A),
+    num(B).
 
 :- test ceval(A, B) : (A = c(3, 4) + c(1, 2) - c(2, 3))
-	=> (B = c(2, 3)) + (not_fails, is_det).
+    => (B = c(2, 3)) + (not_fails, is_det).
 
 :- test ceval(A, B) : (A = c(3, 4) * c(1, 2) / c(1, 2))
-	=> (B = c(3.0, 4.0)) + (not_fails, is_det).
+    => (B = c(3.0, 4.0)) + (not_fails, is_det).
 
 :- check pred ceval/2 : gnd * term => gnd * complex.
 
@@ -34,21 +34,21 @@ ceval(A/B, C) :- ceval(A, CA), ceval(B, CB), div(CA, CB, C).
 
 :- pred add/3 : complex * complex * var => complex * complex * complex.
 add(c(A1, B1), c(A2, B2), c(A, B)) :-
-	A is A1 + A2,
-	B is B1 + B2.
+    A is A1 + A2,
+    B is B1 + B2.
 
 :- pred sub/3 : complex * complex * var => complex * complex * complex.
 sub(c(A1, B1), c(A2, B2), c(A, B)) :-
-	A is A1 - A2,
-	B is B1 - B2.
+    A is A1 - A2,
+    B is B1 - B2.
 
 :- pred mul/3 : complex * complex * var => complex * complex * complex.
 mul(c(A1, B1), c(A2, B2), c(A, B)) :-
-	A is A1*A2 - B1*B2,
-	B is A1*B2 + B1*A2.
+    A is A1*A2 - B1*B2,
+    B is A1*B2 + B1*A2.
 
 :- pred div/3 : complex * complex * var => complex * complex * complex.
 div(c(A1, B1), c(A2, B2), c(A, B)) :-
-	D is A2*A2 + B2*B2,
-	A is (A1*A2 + B1*B2) / D,
-	B is (A2*B1 - A1*B2) / D.
+    D is A2*A2 + B2*B2,
+    A is (A1*A2 + B1*B2) / D,
+    B is (A2*B1 - A1*B2) / D.

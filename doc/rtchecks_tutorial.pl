@@ -7,15 +7,15 @@
 :- doc(author, "The Ciao Development Team").
 
 :- doc(summary, "This package provides a complete implementation
-	of run-time checks of predicate assertions. The program is
-	instrumented to check such assertions at run time, and in case
-	a property does not hold, the error is reported. It is possible
-        to define two different property versions: one purely declarative
-        and one specifically crafted for run-time checking. Note that
-	there is also an older package called @tt{rtchecks}, by
-	@author{David Trallero Mena}. The advantage of this one is
-	that it can be used independently of CiaoPP and also has
-	updated functionality.").
+    of run-time checks of predicate assertions. The program is
+    instrumented to check such assertions at run time, and in case
+    a property does not hold, the error is reported. It is possible
+    to define two different property versions: one purely declarative
+    and one specifically crafted for run-time checking. Note that
+    there is also an older package called @tt{rtchecks}, by
+    @author{David Trallero Mena}. The advantage of this one is
+    that it can be used independently of CiaoPP and also has
+    updated functionality.").
 
 :- doc(stability,beta).
 
@@ -128,21 +128,21 @@ run-time checks will detect it and report this message:
 ?- len(a,z).
 {In /tmp/foo.pl
 ERROR: (lns 16-17) Run-time check failure in assertion for:
-	foo:len(L,N).
+    foo:len(L,N).
 In *calls*, unsatisfied property:
-	list(L).
+    list(L).
 Because:
-	['L'=a].
+    ['L'=a].
 ERROR: (lns 18-21) Failed in foo:len(L,N).
 }
 
 {In /tmp/foo.pl
 ERROR: (lns 17-18) Run-time check failure in assertion for:
-	foo:len(L,N).
+    foo:len(L,N).
 In *calls*, unsatisfied property:
-	nnegint(N).
+    nnegint(N).
 Because:
-	['N'=z].
+    ['N'=z].
 ERROR: (lns 18-21) Failed in foo:len(L,N).
 }
 ```
@@ -160,22 +160,22 @@ is performed in a way that is not compatible with the specification:
 ?- len(L,1).
 {In /tmp/foo.pl
 ERROR: (lns 16-17) Run-time check failure in assertion for:
-	foo:len(L,N).
+    foo:len(L,N).
 In *calls*, unsatisfied property:
-	list(L).
+    list(L).
 Because:
-	['L'=L].
+    ['L'=L].
 ERROR: (lns 18-21) Failed in foo:len(L,N).
 ERROR: (lns 18-21) Failed during invocation of len(_,_)
 }
 
 {In /tmp/foo.pl
 ERROR: (lns 17-18) Run-time check failure in assertion for:
-	foo:len(L,N).
+    foo:len(L,N).
 In *calls*, unsatisfied property:
-	nnegint(N).
+    nnegint(N).
 Because:
-	['N'=N].
+    ['N'=N].
 ERROR: (lns 18-21) Failed in foo:len(L,N).
 ERROR: (lns 18-21) Failed during invocation of len(_,_)
 }
@@ -209,20 +209,20 @@ null-terminating lists:
 ?- len(L,1).
 {In /tmp/foo.pl
 ERROR: (lns 17-18) Run-time check failure in assertion for:
-	foo:len(L,N).
+    foo:len(L,N).
 In *success*, unsatisfied property:
-	list(L).
+    list(L).
 ERROR: (lns 18-21) Failed in foo:len(L,N).
 ERROR: (lns 18-21) Failed during invocation of len(_,_)
 }
 
 {In /tmp/foo.pl
 ERROR: (lns 17-18) Run-time check failure in assertion for:
-	foo:len(L,N).
+    foo:len(L,N).
 In *success*, unsatisfied property:
-	list(L).
+    list(L).
 Because:
-	['L'=[_|_]].
+    ['L'=[_|_]].
 ERROR: (lns 18-21) Failed in foo:len(L,N).
 }
 ```
@@ -242,11 +242,11 @@ Run-time checks will detect a failure of such assertion:
 ?- len(L,1).
 {In /tmp/foo.pl
 ERROR: (lns 17-19) Run-time check failure in assertion for:
-	foo:len(L,N).
+    foo:len(L,N).
 In *success*, unsatisfied property:
-	list(L,int).
+    list(L,int).
 Because:
-	['L'=[_]].
+    ['L'=[_]].
 ERROR: (lns 19-21) Failed in foo:len(L,N).
 }
 ```
@@ -309,7 +309,7 @@ through a package configuration flag:
 @item @code{rtchecks_level}
   @begin{itemize}
    @item @code{exports}: Only use rtchecks for external calls of the
-                         exported predicates.
+                     exported predicates.
    @item @code{inner}  : Use also rtchecks for internal calls. Default.
   @end{itemize}
 @end{itemize}
@@ -396,22 +396,22 @@ thus leaving only the calls part of @var{A1} for run-time checking:
 %% %%   => atm(B).
 
 :- check calls foo(A,B)
-         : int(A).
+     : int(A).
 
 :- true success foo(A,B)
-         : int(A)
-        => atm(B).
+     : int(A)
+    => atm(B).
 
 %% %% :- check pred bar(C,D)
 %% %%    : atm(C)
 %% %%   => atm(D).
 
 :- true success bar(C,D)
-         : atm(C)
-        => atm(D).
+     : atm(C)
+    => atm(D).
 
 :- checked calls bar(C,D)
-         : atm(C).
+     : atm(C).
 ```
 
 More details are available from the related publication
@@ -564,7 +564,7 @@ Example of use:
 :- def_impl(pair_list/1,fast_listpair_cached/2).
 
 :- pred enqueue/3 :  pair_list * term * var
-	          => pair_list * term * pair_list.
+              => pair_list * term * pair_list.
 
 enqueue((Ins,Del),Elem,([Elem|Ins],Del)).
 
@@ -633,7 +633,7 @@ explanation of the effects:
   @begin{itemize}
    @item @code{no}     : Disable rtchecks for test assertions. Default.
    @item @code{yes}    : Enable  rtchecks for test assertions. Used for
-                 debugging purposes, but is better to use the unittest library.
+             debugging purposes, but is better to use the unittest library.
   @end{itemize}
 }
 
@@ -642,15 +642,15 @@ explanation of the effects:
 @item @code{rtchecks_inline}
   @begin{itemize}
    @item @code{no}     : Instrument rtchecks using call to library
-			 predicates present in @lib{rtchecks_rt.pl},
-			 @lib{nativeprops.pl} and @lib{basic_props.pl}.
-			 In this way, space is saved, but sacrifying
-			 performance due to usage of meta calls and
-			 external methods in the libraries. Default.
+                     predicates present in @lib{rtchecks_rt.pl},
+                     @lib{nativeprops.pl} and @lib{basic_props.pl}.
+                     In this way, space is saved, but sacrifying
+                     performance due to usage of meta calls and
+                     external methods in the libraries. Default.
    @item @code{yes}    : Expand library predicates inline as far as possible.
-			 In this way, the code is faster, because its avoids
-			 metacalls and usage of external methods, but the final
-			 executable could be bigger.
+                     In this way, the code is faster, because its avoids
+                     metacalls and usage of external methods, but the final
+                     executable could be bigger.
   @end{itemize}
 }
 
@@ -675,21 +675,21 @@ explanation of the effects:
 @item @code{rtchecks_callloc}
   @begin{itemize}
    @item @code{no}       : Do not show the stack of predicates that caused
-			   the failure
+                       the failure
    @item @code{predicate}: Show the stack of predicates that caused the
-			   failure. Instrument it in the predicate. Default.
+                       failure. Instrument it in the predicate. Default.
    @item @code{literal}  : Show the stack of predicates that caused the
-			   failure. Instrument it in the literal. This mode
-			   provides more information, because reports also
-			   the literal in the body of the predicate.
+                       failure. Instrument it in the literal. This mode
+                       provides more information, because reports also
+                       the literal in the body of the predicate.
   @end{itemize}
 
 @item @code{rtchecks_namefmt}
   @begin{itemize}
    @item @code{long}   : Show the name of predicates, properties and the
-			 values of the variables
+                     values of the variables
    @item @code{short}  : Only show the name of the predicate in a reduced
-			 format. Default.
+                     format. Default.
   @end{itemize}
 
 @end{itemize}
@@ -769,8 +769,8 @@ P :- Body.
 ```ciao
 % instrumented program source
 P :-    checkC(Pre1;...;PreN),
-        Pnew,
-        checkS(Pre1,Post1),...,checkS(PreN,PostN).
+    Pnew,
+    checkS(Pre1,Post1),...,checkS(PreN,PostN).
 
 Pnew :- Body.
 ```
@@ -814,8 +814,8 @@ For testing instructions of a specific run-time checks implementation (packages
 
 
 :- doc(appendix,
-        "@begin{note}
-           @bf{Note:} the @tt{assertions} package must always be included
-           together with the @tt{rtchecks} package
-           (see @tt{core/lib/compiler/global_module_options.pl} for details).
-         @end{note}").
+    "@begin{note}
+       @bf{Note:} the @tt{assertions} package must always be included
+       together with the @tt{rtchecks} package
+       (see @tt{core/lib/compiler/global_module_options.pl} for details).
+     @end{note}").

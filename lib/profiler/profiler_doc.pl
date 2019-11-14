@@ -38,7 +38,7 @@ instrumented overrides this behavior.
 The declaration is as follows:
 
 @begin{verbatim}
-	:- cost_center pred1/Arity1, ... predN/ArityN.
+    :- cost_center pred1/Arity1, ... predN/ArityN.
 @end{verbatim}
 
 where @pred{pred1/Arity1}, ..., @pred{predN/ArityN} are the predicates to be 
@@ -49,7 +49,7 @@ By default the engine hooks of all defined cost center are
 active. The declaration:
 
 @begin{verbatim}
-      (predN/ArityN,nohooks)	
+      (predN/ArityN,nohooks)    
 @end{verbatim}
 
 will deactivate them.
@@ -58,7 +58,7 @@ Another useful declaration makes possible to indicate that a given
 predicate is not going to be instrumented as cost center:
 
 @begin{verbatim}
-	:- no_cost_center pred1/Arity1, ... predN/ArityN.
+    :- no_cost_center pred1/Arity1, ... predN/ArityN.
 @end{verbatim}
 
 where @pred{pred1/Arity1}, ..., @pred{predN/ArityN} are the predicates
@@ -71,11 +71,11 @@ The following assertions define the behavior of all the predicates of
 the module: 
 
 @begin{verbatim}
-	:- all_cost_center.
+    :- all_cost_center.
 @end{verbatim}
 
 @begin{verbatim}
-	:- all_no_cost_center.
+    :- all_no_cost_center.
 @end{verbatim}
 
 They specify respectively that all the predicates in the module will be 
@@ -88,7 +88,7 @@ Cost centers can be also defined at literal level replacing the literal
 by the declaration:
 
 @begin{verbatim}
-	:- cost_center(name_cc, literal)
+    :- cost_center(name_cc, literal)
 @end{verbatim}
 
 where @var{literal} is the program literal and @var{name_cc} is the name of its
