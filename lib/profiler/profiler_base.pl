@@ -31,8 +31,6 @@
             obtain_nodes/3
         ], [assertions, regtypes, hiord_old, dcg]).
 
-% :- max_length_line(80).
-
 :- include(library(profiler/profiler_base_inline)).
 
 :- use_module(library(hiordlib), [maplist/3, foldl/4]).
