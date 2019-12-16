@@ -10,7 +10,7 @@
 #include <ciao/support.h>
 #include <ciao/eng_dbg.h>
 #include <ciao/timing.h>
-#include <ciao/float_tostr.h>
+#include <ciao/dtoa_ryu.h>
 #include "profiler.h"
 
 static int compare_counts(const void *arg1, const void *arg2);
@@ -531,11 +531,7 @@ void print_profile_item(FILE * streamfile,
   char buffer_time[MAXSTRNUMBERSIZE];
   int arity, i, j;
   
-  float_to_string(buffer_time,
-                  ENG_FLT_SIGNIF,
-                  'p',
-                  ((double)times)*1.0e3/profile_freq,
-                  10);
+  dtoa_ryu(((double)times)*1.0e3/profile_freq, buffer_time);
   fprintf(streamfile,
           FORMAT_ITEM,
           id,
@@ -613,11 +609,7 @@ void print_profile_total(FILE * streamfile,
 {
   char buffer_time[MAXSTRNUMBERSIZE];
   inttime_t t=TOTAL(total,times);
-  float_to_string(buffer_time
-                  ,ENG_FLT_SIGNIF
-                  ,'p'
-                  ,(((double)t)/profile_freq)*1.0e3
-                  ,10);
+  dtoa_ryu((((double)t)/profile_freq)*1.0e3, buffer_time);
   fprintf(streamfile,
           FORMAT_TOTAL,
           realsize,
@@ -651,11 +643,7 @@ void profile_ccw_dump(prof_frame_t *frame, FILE * streamfile, edge_cc_wrap_t *ec
           0,0l,0l
 #endif
           );
-  float_to_string(buffer_time,
-                  ENG_FLT_SIGNIF,
-                  'p',
-                  ((double)(TOTAL(eccw->ecc, times))/profile_freq)*1.0e3,
-                  10);
+  dtoa_ryu(((double)(TOTAL(eccw->ecc, times))/profile_freq)*1.0e3, buffer_time);
 #if defined(PROFILE)
   if (profile_hooks) {
     fprintf(streamfile, "/*");
@@ -898,11 +886,7 @@ void profile_edge_cc_dump(prof_frame_t *frame, FILE * streamfile)
     }
     fprintf(streamfile, "],/*");
     fprintf(streamfile, FORMAT_SEPARATOR_2);
-    float_to_string(buffer_time,
-                    ENG_FLT_SIGNIF,
-                    'p',
-                    ((double)total_times/profile_freq)*1.0e3,
-                    10);
+    dtoa_ryu(((double)total_times/profile_freq)*1.0e3, buffer_time);
     sprintf(buffer, "Total Edge Cost Center Counters          */tc(%7ld,%7ld",
 #if defined(PROFILE)
             cuts,
@@ -952,12 +936,8 @@ void profile_edge_cc_dump(prof_frame_t *frame, FILE * streamfile)
       char buffer_time[MAXSTRNUMBERSIZE];
       fprintf(streamfile, "/*");
       fprintf(streamfile, FORMAT_TITLE_SEPARATOR);
-      float_to_string(buffer_time
-                      ,ENG_FLT_SIGNIF
-                      ,'p'
-                      ,(((double)total_times)/profile_freq)*1.0e3
-                      ,10);
-  fprintf(streamfile,
+      dtoa_ryu((((double)total_times)/profile_freq)*1.0e3, buffer_time);
+      fprintf(streamfile,
           FORMAT_TOTAL,
           realsize,
 #if defined(PROFILE)
