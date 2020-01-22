@@ -637,23 +637,6 @@ explanation of the effects:
   @end{itemize}
 }
 
-@comment{NS: this actually has not been working for some years
-@comment{% TODO:T261 --NS}
-@item @code{rtchecks_inline}
-  @begin{itemize}
-   @item @code{no}     : Instrument rtchecks using call to library
-                     predicates present in @lib{rtchecks_rt.pl},
-                     @lib{nativeprops.pl} and @lib{basic_props.pl}.
-                     In this way, space is saved, but sacrifying
-                     performance due to usage of meta calls and
-                     external methods in the libraries. Default.
-   @item @code{yes}    : Expand library predicates inline as far as possible.
-                     In this way, the code is faster, because its avoids
-                     metacalls and usage of external methods, but the final
-                     executable could be bigger.
-  @end{itemize}
-}
-
 @item @code{rtchecks_asrloc}
   Controls the usage of locators for the assertions in the error messages.
   The locator says the file and lines that contains the assertion that had

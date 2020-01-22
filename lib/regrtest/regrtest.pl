@@ -111,7 +111,7 @@ input(Question, Answer) :-
     display(Question), nl, flush_output,
     get_line(Answer).
 
-:- multifile test_run/2.
+%:- multifile test_run/2.
 test_run(Base,_) :- run_test_queries(Base).
 
 %***********************************************************************
