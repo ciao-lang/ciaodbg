@@ -40,9 +40,7 @@
         get_code_and_related_assertions/5,
         assertion_body/7
     ]).
-:- use_module(library(assertions/c_itf_props), [filename/1]).
 :- use_module(library(system),   [copy_file/2, file_exists/1]).
-:- use_module(library(process),  [process_call/3]).
 :- use_module(library(hiordlib), [maplist/2, foldl/4]).
 :- use_module(library(compiler/c_itf), [exports/5, defines_module/2]).
 :- use_module(library(lists),
@@ -602,40 +600,14 @@ current_assr_module(Module) :-
     assertion_read(_A, Module, check, Type, _E, _F, _G, _H, _I),
     unittest_type(Type).
 
-:- pred create_runner(+pathname, +list, +yesno) + (not_fails, no_choicepoints)
-    # "If the list of modules to test @var{Modules} is not empty
-       then test runner and test loader files are generated.".
 
-create_runner(TmpDir, Modules, RtcEntry) :-
-    ( Modules \== [] ->
-        % TODO: put together?
-        create_global_runner(TmpDir, Modules, RtcEntry, RunnerFile),
-        create_loader(TmpDir, RunnerFile)
-    ;
-        true
-    ).
+:- use_module(ciaobld(config_common), [cmd_path/4]).
+unittest_exec := ~cmd_path(ciaodbg, plexe, 'ciao_unittest_loader').
 
-% But note that create_loader/2 cleans the assertion_read/9 database.
-% This means that, from this point on, the contents of such predicate
-% cannot be trusted.
+:- use_module(ciaobld(cpx_process), [cpx_process_call/3]).
+invoke_unittest(RunnerFile, Args, Opts) :-
+    cpx_process_call(~unittest_exec, [RunnerFile|Args], Opts).
 
-:- pred create_loader(+pathname, +atm) + (not_fails, no_choicepoints).
-
-create_loader(TmpDir, RunnerFile) :-
-    loader_name(BLoader),
-    path_concat(TmpDir,BLoader,Loader),
-    atom_concat(Loader, '_auto.pl', LoaderPl),
-    create_loader_pl(RunnerFile, LoaderPl),
-    make_exec([LoaderPl], Loader).
-
-% Kludge: Wrong behavior if you link RunnerFile in the executable directly.
-create_loader_pl(RunnerFile, LoaderPo) :-
-    Cs = [
-            (:- module(_, [main/1], [hiord])),
-            (:- use_module(library(compiler), [use_module/1])),
-            (main(Args) :- use_module(RunnerFile), _:main_tests(Args))
-        ],
-    print_clauses_to_file(LoaderPo, [raw(Cs)]).
 
 :- pred run_test_assertions(+pathname, +list(atm), +list) +
     (not_fails, no_choicepoints).
@@ -651,8 +623,8 @@ run_test_assertions(TmpDir, Modules, Opts) :-
     empty_output(TmpDir),
     ( test_attributes_db(_, _, _, _, _, _, _, _, _) ->
       get_test_opts(DumpOutput, DumpError, RtcEntry, Opts),
-      create_runner(TmpDir, Modules, RtcEntry),
-      run_all_tests(TmpDir, DumpOutput, DumpError, Opts)
+      create_runner(TmpDir, Modules, RtcEntry, RunnerFile),
+      run_all_tests(TmpDir, RunnerFile, DumpOutput, DumpError, Opts)
     ; true
     ),
     % even if module has no tests, we write an empty test output file
@@ -660,13 +632,11 @@ run_test_assertions(TmpDir, Modules, Opts) :-
     % which allows detecting newly added tests on regression testing
     write_all_test_outputs(Modules).
 
-:- pred run_all_tests(TmpDir, DumpOutput, DumpError, RunnerArgs)
-    : pathname * yesno * yesno * list(test_option).
+:- pred run_all_tests(TmpDir, RunnerFile, DumpOutput, DumpError, RunnerArgs)
+    : pathname * pathname * yesno * yesno * list(test_option).
 
-run_all_tests(TmpDir, DumpOutput, DumpError, RunnerArgs) :-
-    loader_name(BLoader),
-    path_concat(TmpDir, BLoader, Loader),
-    do_tests(TmpDir, Loader, DumpOutput, DumpError, RunnerArgs).
+run_all_tests(TmpDir, RunnerFile, DumpOutput, DumpError, RunnerArgs) :-
+    do_tests(TmpDir, RunnerFile, DumpOutput, DumpError, RunnerArgs).
 
 file_test_output_suffix('.testout').
 
@@ -808,16 +778,16 @@ dump_error(no,  _).
     :  pathname * atm * yesno * yesno * list
 # "Calls the loader as an external process. If some test aborts, calls
    recursively with the rest of the tests".
-do_tests(TmpDir, Loader, DumpOutput, DumpError, RunnerArgs) :-
-    do_tests_(TmpDir, Loader, DumpOutput, DumpError, RunnerArgs, no).
+do_tests(TmpDir, RunnerFile, DumpOutput, DumpError, RunnerArgs) :-
+    do_tests_(TmpDir, RunnerFile, DumpOutput, DumpError, RunnerArgs, no).
 
-do_tests_(TmpDir, Loader, DumpOutput, DumpError, RunnerArgs, Resume) :-
+do_tests_(TmpDir, RunnerFile, DumpOutput, DumpError, RunnerArgs, Resume) :-
     ( Resume = yes(ContIdx) ->
         RunnerArgs2 = [resume_after,ContIdx|RunnerArgs]
     ; RunnerArgs2 = RunnerArgs
     ),
     % this process call appends new outputs to OutFile
-    process_call(Loader, RunnerArgs2,
+    invoke_unittest(RunnerFile,RunnerArgs2,
                  [stdin(null),
                   stdout(string(StrOut)),
                   stderr(string(StrErr)),
@@ -838,7 +808,7 @@ do_tests_(TmpDir, Loader, DumpOutput, DumpError, RunnerArgs, Resume) :-
         write_data(IO, test_output_db(TestId, TestResult)),
         close(IO),
         % continue testing
-        do_tests_(TmpDir, Loader, DumpOutput, DumpError, RunnerArgs, yes(TestId))
+        do_tests_(TmpDir, RunnerFile, DumpOutput, DumpError, RunnerArgs, yes(TestId))
     ; true % (all tests had output)
     ).
 
@@ -889,10 +859,11 @@ get_test(Module, TestId, Type, Pred, Body, Dict, Src, LB, LE) :-
     unittest_type(Type),
     make_test_id(Module, Src, LB, LE, TestId).
 
-:- pred create_global_runner(+pathname, +list, +yesno, ?atm)
-    + (not_fails, no_choicepoints).
+:- pred create_runner(+pathname, +list, +yesno, -pathname)
+    + (not_fails, no_choicepoints)
+    # "The runner is generated.".
 
-create_global_runner(TmpDir, Modules, RtcEntry, RunnerFile) :-
+create_runner(TmpDir, Modules, RtcEntry, RunnerFile) :-
     % Create wrapper files for each of the modules being tested
     create_wrapper_mods(Modules, TmpDir, RtcEntry),
     %
