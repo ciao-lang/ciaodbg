@@ -1,7 +1,6 @@
 :- module(unittest_statistics,
         [
             statistical_summary/2
-            % statistical_filter/11
         ],
         [assertions]).
 
@@ -25,13 +24,47 @@
    tests. @var{IdxTestSummaries} contains a list of terms with the
    results of the tests.".
 
+% The results of a test, written in an output file by the test runner,
+% are a term of the form st(RtcErrors,Signals,Status) for each
+% solution of the predicate, where:
+%
+% - RtcErrors is the list of runtime-check errors intercepted for that
+%   solution
+%
+% - Signals is the list of other signals intercepted for that solution
+%
+% - Status is one of the following:
+%
+%   - aborted(?,?): The test aborted for some reason. This result is
+%     added manually by unittest.pl when it finds no test results (so
+%     it can not be a result of a second solution, and in particular
+%     currently we don't know if a test aborted after the first
+%     solution)
+%
+%   - fail(precondition): The precondition of the test assertion had
+%     no solutions when being run, and therefore no actual goal to be
+%     run for testing was generated.
+%
+%   - exception(Where,E): There was an exception at step Where of the
+%     test. Where in {precondition, postcondition, predicate}
+%
+%   - fail(predicate): The predicate did not succeed for the given
+%     test case
+%
+%   - true: The predicate succeeded for the given test case
+
+% TODO: move this documentation to unittest.pl
+
+% IdxTestSummaries is of the form
+% [[TestAttributes-[count(st(RtcErrors,Signals,TestResult), N)]]],
+% where N is the number of times the test result st(...) occurs for
+% the test with TestAttributes
 statistical_summary(Tag, IdxTestSummaries0) :-
     flatten(IdxTestSummaries0, IdxTestSummaries),
-    statistical_filter(IdxTestSummaries, 0, 0, 0, 0, 0,
-        NSuccess, NFail, NFailPre, NAborted, NRTCErrors),
+    statistical_filter(IdxTestSummaries, stats(0,0,0,0,0),
+        stats(NSuccess,NFail,NFailPre,NAborted,NRTCErrors)),
     NTotal is NSuccess+NFail+NFailPre+NAborted,
-    NTotal > 0
-    ->
+    NTotal > 0, !,
     sformat(S, "Passed: ~w (~2f\%) Failed: ~w (~2f\%) " ||
         "Precond Failed: ~w (~2f\%) Aborted: ~w (~2f\%) " ||
         "Total: ~w Run-Time Errors: ~w~n}~n",
@@ -44,58 +77,81 @@ statistical_summary(Tag, IdxTestSummaries0) :-
             NRTCErrors
         ]),
     display_list(Tag),
-    message(note, [$$(S)])
-    ;
-    true.
+    message(note, [$$(S)]).
+statistical_summary(_,_). % reached if NTotal=0. Print something?
 
-:- pred statistical_filter(IdxTestSummaries, NSuccess0, NFail0,
-        NFailPre0, NAborted0, NErrors0, NSuccess, NFail,
-        NFailPre, NAborted, NRTCErrors)
-: list * int * int * int * int * int * int * int * int * int * int
+:- pred statistical_filter(IdxTestSummaries, Stats0, Stats)
 
 # "Narrow the information of the tests and generate the statistical
    information structure needed to perform the statistical summary.
    @var{IdxTestSummaries} contains a list of terms with the results of
    tests. ".
 
-statistical_filter([],                  NSuccess,  NFail,  NFailPre,
-        NAborted,  NRTCErrors,  NSuccess, NFail, NFailPre, NAborted,
-        NRTCErrors).
-statistical_filter([_-TestSummary|TSs], NSuccess0, NFail0, NFailPre0,
-        NAborted0, NRTCErrors0, NSuccess, NFail, NFailPre, NAborted,
-        NRTCErrors) :-
-    update_summary(TestSummary, NSuccess0, NFail0, NFailPre0, NAborted0,
-        NRTCErrors0, NSuccess1, NFail1, NFailPre1, NAborted1, NRTCErrors1),
-    statistical_filter(TSs, NSuccess1, NFail1, NFailPre1, NAborted1,
-        NRTCErrors1, NSuccess, NFail, NFailPre, NAborted, NRTCErrors).
+statistical_filter([], Stats, Stats).
+statistical_filter([_-TestSummary|TSs], Stats0, Stats) :-
+    update_summary(TestSummary, Stats0, Stats1),
+    statistical_filter(TSs, Stats1, Stats).
 
-update_summary_each(st(_, _, aborted(_, _)), NSuccess, NFail, NFailPre,
-        NAborted0, NRTCErrors, NSuccess, NFail, NFailPre, NAborted,
-        NRTCErrors) :- !,
-    NAborted is NAborted0 + 1.
-update_summary_each(st(_, _, fail(precondition)), NSuccess, NFail,
-        NFailPre0, NAborted, NRTCErrors, NSuccess, NFail,
-        NFailPre, NAborted, NRTCErrors) :- !,
-    NFailPre is NFailPre0 + 1.
-update_summary_each(st(RTCErrors, _, _), NSuccess, NFail0, NFailPre, NAborted,
-        NRTCErrors0, NSuccess, NFail, NFailPre, NAborted, NRTCErrors) :-
-    length(RTCErrors, N),
+% case 1: There was not output written by the tests, so unittest.pl
+% deduces the test aborted and writes himself the output st(_,_,aborted(?,?)).
+update_summary([count(st(_, _, aborted(_, _)),_C)|_Rest], Stats0, Stats) :- !, % _C=1, _Rest=[]
+    inc_stat(aborted,Stats0,Stats).
+%
+% case 2: The precondition of the test failed
+update_summary([count(st(_, _, fail(precondition)),_C)|_Rest], Stats0, Stats) :- !, % _C=1, _Rest=[]
+    inc_stat(fail_pre,Stats0,Stats).
+%
+% case 3: The precondition of the test threw an exception
+update_summary([count(st(_, _, exception(precondition,_)),_C)|_Rest], Stats0, Stats) :- !, % _C=1, _Rest=[]
+    inc_stat(aborted,Stats0,Stats). % or increase_fail_precondition?
+%
+% case 4: The postcondition of the test threw an exception
+update_summary(Summ, Stats0, Stats) :-
+    member(count(st(_, _, exception(postcondition,_))),Summ), !,
+    inc_stat(aborted,Stats0,Stats).
+%
+% case 5: At least one runtime-check error occurred during testing
+update_summary(Summ, Stats0, Stats) :-
+    number_rtc_errors(Summ,N),
     N > 0,
     !,
-    NFail is NFail0 + 1,
-    NRTCErrors is NRTCErrors0 + N.
-update_summary_each(_, NSuccess0, NFail, NFailPre, NAborted, NRTCErrors,
-        NSuccess, NFail, NFailPre, NAborted, NRTCErrors) :-
-    NSuccess is NSuccess0 + 1.
+    inc_stat(failed,Stats0,Stats1),
+    inc_stat_n(rtchecks,Stats1,N,Stats).
+%
+% other cases: st([],_,St), St in {true, fail(predicate), exception(predicate)}
+update_summary(_, Stats0, Stats) :-
+    inc_stat(success,Stats0,Stats).
 
-update_summary([], NSuccess, NFail, NFailPre, NAborted, NRTCErrors, NSuccess,
-        NFail, NFailPre, NAborted, NRTCErrors).
-update_summary([count(ErrorStatus, _)|TestSummary], NSuccess0, NFail0,
-        NFailPre0, NAborted0, NRTCErrors0, NSuccess, NFail, NFailPre,
-        NAborted, NRTCErrors) :-
-    update_summary_each(ErrorStatus, NSuccess0, NFail0, NFailPre0,
-        NAborted0, NRTCErrors0, NSuccess1, NFail1, NFailPre1, NAborted1,
-        NRTCErrors1),
-    update_summary(TestSummary, NSuccess1, NFail1, NFailPre1, NAborted1,
-        NRTCErrors1, NSuccess, NFail, NFailPre, NAborted, NRTCErrors).
+number_rtc_errors(Summ,N) :-
+    number_rtc_errors_(Summ,0,N).
 
+number_rtc_errors_([],N,N).
+number_rtc_errors_([count(st(RTCErrors, _, _),C)|Summ],Acc0,N) :-
+    length(RTCErrors,K),
+    Acc is Acc0 + K*C,
+    number_rtc_errors_(Summ,Acc,N).
+
+inc_stat(Stat, Stats0, NewStats) :-
+    inc_stat_n(Stat, Stats0, 1, NewStats).
+
+inc_stat_n(success, stats(NSuccess0,NFail,NFailPre,NAborted,NRTCErrors), N,
+         stats(NSuccess,NFail,NFailPre,NAborted,NRTCErrors)) :-
+    NSuccess is NSuccess0+N.
+inc_stat_n(failed, stats(NSuccess,NFail0,NFailPre,NAborted,NRTCErrors), N,
+         stats(NSuccess,NFail,NFailPre,NAborted,NRTCErrors)) :-
+    NFail is NFail0+N.
+inc_stat_n(fail_pre, stats(NSuccess,NFail,NFailPre0,NAborted,NRTCErrors), N,
+         stats(NSuccess,NFail,NFailPre,NAborted,NRTCErrors)) :-
+    NFailPre is NFailPre0+N.
+inc_stat_n(aborted, stats(NSuccess,NFail,NFailPre,NAborted0,NRTCErrors), N,
+         stats(NSuccess,NFail,NFailPre,NAborted,NRTCErrors)) :-
+    NAborted is NAborted0+N.
+inc_stat_n(rtchecks, stats(NSuccess,NFail,NFailPre,NAborted,NRTCErrors0), N,
+         stats(NSuccess,NFail,NFailPre,NAborted,NRTCErrors)) :-
+    NRTCErrors is NRTCErrors0+N.
+
+
+% TODO: IC: I have kept the original stats, but we should redesign
+% which ones to output (e.g., precondition_failed probably is not that
+% relevant, and should not even occur, better to just warn when it
+% happens).
