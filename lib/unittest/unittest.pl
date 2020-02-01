@@ -132,8 +132,9 @@
 
    @item @var{Precondition} is a goal that is called before the
    predicate being tested, and can be used to generate values of the
-   input parameters. While in other types of assertions the idea of
-   these @em{preconditions} is to provide concrete input values for
+   input parameters. While in some other types of assertions these
+   preconditions contain properties to be checked, the typical role of
+   the @em{preconditions} here is to provide concrete input values for
    which the predicate can be actually executed.
 
    @item @var{Postcondition} is a goal that should succeed after
@@ -199,15 +200,17 @@ complex(c(A, B)) :-
 
    Tests with a @tt{false} (or @tt{true}) prefix are not run. 
 
-   Due to the non-determinism of logic programs, the test engine needs
-   to test all the solutions that can be tested up to given limits
-   (for example, a maximum number of solutions, or a given timeout).
+   Due to the non-determinism of logic programs, the test engine will
+   by default generate all solutions for the tested predicate. This can be
+   limited by establishing a maximum number of solutions or a timeout.
 
    There are some specific properties that only apply to testing which
-   are provided in module @lib{unittest_props.pl}. For example
-   @code{try_sols(N)} specifies that the first N solutions of the
-   predicate @code{predicate/n} are tested.  @code{times(N)} specifies
-   that the given test should be executed N times, etc.
+   are provided in module @lib{unittest_props.pl}. For example, the
+   limits to the number of solutions mentioned above canbe set with
+   @code{try_sols(N)}, which specifies that only the first N solutions
+   of the predicate @code{predicate/n} should be tested.
+   @code{times(N)} specifies that the given test should be executed
+   @code{N} times, etc.
 
 @subsection{Running tests in a bundle}
 
@@ -232,8 +235,8 @@ ciao test
      specified in the current module.
 
    @item @tt{Run tests in current and all related modules}: execute
-     the tests specified in the module and in all the modules
-     being used by this.
+     the tests specified in the current module and in all the modules
+     being used by it.
 
    @item @tt{Show untested exported predicates}: show the
      @em{exported} predicates that do not have any test assertion.
@@ -249,18 +252,28 @@ ciao test
    below). This can also be done from a program, provided it imports
    this module.
 
+@subsection{Combination with run-time tests}
+
+   These tests can be combined with the run-time checking of other
+   assertions present in the involved modules. This can be done by
+   including the @lib{rtchecks} package in the desired modules.  Any
+   @tt{check} assertions present in the code will then be checked
+   dynamically during the execution of the tests and can detect
+   additional errors.
+
 @subsection{Integration tests}
 
-If you need to write tests for predicates that are spread over several
-modules, but work together, it may be useful to create a separate
-module, and reexport the predicates required to build the tests. This
-allows performing @em{integration testing}, using the same syntax of
-the test assertions.
+   If you need to write tests for predicates that are spread over
+   several modules, but work together, it may be useful to create a
+   separate module, and reexport the predicates required to build the
+   tests. This allows performing @em{integration testing}, using the
+   syntax and functionality of the test assertions.  
+
 ").
 
-:- doc(bug, "The tests currently @bf{can only be applied to exported
-   predicates}.  This is a limitation of the current implementation
-   that will be corrected in the future.").
+:- doc(bug, "Currently @bf{only the tests defined for exported
+   predicates} are executed.  This is a limitation of the current
+   implementation that will be corrected in the future.").
 
 :- push_prolog_flag(write_strings, on).
 
