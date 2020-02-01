@@ -18,16 +18,21 @@
 :- doc(author, "Francisco Bueno").
 :- doc(module,"
     This module can be used to spy predicates in a program. Spying
-    means here to display messages at the call, exit, fail and redo
+    means here to display messages at the call, exit, fail, and redo
     ports of goals for the predicate spied.
 
     In order to spy a predicate using this module a program expansion
     has to be performed on the program module defining the predicate.
     This is achieved by the @tt{byrdbox} package.
 
-    This library is a programming exercise in CIAO expansion packages.
-    It is meanly intended as an auxiliary library for
-    @tt{library(tracing)}.
+    This library is a programming exercise in Ciao expansion packages.
+    It is mainly intended as an auxiliary library for
+    @tt{library(tracing)}. 
+
+    Please note that this is not a replacement for the standard
+    debugger (and which can also be embedded in executables), since it
+    has more limited functionality.
+
 ").
 
 :- doc(usage,"
