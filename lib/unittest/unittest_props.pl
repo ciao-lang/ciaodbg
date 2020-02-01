@@ -47,11 +47,16 @@ times(Goal, Times) :-
     ;
     true.
 
-:- trust prop try_sols(G,N) + test_command # "This test of @var{G} 
-    will be executed to get at most @var{N} solutions.".
+% TODO: Should really be "max_sols" (since the test harness tries all
+%       solutions by default).
+:- trust prop try_sols(G,N) + test_command # "For this test of @var{G}
+    get at most @var{N} solutions (normally all solutions are
+    generated).".
 
 :- meta_predicate try_sols(goal, ?).
 
+% MH: This is just a description. This functionality is implemented in
+% rtchecks.
 try_sols(Goal, Sols) :-
     findnsols(Sols, _, Goal, _).
 
