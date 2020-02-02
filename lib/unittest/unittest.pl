@@ -90,12 +90,12 @@
 :- doc(author, "Alvaro Sevilla San Mateo").
 :- doc(author, "Nataliia Stulova").
 
-:- doc(summary, "Ciao provides an assertion-based testing
-   functionality, including unit tests.  The central idea is to use
-   the assertion language to provide specifications of test cases for
-   a given predicate. This library contains predicates that can be
-   used to run tests in modules and gather or pretty print the
-   results.").
+:- doc(summary, "Ciao provides an integrated assertion-based
+   verification and debugging framework, which includes unit tests.
+   In this approach to unit tests, the assertion language is reused to
+   provide specifications of test cases for predicates. This library
+   contains predicates for running any such tests present in modules
+   and for gathering or pretty printing the results.").
 
 :- doc(stability,beta).
 
@@ -104,9 +104,9 @@
    @index{unit tests}) by means of @index{test assertions}. These
    assertions make it possible to write specific test cases at the
    predicate level. This library contains predicates that can be used
-   to run tests in modules and gather or pretty print the results. It
+   to run tests in modules and gather or pretty-print the results. It
    also provides some special properties that are convenient when
-   writing tests and the required run-time support.
+   writing tests and the corresponding run-time support.
 
 @subsection{Writing test assertions}
 @cindex{writing unit tests}
@@ -124,7 +124,7 @@
    Where the fields of the test assertion have the usual meaning in
    Ciao assertions, i.e., they contain conjunctions of properties
    which must hold at certain points in the execution. Here we give a
-   somewhat more operational (``test oriented''), reading to these
+   somewhat more operational (``test oriented'') reading to these
    fields: 
 
    @begin{itemize}
@@ -214,9 +214,9 @@ complex(c(A, B)) :-
 
 @subsection{Running tests in a bundle}
 
-   To run all these tests (as well as the other standard tests in the
-   system) run the following (at the top level of the source tree or a
-   bundle @cindex{bundle}):
+   To run all these tests in a given bundle (as well as the other
+   standard tests in the system) run the following (at the top level
+   of the source tree or a bundle @cindex{bundle}):
 
 @begin{verbatim}
 ciao test
@@ -239,7 +239,7 @@ ciao test
      being used by it.
 
    @item @tt{Show untested exported predicates}: show the
-     @em{exported} predicates that do not have any test assertion.
+     @em{exported} predicates that do not have any test assertions.
 
    @end{enumerate}
 @end{cartouche}
@@ -394,10 +394,10 @@ module_base(Module, Base) :-
     @item @tt{dump_error}: Show the standard error of the test execution.
 
     @item @tt{rtc_entry}: Force run-time checking of at least exported
-          assertions even if the flag runtime_checks has not been activated. (This
-          is a workaround since currently we cannot enable runtime checks in
-          system libraries smoothly).
-
+          assertions even if the runtime_checks flag has not been
+          activated. (This is a workaround since currently we cannot
+          enable runtime checks in system libraries smoothly).
+   
     @item @tt{treat_related} : Run tests in current and all related modules;
 
     @item @tt{dir_rec} : Run tests in a specified directory recursively.
@@ -554,6 +554,7 @@ run_tests(Alias, Opts, Actions) :-
    @var{TestSummaries}. @var{TestSummaries} can be pretty printed
    using @pred{show_test_summaries/1} and
    @pred{statistical_summary/2}.".
+
 run_tests_in_module(Alias, Opts, TestSummaries) :-
     run_tests(Alias, Opts, [check]),
     get_assertion_info(current, Alias, Modules),
@@ -561,16 +562,16 @@ run_tests_in_module(Alias, Opts, TestSummaries) :-
 
 :- pred run_tests_in_module(Alias, Opts)
     : (sourcename(Alias), list(Opts,test_option))
-
 # "Run the tests in module @var{Alias}. The results of the tests are
    printed out.".
+
 run_tests_in_module(Alias, Opts) :-
      run_tests(Alias, Opts, [check, show_output, show_stats]).
 
 :- pred run_tests_in_module(Alias) : sourcename(Alias)
-
 # "Run the tests in module @var{Alias} (using default options).  The
    results of the tests are printed out.".
+
 run_tests_in_module(Alias) :-
     run_tests(Alias, [], [check, show_output, show_stats]).
 
@@ -578,6 +579,7 @@ run_tests_in_module_check_exp_assrts(Alias) :-
     run_tests(Alias, [rtc_entry], [check, show_output, show_stats]).
 
 :- pred run_tests_related_modules(Alias) : sourcename(Alias).
+
 run_tests_related_modules(Alias) :-
     run_tests(Alias, [treat_related], [check, show_output, show_stats]).
 
@@ -766,7 +768,9 @@ is_failed_test_result(aborted(_, _)). % TODO: global property aborts/1 (like Maj
 is_failed_test_result(fail(precondition)).  % Show warning
 is_failed_test_result(exception(precondition, _)). % PANIC
 is_failed_test_result(exception(postcondition, _)). % PANIC
+is_failed_test_result(exception(predicate, timeout)). % PANIC
 % TODO: is_failed_test_result(exception(predicate, _)).  assertions should assume no_exception/1 by default.
+% TODO: timeouts and exceptions in general need to be treated better
 
 :- data test_input_db/2.
 :- data test_output_db/2.
@@ -1014,7 +1018,7 @@ do_gen_each_test_entry(TmpDir, Module, RtcEntry, Src, TestEntry, TestId, Clause)
     ; PLoc = none
     ),
     % this term is later expanded in the wrapper file by the goal
-    % translation of rtchecks package
+    % translation of the rtchecks package
     TestBody = '$test_entry_body'(TestInfo, Assertions, PLoc, TmpDir),
     Clause = clause(TestEntry, TestBody, ADict).
 

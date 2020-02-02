@@ -26,7 +26,7 @@
 
 :- doc(module, "This module defines special properties and commands to
        be used in test declarations. They are called in general
-    ``test commands''.  that are random generators.").
+    ``test commands.'' This includes some that are random generators.").
 
 :- trust prop test_command(X) + sideff(free) # "@var{X} is a test command.".
 

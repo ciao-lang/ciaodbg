@@ -1,6 +1,7 @@
 :- module(unittest_statistics,
         [
-            statistical_summary/2
+            statistical_summary/2, 
+            statistical_filter/3
         ],
         [assertions]).
 
@@ -61,18 +62,20 @@
 % the test with TestAttributes
 statistical_summary(Tag, IdxTestSummaries0) :-
     flatten(IdxTestSummaries0, IdxTestSummaries),
-    statistical_filter(IdxTestSummaries, stats(0,0,0,0,0),
-        stats(NSuccess,NFail,NFailPre,NAborted,NRTCErrors)),
-    NTotal is NSuccess+NFail+NFailPre+NAborted,
+    statistical_filter(IdxTestSummaries, stats(0,0,0,0,0,0),
+        stats(NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)),
+    NTotal is NSuccess+NFail+NFailPre+NAborted+NTimeout,
     NTotal > 0, !,
     sformat(S, "Passed: ~w (~2f\%) Failed: ~w (~2f\%) " ||
         "Precond Failed: ~w (~2f\%) Aborted: ~w (~2f\%) " ||
+        "Timeouts: ~w (~2f\%) " ||
         "Total: ~w Run-Time Errors: ~w~n}~n",
         [
             NSuccess, 100*NSuccess/NTotal,
             NFail, 100*NFail/NTotal,
             NFailPre, 100*NFailPre/NTotal,
             NAborted, 100*NAborted/NTotal,
+            NTimeout, 100*NTimeout/NTotal,
             NTotal,
             NRTCErrors
         ]),
@@ -80,7 +83,11 @@ statistical_summary(Tag, IdxTestSummaries0) :-
     message(note, [$$(S)]).
 statistical_summary(_,_). % reached if NTotal=0. Print something?
 
+% TODO: define type stats(NSuccess, NFail, NFailPre, NAborted, NTimeout, NErrors), all ints
+
 :- pred statistical_filter(IdxTestSummaries, Stats0, Stats)
+%% Stats0 = stats(NSuccess0, NFail0, NFailPre0, NAborted0, NTimeout0, NErrors0)
+%% Stats  = stats(NSuccess,  NFail,  NFailPre,  NAborted,  NTimeout,  NRTCErrors)
 
 # "Narrow the information of the tests and generate the statistical
    information structure needed to perform the statistical summary.
@@ -92,8 +99,8 @@ statistical_filter([_-TestSummary|TSs], Stats0, Stats) :-
     update_summary(TestSummary, Stats0, Stats1),
     statistical_filter(TSs, Stats1, Stats).
 
-% case 1: There was not output written by the tests, so unittest.pl
-% deduces the test aborted and writes himself the output st(_,_,aborted(?,?)).
+% case 1: There was no output written by the tests, so unittest.pl
+% deduces the test aborted and writes itself the output st(_,_,aborted(?,?)).
 update_summary([count(st(_, _, aborted(_, _)),_C)|_Rest], Stats0, Stats) :- !, % _C=1, _Rest=[]
     inc_stat(aborted,Stats0,Stats).
 %
@@ -110,7 +117,12 @@ update_summary(Summ, Stats0, Stats) :-
     member(count(st(_, _, exception(postcondition,_))),Summ), !,
     inc_stat(aborted,Stats0,Stats).
 %
-% case 5: At least one runtime-check error occurred during testing
+% case 5: Catch timeout exceptions as a special case
+% TODO: needs to be improved
+update_summary([count(st(_, _, exception(predicate,timeout)),_C)|_Rest], Stats0, Stats) :- !, % ? 
+    inc_stat(timeout,Stats0,Stats). 
+%
+% case 6: At least one runtime-check error occurred during testing
 update_summary(Summ, Stats0, Stats) :-
     number_rtc_errors(Summ,N),
     N > 0,
@@ -134,20 +146,23 @@ number_rtc_errors_([count(st(RTCErrors, _, _),C)|Summ],Acc0,N) :-
 inc_stat(Stat, Stats0, NewStats) :-
     inc_stat_n(Stat, Stats0, 1, NewStats).
 
-inc_stat_n(success, stats(NSuccess0,NFail,NFailPre,NAborted,NRTCErrors), N,
-         stats(NSuccess,NFail,NFailPre,NAborted,NRTCErrors)) :-
+inc_stat_n(success, stats(NSuccess0,NFail,NFailPre,NAborted,NTimeout,NRTCErrors), N,
+           stats(NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
     NSuccess is NSuccess0+N.
-inc_stat_n(failed, stats(NSuccess,NFail0,NFailPre,NAborted,NRTCErrors), N,
-         stats(NSuccess,NFail,NFailPre,NAborted,NRTCErrors)) :-
+inc_stat_n(failed, stats(NSuccess,NFail0,NFailPre,NAborted,NTimeout,NRTCErrors), N,
+           stats(NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
     NFail is NFail0+N.
-inc_stat_n(fail_pre, stats(NSuccess,NFail,NFailPre0,NAborted,NRTCErrors), N,
-         stats(NSuccess,NFail,NFailPre,NAborted,NRTCErrors)) :-
+inc_stat_n(fail_pre, stats(NSuccess,NFail,NFailPre0,NAborted,NTimeout,NRTCErrors), N,
+           stats(NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
     NFailPre is NFailPre0+N.
-inc_stat_n(aborted, stats(NSuccess,NFail,NFailPre,NAborted0,NRTCErrors), N,
-         stats(NSuccess,NFail,NFailPre,NAborted,NRTCErrors)) :-
+inc_stat_n(aborted, stats(NSuccess,NFail,NFailPre,NAborted0,NTimeout,NRTCErrors), N,
+           stats(NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
     NAborted is NAborted0+N.
-inc_stat_n(rtchecks, stats(NSuccess,NFail,NFailPre,NAborted,NRTCErrors0), N,
-         stats(NSuccess,NFail,NFailPre,NAborted,NRTCErrors)) :-
+inc_stat_n(timeout, stats(NSuccess,NFail,NFailPre,NAborted,NTimeout0,NRTCErrors), N,
+           stats(NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
+    NTimeout is NTimeout0+N.
+inc_stat_n(rtchecks, stats(NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors0), N,
+           stats(NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
     NRTCErrors is NRTCErrors0+N.
 
 
@@ -155,3 +170,8 @@ inc_stat_n(rtchecks, stats(NSuccess,NFail,NFailPre,NAborted,NRTCErrors0), N,
 % which ones to output (e.g., precondition_failed probably is not that
 % relevant, and should not even occur, better to just warn when it
 % happens).
+%
+% MH: Actually, it indeed is something that the user does
+% not intend but if we do not detect it and report it it is hard to
+% spot these errors: they show up as tests that succeed even if they
+% have not even run.

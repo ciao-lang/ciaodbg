@@ -25,6 +25,7 @@
     ]).
 :- use_module(engine(stream_basic)).
 :- use_module(engine(exceptions)).
+:- use_module(library(timeout)).
 
 % ----------------------------------------------------------------------
 
@@ -125,6 +126,31 @@ test_postcondition(Pred, Result) :-
 :- meta_predicate test_pred_exception(goal, ?).
 test_pred_exception(Pred, Result) :-
     catch(Pred, PredEx, (Result = exception(predicate, PredEx))).
+%% test_pred_exception(Pred, Result) :-
+%%     catch(test_pred_with_time_limit(Pred),
+%%           PredEx, (Result = exception(predicate, PredEx))).
+
+%% Preliminary support for timeouts in unittests, for now turned off
+%% by default. Timeouts can be activated (but without backtracking,
+%% see below) by commenting out the previous three lines and using the
+%% ones below instead.
+
+%% TODO: This solution does not support backtracking due to
+%%       call_with_time_limit doing once/1.  Need either to fix
+%%       call_with_time_limit or to wrap the call tested at the
+%%       outermost point of the test harness. 
+
+:- meta_predicate test_pred_with_time_limit(goal, ?).
+test_pred_with_time_limit(Pred) :-
+    time_limit(T),
+    call_with_time_limit(
+        T, % mS
+        Pred,
+        throw(timeout)).
+	
+% TODO: Of course, should be parametric,
+% either time_out/2 property (unimplemented) or prolog_flag?
+time_limit(5000). % mS 
 
 :- meta_predicate test_precondition(goal, goal, ?).
 test_precondition(Precond, Pred, Result) :-
