@@ -22,9 +22,9 @@ flat_info_name(overhead_summary).
 :- regtype flat_info_type/1.
 flat_info_type(fr(FlatInfoList, FlatInfoTotal,
             FlatOverheadList, FlatOverheadTotal, FlatOverheadSummary)) :-
-    list(FlatInfoList, info_pred_type), %     Predicates info
+    list(info_pred_type, FlatInfoList), %     Predicates info
     info_total_type(FlatInfoTotal), %         Total predicates info
-    list(FlatOverheadList, info_pred_type), % Overheads info
+    list(info_pred_type, FlatOverheadList), % Overheads info
     info_total_type(FlatOverheadTotal), %     Total overheads info
     flat_overhead_type(FlatOverheadSummary). % Overhead summary
 
@@ -150,7 +150,7 @@ ecc_info_name(ecc_summary).
 
 :- regtype ecc_info_type/1.
 ecc_info_type(cr(CCList, CCSummary)) :-
-    list(CCList, ecc_item_type),
+    list(ecc_item_type, CCList),
     cc_summary_type(CCSummary).
 
 :- regtype cc_total_name/1.
@@ -161,10 +161,10 @@ cc_total_name(total_called_hooks).
 
 :- regtype cc_total_type/1.
 cc_total_type(d(CostCenters, TotalCC, Hooks, TotalH)) :-
-    list(CostCenters, info_pred_type), % Called predicates info
+    list(info_pred_type, CostCenters), % Called predicates info
     info_total_type(TotalCC), %          Total called predicates 
 %                                            info
-    list(Hooks, info_pred_type), %       Called hooks info
+    list(info_pred_type, Hooks), %       Called hooks info
     info_total_type(TotalH). %           Total called hooks info
 
 :- regtype hooks_enabled_type/1.
@@ -201,7 +201,7 @@ cc_summary_type(tc(Cuts, SCuts, InfoItem, InfoList, Total)) :-
     nnegint(Cuts), %       Number of effective cuts done in a node scope
     nnegint(SCuts), %      Cuts without effect done in a node scope
     info_item_type(InfoItem),
-    list(InfoList, profile_info_edge_type), % Full edges (between two cost
+    list(profile_info_edge_type, InfoList), % Full edges (between two cost
 %                                                 centers) info -for the graph-
     info_total_type(Total). %                 Total edges (between two cost 
 %                                                 centers) info -as a summary-

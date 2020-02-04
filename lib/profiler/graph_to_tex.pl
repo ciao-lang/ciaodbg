@@ -2,7 +2,7 @@
             graph_to_tex/3,
 % types:
             graph/1, node/1, edge/1, label/1],
-        [hiord_old, assertions, regtypes]).
+        [hiord, assertions, regtypes]).
 
 :- use_module(library(hiordlib), [minimum/3, maplist/3]).
 :- use_module(engine(messages_basic), [lformat/1]).
@@ -26,8 +26,8 @@
 
 :- regtype graph/1 # "Represents a graph.".
 graph(g(Nodes, Edges)) :-
-    list(Nodes, node),
-    list(Edges, edge).
+    list(node, Nodes),
+    list(edge, Edges).
 
 :- regtype node/1 # "A node of a graph.".
 node(n(A, T)) :-
@@ -165,7 +165,7 @@ transform(Nodes, NodesNorm) :-
 min_node(n(_, X), n(_, Y)) :- X < Y.
 max_node(n(_, X), n(_, Y)) :- X > Y.
 
-transform_node(n(N, T), Min, Max, n(N, T1)) :-
+transform_node(Min, Max, n(N, T), n(N, T1)) :-
     T1 is 1 + (T - Min)/(Max - Min).
 
 % We have seen that if the names of the nodes are not uniform (in the sense of 
@@ -189,10 +189,10 @@ rename_edges([(N, N1)|Equiv], Edges, EdgesRen) :-
     maplist(renamenode(N, N1), Edges, EdgesRen1),
     rename_edges(Equiv, EdgesRen1, EdgesRen).
 
-renamenode(e(N, N, T), N, N1, e(N1, N1, T)) :- !.
-renamenode(e(N, D, T), N, N1, e(N1, D,  T)) :- !.
-renamenode(e(O, N, T), N, N1, e(O,  N1, T)) :- !.
-renamenode(e(O, D, T), _, _,  e(O,  D,  T)).
+renamenode(N, N1, e(N, N, T), e(N1, N1, T)) :- !.
+renamenode(N, N1, e(N, D, T), e(N1, D,  T)) :- !.
+renamenode(N, N1, e(O, N, T), e(O,  N1, T)) :- !.
+renamenode(_, _,  e(O, D, T), e(O,  D,  T)).
 
 
 %% Tests

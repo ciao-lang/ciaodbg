@@ -17,7 +17,7 @@
             test_option/1,
             test_action/1
         ],
-        [assertions, regtypes, isomodes, nativeprops, dcg, fsyntax, hiord_old, datafacts]).
+        [assertions, regtypes, isomodes, nativeprops, dcg, fsyntax, hiord, datafacts]).
 
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic), [nl/0]).
@@ -546,9 +546,8 @@ run_tests(Alias, Opts, Actions) :-
 % ----------------------------------------------------------------------
 
 :- pred run_tests_in_module(Alias, Opts, TestSummaries)
-    : (sourcename(Alias), list(Opts,test_option))
+    : (sourcename(Alias), list(test_option,Opts))
     => list(TestSummaries)
-
 # "Run the tests in module @var{Alias} (with options @var{Opts}).  The
    results of the tests are returned as data in
    @var{TestSummaries}. @var{TestSummaries} can be pretty printed
@@ -561,10 +560,9 @@ run_tests_in_module(Alias, Opts, TestSummaries) :-
     get_all_test_outputs(Modules, TestSummaries).
 
 :- pred run_tests_in_module(Alias, Opts)
-    : (sourcename(Alias), list(Opts,test_option))
+    : (sourcename(Alias), list(test_option,Opts))
 # "Run the tests in module @var{Alias}. The results of the tests are
    printed out.".
-
 run_tests_in_module(Alias, Opts) :-
      run_tests(Alias, Opts, [check, show_output, show_stats]).
 
@@ -594,7 +592,7 @@ run_tests_in_module_args(TestMode, Alias, Opts) :-
 :- doc(hide,get_assertion_info/3).
 :- pred get_assertion_info(TestMode, Alias, Modules)
     : ( atm(TestMode), sourcename(Alias), var(Modules) )
-    =>  list(Modules, atm)
+    =>  list(atm, Modules)
  # "Read related assertions of source at @var{Alias} into database and
     get the test module name @var{Modules} if the testing is done only
     for the current module (@var{TestMode} = @tt{current}) or get a
@@ -734,8 +732,7 @@ process_runtime_check(TestAttributes-TestSummary) -->
     foldl(process_runtime_check_ta(Module, F, A, Dict, Comment, Source, LB, LE),
           TestSummary).
 
-process_runtime_check_ta(count(ErrorStatus, Count), Module, F, A, Dict,
-        Comment, Source, LB, LE) -->
+process_runtime_check_ta(Module, F, A, Dict, Comment, Source, LB, LE, count(ErrorStatus, Count)) -->
     {ErrorStatus = st(RTCErrors, Signals0, Result0)},
     {pretty_prop(t(Result0, Signals0), Dict, t(Result, Signals))},
     {count_text(Count, CountMsg)},
@@ -1060,9 +1057,9 @@ print_clauses([C|Cs], IO) :- print_clause(C, IO), print_clauses(Cs, IO).
 print_clause(raw(Clauses), IO) :-
     unittest_print_clauses(Clauses, IO, []).
 print_clause(clause(Head, Body, Dict), IO) :-
-    unittest_print_clause((Head :- Body), IO, Dict).
+    unittest_print_clause(IO, Dict, (Head :- Body)).
 
-% unittest_print_clause(Term, S, _Dict) :-
+% unittest_print_clause(S, _Dict, Term) :-
 %       current_output(CO),
 %       set_output(S),
 %       writeq(Term),
@@ -1070,7 +1067,7 @@ print_clause(clause(Head, Body, Dict), IO) :-
 %       nl,
 %       set_output(CO).
 
-unittest_print_clause(Term, S, Dict) :-
+unittest_print_clause(S, Dict, Term) :-
     apply_dict(Term, Dict, ATerm),
     current_output(CO),
     set_output(S),

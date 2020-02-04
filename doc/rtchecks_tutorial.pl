@@ -233,7 +233,7 @@ ERROR: (lns 18-21) Failed in foo:len(L,N).
 @var{L} must be a list of integers, not just any terms.
 
 ```ciao
-:- pred len(L,N) : (nnegint(N), var(L)) => list(L,int). % A2_too_strict
+:- pred len(L,N) : (nnegint(N), var(L)) => list(int,L). % A2_too_strict
 ```
 
 Run-time checks will detect a failure of such assertion:
@@ -244,7 +244,7 @@ Run-time checks will detect a failure of such assertion:
 ERROR: (lns 17-19) Run-time check failure in assertion for:
     foo:len(L,N).
 In *success*, unsatisfied property:
-    list(L,int).
+    list(int,L).
 Because:
     ['L'=[_]].
 ERROR: (lns 19-21) Failed in foo:len(L,N).

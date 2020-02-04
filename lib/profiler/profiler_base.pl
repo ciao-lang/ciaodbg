@@ -29,7 +29,7 @@
             get_profile_total_time/2,
             obtain_edges/3,
             obtain_nodes/3
-        ], [assertions, regtypes, hiord_old, dcg]).
+        ], [assertions, regtypes, hiord, dcg]).
 
 :- include(library(profiler/profiler_base_inline)).
 
@@ -249,7 +249,7 @@ get_profile_cc_called_ccs(FunctorDescS, EdgeFields, ProfileInfo, CalledCCs) :-
     obtain_edges(InfoForEdges, EdgeFields, Edges),
     foldl(filter_edge_by_source(FunctorDescS), Edges, CalledCCs, []).
 
-filter_edge_by_source(e(S, D, T), S) --> !, [(D, T)].
+filter_edge_by_source(S, e(S, D, T)) --> !, [(D, T)].
 filter_edge_by_source(_,          _) --> [].
 
 :- pred get_profile_cc_graph_time/2 :: profile_info_type * term.
@@ -292,11 +292,14 @@ get_cc_item([_CCInfo|CCInfoList], Field, FunctorDescD, N0, N) :-
 % Auxiliar predicates for get_profile_cc_graph:
 % ----------------------------------------------------------------------------
 
-obtain_edge(InfoEdge, Fields, e(S, D, Values)) :-
+obtain_edge(Fields, InfoEdge, e(S, D, Values)) :-
     get_ecc_item(functor_d, InfoEdge, D),
     get_ecc_item(functor_s, InfoEdge, S),
     get_ecc_item(info_item, InfoEdge, InfoItem),
-    maplist(get_info_item(InfoItem), Fields, Values).
+    maplist(my_get_info_item(InfoItem), Fields, Values).
+
+my_get_info_item(InfoItem, Field, Value) :-
+    get_info_item(Field, InfoItem, Value).
 
 obtain_edges(InfoEdges, Fields, Edges) :-
     maplist(obtain_edge(Fields), InfoEdges, Edges).
