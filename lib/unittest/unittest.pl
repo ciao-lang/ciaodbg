@@ -615,11 +615,12 @@ current_assr_module(Module) :-
 
 
 :- use_module(ciaobld(config_common), [cmd_path/4]).
-unittest_exec := ~cmd_path(ciaodbg, plexe, 'ciao_unittest_loader').
+unittest_exec := ~cmd_path(ciaodbg, plexe, 'ciao_unittest_runner').
 
 :- use_module(ciaobld(cpx_process), [cpx_process_call/3]).
-invoke_unittest(RunnerFile, Args, Opts) :-
-    cpx_process_call(~unittest_exec, [RunnerFile|Args], Opts).
+invoke_unittest(WrapperMods, InputPath, Args0, Opts) :-
+    append(WrapperMods, ['--end_wrapper_modules--', InputPath|Args0], Args),
+    cpx_process_call(~unittest_exec, Args, Opts).
 
 
 :- pred run_test_assertions(+pathname, +list(atm), +list) +
@@ -636,8 +637,8 @@ run_test_assertions(TmpDir, Modules, Opts) :-
     empty_output(TmpDir),
     ( test_attributes_db(_, _, _, _, _, _, _, _, _) ->
       get_test_opts(DumpOutput, DumpError, RtcEntry, Opts),
-      create_runner(TmpDir, Modules, RtcEntry, RunnerFile),
-      run_all_tests(TmpDir, RunnerFile, DumpOutput, DumpError, Opts)
+      create_wrapper_mods(Modules, TmpDir, RtcEntry, WrapperMods),
+      run_all_tests(TmpDir, WrapperMods, InFile, DumpOutput, DumpError, Opts)
     ; true
     ),
     % even if module has no tests, we write an empty test output file
@@ -645,11 +646,11 @@ run_test_assertions(TmpDir, Modules, Opts) :-
     % which allows detecting newly added tests on regression testing
     write_all_test_outputs(Modules).
 
-:- pred run_all_tests(TmpDir, RunnerFile, DumpOutput, DumpError, RunnerArgs)
-    : pathname * pathname * yesno * yesno * list(test_option).
+:- pred run_all_tests(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs)
+    : pathname * list * pathname * yesno * yesno * list(test_option).
 
-run_all_tests(TmpDir, RunnerFile, DumpOutput, DumpError, RunnerArgs) :-
-    do_tests(TmpDir, RunnerFile, DumpOutput, DumpError, RunnerArgs).
+run_all_tests(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs) :-
+    do_tests(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs).
 
 file_test_output_suffix('.testout').
 
@@ -788,20 +789,20 @@ dump_output(no,  _).
 dump_error(yes, StrErr) :- write_string(StrErr).
 dump_error(no,  _).
 
-:- pred do_tests(TmpDir, Loader, DumpOutput, DumpError, RunnerArgs)
-    :  pathname * atm * yesno * yesno * list
+:- pred do_tests(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs)
+    :  pathname * list * pathname * yesno * yesno * list
 # "Calls the loader as an external process. If some test aborts, calls
    recursively with the rest of the tests".
-do_tests(TmpDir, RunnerFile, DumpOutput, DumpError, RunnerArgs) :-
-    do_tests_(TmpDir, RunnerFile, DumpOutput, DumpError, RunnerArgs, no).
+do_tests(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs) :-
+    do_tests_(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs, no).
 
-do_tests_(TmpDir, RunnerFile, DumpOutput, DumpError, RunnerArgs, Resume) :-
+do_tests_(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs, Resume) :-
     ( Resume = yes(ContIdx) ->
         RunnerArgs2 = [resume_after,ContIdx|RunnerArgs]
     ; RunnerArgs2 = RunnerArgs
     ),
     % this process call appends new outputs to OutFile
-    invoke_unittest(RunnerFile,RunnerArgs2,
+    invoke_unittest(WrapperMods, InputPath ,RunnerArgs2,
                  [stdin(null),
                   stdout(string(StrOut)),
                   stderr(string(StrErr)),
@@ -822,7 +823,7 @@ do_tests_(TmpDir, RunnerFile, DumpOutput, DumpError, RunnerArgs, Resume) :-
         write_data(IO, test_output_db(TestId, TestResult)),
         close(IO),
         % continue testing
-        do_tests_(TmpDir, RunnerFile, DumpOutput, DumpError, RunnerArgs, yes(TestId))
+        do_tests_(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs, yes(TestId))
     ; true % (all tests had output)
     ).
 
@@ -873,64 +874,18 @@ get_test(Module, TestId, Type, Pred, Body, Dict, Src, LB, LE) :-
     unittest_type(Type),
     make_test_id(Module, Src, LB, LE, TestId).
 
-:- pred create_runner(+pathname, +list, +yesno, -pathname)
-    + (not_fails, no_choicepoints)
-    # "The runner is generated.".
+create_wrapper_mods([], _, _, []) :- !.
+create_wrapper_mods([Module|Ms], TmpDir, RtcEntry, [WrapperFile|WFs]) :-
+    create_wrapper_mod(Module, TmpDir, RtcEntry, WrapperFile),
+    create_wrapper_mods(Ms, TmpDir, RtcEntry, WFs).
 
-create_runner(TmpDir, Modules, RtcEntry, RunnerFile) :-
-    % Create wrapper files for each of the modules being tested
-    create_wrapper_mods(Modules, TmpDir, RtcEntry),
-    %
-    runner_global_file_name(BRunnerFile),
-    path_concat(TmpDir, BRunnerFile, RunnerFile),
-    %
-    Header = [
-                (:- module(_, [main_tests/1], [])),
-                (:- include(library(unittest/unittest_runner_base)))
-            ],
-    % Fill the runner file with the unit test
-    % instances of the form internal_runtest_module/2.
-    findall(C,
-            (member(Module, Modules),
-             wrapper_file_name(TmpDir, Module, WrapperFile),
-             C = (:- use_module(WrapperFile))), UseWrappers),
-    findall(C,
-            (member(Module, Modules),
-             module_test_entry(Module, TestEntry, TestId),
-             C = ( internal_runtest_module(Module, TestId) :- TestEntry )),
-            InternalCs),
-    %
-    file_test_input(BFileTestInput),
-    path_concat(TmpDir, BFileTestInput, FileTestInput),
-    %
-    Clauses = ~flatten([
-        raw(Header),
-        raw(UseWrappers),
-        raw(InternalCs),
-        raw([file_test_input_path(FileTestInput)])
-    ]),
-    %
-    print_clauses_to_file(RunnerFile, Clauses).
-
-create_wrapper_mods(Modules, TmpDir, RtcEntry) :-
-    ( % (failure-driven loop)
-      member(Module, Modules),
-        create_wrapper_mod(Module, TmpDir, RtcEntry),
-        fail
-    ; true
-    ).
-
-create_wrapper_mod(Module, TmpDir, RtcEntry) :-
+create_wrapper_mod(Module, TmpDir, RtcEntry, WrapperFile) :-
     module_base(Module, Base),
     ( wrapper_file_name(TmpDir, Module, WrapperFile),
       create_module_wrapper(TmpDir, Module, RtcEntry, Base, WrapperFile)
     -> true
     ; message(error, ['Failure in create_wrapper_mod/4'])
     ).
-
-module_test_entry(Module, TestEntry, TestId) :-
-    atom_concat(Module, '$test', ModuleF),
-    TestEntry =.. [ModuleF, TestId].
 
 current_test_module(Src, (:- use_module(TestModule))) :-
     clause_read(Src, 1, load_test_module(TestModule), _, _, _, _).
@@ -960,11 +915,12 @@ create_module_wrapper(TmpDir, Module, RtcEntry, Src, WrapperFile) :-
             (:- use_module(library(rtchecks/rtchecks_rt))),
             (:- use_module(library(rtchecks/rtchecks_basic))),
             (:- use_module(library(unittest/unittest_props))),
-            (:- use_module(Src))
+            (:- use_module(Src)),
+            (:- multifile internal_runtest_module/2)
     ],
     collect_test_modules(Src, TestModules),
     % here link the TestEntry clause with the ARef test identifier
-    module_test_entry(Module, TestEntry, ARef),
+    TestEntry = internal_runtest_module(Module, ARef),
     findall(Clause,
             gen_test_entry(TmpDir, Module, RtcEntry, Src, TestEntry, ARef, Clause),
             Clauses),
@@ -987,7 +943,7 @@ gen_test_entry(TmpDir, Module, RtcEntry, Src, TestEntry, ARef, Clause) :-
        true,
        do_gen_default_test_entry(TestEntry, Clause)).
 
-do_gen_default_test_entry(TestEntry, Clause) :-
+do_gen_default_test_entry(TestEntry, Clause) :- % Why is this clause needed?
     Clause = clause(TestEntry, fail, []).
 
 % TODO: tests abort when the predicate is not defined in the module,
