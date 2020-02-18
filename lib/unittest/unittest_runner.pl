@@ -21,8 +21,13 @@ main(Args0) :- % TODO: does this work for args that are not atoms (i.e., list of
 
 import_modules(['--end_wrapper_modules--'|Args], Args) :- !.
 import_modules([M|Ms], Args) :-
-    use_module(M,[]), % we only care about multifile internal_runtest_module/1.
+    intercept(
+        use_module(M,[]), % we only care about multifile internal_runtest_module/1.
+        compilation_error,
+        halt(101) % return code handled by unittest.pl
+    ),
     import_modules(Ms, Args).
+% TODO: (very low priority) distinguish which is the module that does not compile
 
 runtests :-
     ( % (failure-driven loop)

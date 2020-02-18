@@ -806,25 +806,40 @@ do_tests_(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs, Res
                  [stdin(null),
                   stdout(string(StrOut)),
                   stderr(string(StrErr)),
-                  status(_)]),
+                  status(Status)]),
     %
-    dump_output(DumpOutput, StrOut),
-    dump_error(DumpError, StrErr),
-    %
-    file_test_output(BOutFile),
-    path_concat(TmpDir, BOutFile, OutFile),
-    retractall_fact(test_output_db(_, _)),
-    assert_from_file(OutFile, assert_test_output),
-    ( test_with_no_output(TestId)
-    ->  % no output both in output file and output db (test aborted)
-        TestResult = st([], [], aborted(StrOut, StrErr)),
-        % mark the test as aborted
-        open(OutFile, append, IO),
-        write_data(IO, test_output_db(TestId, TestResult)),
-        close(IO),
-        % continue testing
-        do_tests_(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs, yes(TestId))
-    ; true % (all tests had output)
+    (Status==101 -> % returned by unittest_runner.pl when a wrapper module does not compile
+        message(error, ['Compilation failed. Please make sure all relevant predicates',
+                        ' and properties for testing are exported. Compilation log:']),
+        dump_output(yes, StrOut),
+        dump_error(yes, StrErr)
+        % Note: Syntactic compilation errors of the modules under test
+        % are detected earlier, in the call to
+        % get_code_and_related_assertions/5 in the predicate
+        % get_assertion_info/3.
+        %
+        % TODO: save compilation status in test.out
+        %
+        % TODO: unique return status for run_tests_in_module/3
+    ;
+        dump_output(DumpOutput, StrOut),
+        dump_error(DumpError, StrErr),
+        %
+        file_test_output(BOutFile),
+        path_concat(TmpDir, BOutFile, OutFile),
+        retractall_fact(test_output_db(_, _)),
+        assert_from_file(OutFile, assert_test_output),
+        ( test_with_no_output(TestId)
+          ->  % no output both in output file and output db (test aborted)
+              TestResult = st([], [], aborted(StrOut, StrErr)),
+              % mark the test as aborted
+              open(OutFile, append, IO),
+              write_data(IO, test_output_db(TestId, TestResult)),
+              close(IO),
+              % continue testing
+              do_tests_(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs, yes(TestId))
+          ; true % (all tests had output)
+          )
     ).
 
 test_with_no_output(TestId) :-
