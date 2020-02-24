@@ -45,7 +45,7 @@ CBOOL__PROTO(prolog_cc_call_ncnf);
 
 CBOOL__PROTO(prolog_cc_call)
 {
-  Unify_constant(ChoiceToInt(w->node),X(4));
+  CBOOL__UnifyCons(ChoiceToInt(w->node),X(4));
   return prolog_cc_call_ncnf(Arg);
 }
 
@@ -168,7 +168,7 @@ CVOID__PROTO(prolog_cc_exit_common)
 
 CBOOL__PROTO(prolog_cc_exit)
 {
-  Unify_constant(ChoiceToInt(w->node),X(2));
+  CBOOL__UnifyCons(ChoiceToInt(w->node),X(2));
   if (profile) {
     bool_t r;
     edge_cc_t *cc;
@@ -188,7 +188,7 @@ CBOOL__PROTO(prolog_cc_exit)
 CBOOL__PROTO(prolog_cc_fail_1)
 {
   if (profile) {
-    Unify_constant(ChoiceToInt(w->node),X(0));
+    CBOOL__UnifyCons(ChoiceToInt(w->node),X(0));
   } else {
     w->node=w->next_node; /* DOCUT */
   }
@@ -315,7 +315,7 @@ CBOOL__PROTO(prolog_cc_exit_ncnf)
 
 CBOOL__PROTO(prolog_cc_call_nf)
 {
-  Unify_constant(ChoiceToInt(w->node),X(4));
+  CBOOL__UnifyCons(ChoiceToInt(w->node),X(4));
   return prolog_cc_call_ncnf(Arg);
 }
 
