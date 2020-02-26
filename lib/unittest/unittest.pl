@@ -365,8 +365,8 @@ current_untested_pred(Alias, Message) :-
 # "Executes all the tests in the modules of the given directory and
    its subdirectories. You can indicate that the modules in a
    sub-directory should not be tested by placing an empty NOTEST file
-   in that sub-directory.  Also, is a NOTESTFILES is present
-   containing patterns for modules those modules will not be tested.".
+   in that sub-directory.  Also, if a NOTESTFILES file is present,
+   containing patterns for modules, those modules will not be tested.".
 
 run_tests_in_dir_rec(BaseDir, Opts) :-
     run_tests(BaseDir, [dir_rec | Opts], [check, show_output, show_stats]).
