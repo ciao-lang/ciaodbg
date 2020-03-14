@@ -126,14 +126,14 @@ test_postcondition(Pred, Result) :-
 :- meta_predicate test_pred_exception(goal, ?).
 test_pred_exception(Pred, Result) :-
     catch(Pred, PredEx, (Result = exception(predicate, PredEx))).
+%% Preliminary support for timeouts in unittests, for now turned off
+%% by default. Timeouts can be activated (but without backtracking,
+%% see below) by commenting out the definition of
+%% test_pred_exception/2 above and using the one below instead:
+
 %% test_pred_exception(Pred, Result) :-
 %%     catch(test_pred_with_time_limit(Pred),
 %%           PredEx, (Result = exception(predicate, PredEx))).
-
-%% Preliminary support for timeouts in unittests, for now turned off
-%% by default. Timeouts can be activated (but without backtracking,
-%% see below) by commenting out the previous three lines and using the
-%% ones below instead.
 
 %% TODO: This solution does not support backtracking due to
 %%       call_with_time_limit doing once/1.  Need either to fix
