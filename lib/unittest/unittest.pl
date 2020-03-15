@@ -111,7 +111,8 @@
 @subsection{Writing test assertions}
 @cindex{writing unit tests}
 
-   Recall that a @index{test assertion} is written as follows:
+   As described in @ref{The Ciao assertion language} a @index{test
+   assertion} is written as follows:
 
 @begin{verbatim}
 :- test predicate(A1, A2, ..., An) 
@@ -130,12 +131,13 @@
    @begin{itemize}
    @item @pred{predicate/n} is the predicate to be tested.
 
-   @item @var{Precondition} is a goal that is called before the
-   predicate being tested, and can be used to generate values of the
-   input parameters. While in some other types of assertions these
-   preconditions contain properties to be checked, the typical role of
-   the @em{preconditions} here is to provide concrete input values for
-   which the predicate can be actually executed.
+   @item @var{Precondition} is a goal (a literal or a conjuntion of
+   literals) that is called before the predicate being tested, and can
+   be used to generate values of the input parameters. While in some
+   other types of assertions these preconditions contain properties to
+   be checked, the typical role of the preconditions here is to
+   provide concrete input values for which the predicate can be
+   actually executed.
 
    @item @var{Postcondition} is a goal that should succeed after
    @pred{predicate/n} has been called. This is used to test that the
@@ -206,8 +208,8 @@ complex(c(A, B)) :-
 
    There are some specific properties that only apply to testing which
    are provided in module @lib{unittest_props.pl}. For example, the
-   limits to the number of solutions mentioned above canbe set with
-   @code{try_sols(N)}, which specifies that only the first N solutions
+   limits to the number of solutions mentioned above can be set with
+   the @code{try_sols(N)} property, which specifies that only the first @tt{N} solutions
    of the predicate @code{predicate/n} should be tested.
    @code{times(N)} specifies that the given test should be executed
    @code{N} times, etc.
@@ -225,8 +227,8 @@ ciao test
 @subsection{Running the tests from the IDE}
 
    A convenient way to run these tests is by selecting options in the
-   @bf{CiaoDbg menu within the development environment}:
-   @cindex{running unit tests}
+   @bf{CiaoDbg} menu within the development environment. This menu
+   offers the following options: @cindex{running unit tests}
 
 @begin{cartouche}
    @begin{enumerate}
@@ -248,7 +250,7 @@ ciao test
 
    The tests can also be run from the top level, loading this module
    (@lib{unittest.pl}) and calling the appropiate predicates that it
-   exports (see the module @bf{Usage and Interface} section
+   exports (see the module @ref{Usage and interface} section
    below). This can also be done from a program, provided it imports
    this module.
 
