@@ -2,6 +2,8 @@
     [
         try_sols/2,
         times/2,
+        generate_from_calls_n/2,
+        timeout/2,
         near/3,
         user_error/2,
         time_out/2,
@@ -39,26 +41,33 @@ test_command(Goal) :- call(Goal).
 
 :- meta_predicate times(goal, ?).
 
-times(Goal, Times) :-
-    Times > 0 ->
-    Times1 is Times - 1,
-    \+ \+ Goal,
-    times(Goal, Times1)
-    ;
-    true.
+:- impl_defined(times/2).
 
-% TODO: Should really be "max_sols" (since the test harness tries all
-%       solutions by default).
 :- trust prop try_sols(G,N) + test_command # "For this test of @var{G}
-    get at most @var{N} solutions (normally all solutions are
-    generated).".
+    get at most @var{N} solutions (normally 2 solutions are
+    generated, just enough to detect non-determinism).".
 
 :- meta_predicate try_sols(goal, ?).
 
-% MH: This is just a description. This functionality is implemented in
-% rtchecks.
-try_sols(Goal, Sols) :-
-    findnsols(Sols, _, Goal, _).
+:- impl_defined(try_sols/2).
+
+
+:- trust prop generate_from_calls_n(G,N) + test_command # "For this test of
+    @var{G} generate (at most) @var{N} initial test states from the
+    calls field (normally only the first solution is generated).".
+
+:- meta_predicate generate_from_calls_n(goal, ?).
+
+:- impl_defined(generate_from_calls_n/2).
+
+
+:- trust prop timeout(G,N) + test_command # "For this test of
+    @var{G} abort if runtime exceeds @var{N} milliseconds (normally
+    the default timeout is 5000 milliseconds).".
+
+:- meta_predicate timeout(goal, ?).
+
+:- impl_defined(timeout/2).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % The following properties are not implemented yet, but are here as a reminder

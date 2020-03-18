@@ -17,7 +17,7 @@
             test_option/1,
             test_action/1
         ],
-        [assertions, regtypes, isomodes, nativeprops, dcg, fsyntax, hiord, datafacts]).
+        [assertions, regtypes, isomodes, nativeprops, dcg, fsyntax, hiord, datafacts, define_flag]).
 
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic), [nl/0]).
@@ -279,6 +279,15 @@ ciao test
 
 :- push_prolog_flag(write_strings, on).
 
+% -----------------------------
+
+:- use_module(engine(runtime_control), [current_prolog_flag/2]).
+
+define_flag(unittest_default_timeout, integer, 600000). % TODO: move somewhere else?
+% TODO: is there a way to say a flag can be an integer and 'none'?
+
+% -------------------------------
+    
 %% put to unittest_base together with other file names?
 loader_name('ciao_unittest_loader').
 
@@ -793,18 +802,21 @@ dump_error(no,  _).
 
 :- pred do_tests(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs)
     :  pathname * list * pathname * yesno * yesno * list
-# "Calls the loader as an external process. If some test aborts, calls
+# "Calls the runner as an external process. If some test aborts, calls
    recursively with the rest of the tests".
 do_tests(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs) :-
     do_tests_(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs, no).
 
 do_tests_(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs, Resume) :-
+    current_prolog_flag(unittest_default_timeout,TimeoutN),
+    atom_number(TimeoutAtm,TimeoutN),
+    RunnerArgs2 = [timeout,TimeoutAtm |RunnerArgs],
     ( Resume = yes(ContIdx) ->
-        RunnerArgs2 = [resume_after,ContIdx|RunnerArgs]
-    ; RunnerArgs2 = RunnerArgs
+        RunnerArgs3 = [resume_after,ContIdx |RunnerArgs2]
+    ; RunnerArgs3 = RunnerArgs2
     ),
     % this process call appends new outputs to OutFile
-    invoke_unittest(WrapperMods, InputPath ,RunnerArgs2,
+    invoke_unittest(WrapperMods, InputPath ,RunnerArgs3,
                  [stdin(null),
                   stdout(string(StrOut)),
                   stderr(string(StrErr)),

@@ -13,7 +13,7 @@
 
 
 % stop_on_first_error(false).
-main(Args0) :- % TODO: does this work for args that are not atoms (i.e., list of atoms)?
+main(Args0) :-
     import_modules(Args0,[FileTestInput|Args]),
     process_runner_args(Args),
     assert_from_file(FileTestInput,assert_test_id),
@@ -22,7 +22,7 @@ main(Args0) :- % TODO: does this work for args that are not atoms (i.e., list of
 import_modules(['--end_wrapper_modules--'|Args], Args) :- !.
 import_modules([M|Ms], Args) :-
     intercept(
-        use_module(M,[]), % we only care about multifile internal_runtest_module/1.
+        use_module(M,[]), % we only care about multifile internal_runtest_module/2.
         compilation_error,
         halt(101) % return code handled by unittest.pl
     ),
@@ -31,7 +31,7 @@ import_modules([M|Ms], Args) :-
 
 runtests :-
     ( % (failure-driven loop)
-      get_active_test(TestId, Module),
+        get_active_test(TestId, Module),
       % TODO: multiple test results bug
       % TODO: use data predicate to store the testing
       %       status of the predicate, whether some
@@ -41,10 +41,13 @@ runtests :-
       %       preds with 2 failure-driven loops,
       %       one for TestIds and another for all
       %       results for a chosen TestId
-      internal_runtest_module(Module, TestId),
-      fail
+          internal_runtest_module(Module, TestId),
+        fail
     ; true
     ).
 
-
 :- multifile internal_runtest_module/2.
+% would it be better the following lines when calling internal_runtest_module/2?
+%% atom_concat(Module,'_wrp_auto',WrpModule),
+%% Goal = WrpModule:internal_runtest_module(Module, TestId),
+%% call(Goal)
