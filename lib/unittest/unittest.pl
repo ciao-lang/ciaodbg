@@ -280,7 +280,6 @@ ciao test
 :- use_module(engine(runtime_control), [current_prolog_flag/2]).
 
 define_flag(unittest_default_timeout, integer, 600000). % TODO: move somewhere else?
-% TODO: is there a way to say a flag can be an integer and 'none'?
 
 % -------------------------------
     

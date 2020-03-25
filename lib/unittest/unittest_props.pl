@@ -63,7 +63,8 @@ test_command(Goal) :- call(Goal).
 :- trust prop timeout(G,N) + test_command # "For this test of @var{G}
     abort if runtime exceeds @var{N} milliseconds (normally the
     default timeout is 600000 milliseconds, and can be altered using
-    the 'unittest_default_timeout' flag).".
+    the 'unittest_default_timeout' flag). A timeout of 0 means no
+    timeout".
 
 :- meta_predicate timeout(goal, ?).
 

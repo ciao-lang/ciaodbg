@@ -103,7 +103,7 @@ testing(ARef, TmpDir, Precond, Pred, Options) :-
 % TODO: how should output and statistics behave wrt times(N)?
 
 :- meta_predicate testing_(?, ?, ?, goal, goal, ?).
-testing_(none,ARef, TmpDir, Precond, Pred, Options) :- !,
+testing_(0,ARef, TmpDir, Precond, Pred, Options) :- !,
     testing__(ARef, TmpDir, Precond, Pred, Options).
 testing_(Timeout,ARef, TmpDir, Precond, Pred, Options) :-
     call_with_time_limit(
@@ -131,9 +131,16 @@ testing_internal(Precond, Pred, Options, st(RTCErrors, Signals, Result)) :-
     intercept(
         save_rtchecks(exec_test(Precond, Pred, Options, Result)),
         E,
-        assertz_fact(signals_db(E))),
+        handle_signal(E)
+    ),
     findall(E, retract_fact(signals_db(E)), Signals),
     load_rtchecks(RTCErrors).
+
+handle_signal(control_c) :- !, % used for tiemouts
+    send_signal(control_c).
+handle_signal(E) :-
+    assertz_fact(signals_db(E)).
+
 
 :- meta_predicate exec_test(goal, goal, ?, ?).
 exec_test(Precond,Pred,Options,Result) :-
