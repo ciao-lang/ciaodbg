@@ -6,7 +6,6 @@
         timeout/2,
         near/3,
         user_error/2,
-        time_out/2,
         test_command/1,
         bound_random/3,
         float_random/1,
