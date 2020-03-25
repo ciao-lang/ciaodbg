@@ -61,9 +61,10 @@ test_command(Goal) :- call(Goal).
 :- impl_defined(generate_from_calls_n/2).
 
 
-:- trust prop timeout(G,N) + test_command # "For this test of
-    @var{G} abort if runtime exceeds @var{N} milliseconds (normally
-    the default timeout is 5000 milliseconds).".
+:- trust prop timeout(G,N) + test_command # "For this test of @var{G}
+    abort if runtime exceeds @var{N} milliseconds (normally the
+    default timeout is 600000 milliseconds, and can be altered using
+    the 'unittest_default_timeout' flag).".
 
 :- meta_predicate timeout(goal, ?).
 
@@ -79,15 +80,6 @@ test_command(Goal) :- call(Goal).
    error stream the specified string.".
 
 :- impl_defined(user_error/2).
-
-% time_out(G, T) is equivalent to the property resource(G, ub, time, T) -- EMM
-
-:- doc(time_out/2, "Not implemented yet.").
-
-:- prop time_out/2 # "The test should finish in less than the
-   specified time.  The time is given in milliseconds.".
-
-:- impl_defined(time_out/2).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Predicates that can be used inside a test to define the values of variables

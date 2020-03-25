@@ -202,15 +202,11 @@ complex(c(A, B)) :-
 
    Tests with a @tt{false} (or @tt{true}) prefix are not run. 
 
-   Due to the non-determinism of logic programs, the test engine will
-   by default generate all solutions for the tested predicate. This can be
-   limited by establishing a maximum number of solutions or a timeout.
-
    There are some specific properties that only apply to testing which
    are provided in module @lib{unittest_props.pl}. For example, the
-   limits to the number of solutions mentioned above can be set with
-   the @code{try_sols(N)} property, which specifies that only the first @tt{N} solutions
-   of the predicate @code{predicate/n} should be tested.
+   limit to the number of solutions to be generated for the tested
+   predicate can be set with the property @code{try_sols(N)}, a
+   timeout to a test can be set with the property @code{timeout(N)},
    @code{times(N)} specifies that the given test should be executed
    @code{N} times, etc.
 
