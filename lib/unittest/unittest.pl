@@ -925,16 +925,8 @@ collect_test_modules(Src) :=
 % We create module wrappers that contains the test entries from the original source.
 % In that way the original modules are not polluted with test code.
 create_module_wrapper(TmpDir, Module, RtcEntry, Src, WrapperFile) :-
-    ReqPackages = [assertions, nativeprops, rtchecks],
-    ( % TODO: Why do we need Src packages? --> maybe because the wrapper
-      %   acts as a "sliced" module that contains only the test assertions
-        clause_read(Src, 1, module(_, _, SrcPackages), _, _, _, _) ->
-        union(ReqPackages, SrcPackages, Packages)
-    ;
-        Packages = ReqPackages
-    ),
     Header = [
-            (:- module(_, _, Packages)),
+            (:- module(_, _, [assertions, nativeprops, rtchecks])),
             (:- use_module(library(unittest/unittest_runner_aux))),
             (:- use_module(library(rtchecks/rtchecks_rt))),
             (:- use_module(library(rtchecks/rtchecks_basic))),
