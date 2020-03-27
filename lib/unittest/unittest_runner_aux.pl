@@ -31,26 +31,6 @@
 
 % ----------------------------------------------------------------------
 
-:- data rtcheck_db/1.
-
-:- meta_predicate save_rtchecks(goal).
-
-:- pred save_rtchecks/1 : callable # "Asserts in rtcheck_db/1 all the
-    run-time check exceptions thrown by the goal.".
-
-save_rtchecks(Goal) :-
-    retractall_fact(rtcheck_db(_)),
-    RTError = rtcheck(_Type, _Pred, _Dict, _Prop, _Valid, _Poss),
-    intercept(Goal, RTError, assertz_fact(rtcheck_db(RTError))). % TODO: wrong?! abort on errors?
-
-:- pred load_rtchecks/1 => list # "retract the
-    rtcheck_db/1 facts and return them in a list.".
-
-load_rtchecks(RTChecks) :-
-    findall(RTCheck, retract_fact(rtcheck_db(RTCheck)), RTChecks).
-
-% ----------------------------------------------------------------------
-
 :- data test_id_db/2.
 :- data skip_tests_before/1.
 :- data active_test/0.
@@ -123,23 +103,37 @@ testing__(ARef, TmpDir, Precond, Pred, Options) :-
     fail.
 testing__(_,_,_,_,_).
 
+:- data rtcheck_db/1.
 :- data signals_db/1.
 
 :- meta_predicate testing_internal(goal, goal, ?, ?).
 testing_internal(Precond, Pred, Options, st(RTCErrors, Signals, Result)) :-
+    retractall_fact(rtcheck_db(_)),
     retractall_fact(signals_db(_)),
     intercept(
-        save_rtchecks(exec_test(Precond, Pred, Options, Result)),
+        exec_test(Precond, Pred, Options, Result),
         E,
         handle_signal(E)
     ),
     findall(E, retract_fact(signals_db(E)), Signals),
-    load_rtchecks(RTCErrors).
+    findall(RTCError, retract_fact(rtcheck_db(RTCError)), RTCErrors).
 
 handle_signal(control_c) :- !, % used for tiemouts
     send_signal(control_c).
+handle_signal(RTError) :-
+    RTError = rtcheck(_Type, _Pred, _Dict, _Prop, _Valid, _Poss), !,
+    handle_rtcheck(RTError).
 handle_signal(E) :-
     assertz_fact(signals_db(E)).
+
+handle_rtcheck(RTError) :-
+    assertz_fact(rtcheck_db(RTError)),
+    throw(exception(predicate,rtcheck)).
+% other possible behaviours. Flag?
+%% handle_rtcheck(RtCheck) :- % saves and looks for other valid traces
+%%     assertz_fact(rtcheck_db(RTError))), fail.
+%% handle_rtcheck(RtCheck) :- % saves and keeps executing
+%%     assertz_fact(rtcheck_db(RTError))).
 
 
 :- meta_predicate exec_test(goal, goal, ?, ?).
