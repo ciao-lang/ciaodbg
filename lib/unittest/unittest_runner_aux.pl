@@ -128,7 +128,7 @@ handle_signal(E) :-
 
 handle_rtcheck(RTError) :-
     assertz_fact(rtcheck_db(RTError)),
-    throw(exception(predicate,rtcheck)).
+    throw(rtcheck(RTError)).
 % other possible behaviours. Flag?
 %% handle_rtcheck(RtCheck) :- % saves and looks for other valid traces
 %%     assertz_fact(rtcheck_db(RTError))), fail.
@@ -150,13 +150,17 @@ generate_test_case(Precond,Options,Result) :-
     catch(
         backtrack_n_times(Precond,NCases,not_n_cases_reached(Result)),
         PrecEx,
-        Result=exception(precondition, PrecEx)
+        generation_exception(PrecEx, Result)
     ).
 % TODO: how should output and statistics behave wrt generate_from_calls_n(N)?
 
 not_n_cases_reached(Result,0) :- !,
     Result = fail(precondition).
 % not_n_cases_reached(Result,N) :- fail.
+
+% generation_exception(time_limit_exceeded, exception(predicate, timeout)).
+generation_exception(PrecEx, exception(precondition, PrecEx)).
+
 
 :- meta_predicate run_test(goal,?,?).
 run_test(Pred,Options,Result) :-
@@ -172,10 +176,17 @@ not_n_sols_reached(Result, 0) :- !,
     Result = fail(predicate).
 % not_n_sols_reached(Result, N) :- fail.
 
-run_test_exception(postcondition(PostEx),exception(postcondition,PostEx)) :- !.
+% rtchecks/1 exceptions, thrown by rtcheck/6 signal handler
+run_test_exception(rtcheck(_RtcError), exception(predicate,rtcheck)) :- !. % _RtcError saved elsewhere
+run_test_exception(postcondition(rtcheck(_RtcError)), exception(predicate,rtcheck)) :- !.
+% time_limit_exceeded exceptions,
+run_test_exception(postcondition(time_limit_exceeded),exception(predicate,timeout)) :- !. % TODO: distinguish exception(postcondition, timeout)?
 run_test_exception(time_limit_exceeded,exception(predicate,timeout)) :- !.
+% predicate exceptions
+run_test_exception(postcondition(PostEx),exception(postcondition,PostEx)) :- !.
 run_test_exception(Ex,exception(predicate,Ex)).
-
+% TODO: do we really need that much to distinguish between an
+% exception in the postcondition and a normal exception?
 
 
 get_option(Opt,Options,Value) :-
