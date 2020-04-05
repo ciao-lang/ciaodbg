@@ -758,8 +758,8 @@ current_assr_module(Module) :-
     unittest_type(Type).
 
 
-:- use_module(ciaobld(config_common), [cmd_path/4]).
-unittest_exec := ~cmd_path(ciaodbg, plexe, 'ciao_unittest_runner').
+:- use_module(ciaobld(config_common), [libcmd_path/4]).
+unittest_exec := ~libcmd_path(ciaodbg, plexe, 'unittest_runner').
 
 :- use_module(ciaobld(cpx_process), [cpx_process_call/3]).
 invoke_unittest(WrapperMods, InputPath, Args0, Opts) :-
