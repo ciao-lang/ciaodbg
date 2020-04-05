@@ -24,7 +24,7 @@
     # "test should pass".
 :- test p(A) : (A = d, A = a)
     # "test should fail (precondition)".
-:- test p(A) : possible_exceptions([any_exception(A)])
+:- test p(A) : throw(exception)
     # "test should fail (throws exception in precondition)".
 :- test p(A) : (A = h)
     # "test should abort".

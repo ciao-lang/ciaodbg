@@ -10,7 +10,9 @@
             wrapper_file_name/3,
             yesno/1,
             read_data/2,
-            write_data/2
+            write_data/2,
+            file_test_output_suffix/1,
+            file_test_saved_output_suffix/1
         ],
         [assertions, regtypes, unittestdecls, datafacts]).
 
@@ -76,14 +78,20 @@ file_test_output('test_output_auto.pl').
 file_test_input('test_input_auto.pl').
 runner_global_file_name('test_run_auto.pl').
 
+file_test_output_suffix('.testout').
+file_test_saved_output_suffix('.testout-saved').
+
 wrapper_file_name(TmpDir, Module, WrapperFile) :-
     atom_concat(Module,'_wrp_auto.pl',WrpModule),
     path_concat(TmpDir,WrpModule,WrapperFile).
 
-make_test_id(Module,Src,LB,LE,TestId) :-
+make_test_id(Module,_Src,LB,LE,TestId) :-
     atom_number(ALB,LB),
     atom_number(ALE,LE),
-    atom_concat([Module,'#',Src,'#',ALB,'#',ALE],TestId).
+    % atom_concat([Module,'#',Src,'#',ALB,'#',ALE],TestId).
+    atom_concat([Module,'#',ALB,'#',ALE],TestId).
+% TODO: module's might not be unique, include the part of Src that
+% does not depend on path to Ciao root
 
 empty_output(TmpDir) :-
     file_test_output(BOut),
@@ -103,3 +111,28 @@ read_data(SI, Term) :-
 write_data(SI, Term) :-
     % portray_clause(SI, Term).
     fast_write(SI, Term).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% stdout and stderr redirection files %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% used as temporary files for redirecting tests' standard output and
+% error
+
+:- export(get_stdout_redirection_file/2).
+
+get_stdout_redirection_file(TmpDir, AbsFile) :-
+    stdout_redirection_file(File),
+    path_concat(TmpDir,File,AbsFile).
+
+stdout_redirection_file('stdout_redirected').
+
+
+:- export(get_stderr_redirection_file/2).
+
+get_stderr_redirection_file(TmpDir, AbsFile) :-
+    stderr_redirection_file(File),
+    path_concat(TmpDir,File,AbsFile).
+
+stderr_redirection_file('stderr_redirected').

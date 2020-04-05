@@ -21,7 +21,8 @@
 
 :- use_module(engine(stream_basic)).
 :- use_module(engine(io_basic), [nl/0]).
-:- use_module(library(stream_utils), [write_string/1]).
+:- use_module(library(stream_utils), [write_string/1, file_to_string/2]).
+:- use_module(library(streams), [display/1, nl/0]).
 :- use_module(engine(messages_basic), [message/2, messages/1]).
 :- use_module(library(unittest/unittest_statistics), [statistical_summary/2]).
 :- use_module(library(terms),      [atom_concat/2]).
@@ -66,7 +67,11 @@
         wrapper_file_name/3,
         yesno/1,
         read_data/2,
-        write_data/2
+        write_data/2,
+        get_stdout_redirection_file/2,
+        get_stderr_redirection_file/2,
+        file_test_output_suffix/1,
+        file_test_saved_output_suffix/1
     ]).
 :- use_module(library(unittest/unittest_utils),[assert_from_file/2]).
 :- use_module(library(source_tree),
@@ -81,6 +86,31 @@
         path_split/3
     ]).
 :- use_module(library(messages),[note_message/2]).
+
+
+:- use_module(library(unittest/unittest_db),
+              [
+                  % data
+                  module_base_path_db/3,
+                  % preds
+                  assert_module_under_test/1,
+                  clean_db/0
+              ]).
+:- use_module(library(unittest/unittest_regression),
+              [
+                  save_output/1,
+                  brief_compare/2,
+                  compare/1,
+                  test_description/6 % move somewhere else
+              ]).
+:- use_module(library(regrtest/regrtest_aux), [clean_output/3]).
+
+:- export([
+    test_output_db/2,
+    test_attributes_db/9,
+    test_output_error_db/3
+]). % temporal, used in unittest_regression and unittest_database
+
 
 :- doc(title, "Unit testing").
 
@@ -288,25 +318,25 @@ loader_name('ciao_unittest_loader').
 
 % ----------------------------------------------------------------------
 
-:- pred cleanup_unittest(TmpDir) : pathname(TmpDir).
-cleanup_unittest(TmpDir) :-
+:- pred cleanup_unittest(TestRunDir) : pathname(TestRunDir).
+cleanup_unittest(TestRunDir) :-
     cleanup_code_and_related_assertions,
     cleanup_test_attributes,
-    cleanup_global_runners(TmpDir).
+    cleanup_global_runners(TestRunDir).
 
 cleanup_test_attributes :-
     retractall_fact(test_attributes_db(_, _, _, _, _, _, _, _, _)).
 
-:- pred cleanup_global_runners(TmpDir) : pathname(TmpDir).
-cleanup_global_runners(TmpDir) :-
+:- pred cleanup_global_runners(TestRunDir) : pathname(TestRunDir).
+cleanup_global_runners(TestRunDir) :-
     % tests directory must exist
-    ( file_exists(TmpDir)
+    ( file_exists(TestRunDir)
     -> file_test_input(InputBase),
-       path_concat(TmpDir,InputBase,InputFile),
+       path_concat(TestRunDir,InputBase,InputFile),
        % tests directory must always contain input files
        ( file_exists(InputFile)
-       -> remove_dir(TmpDir)
-       ; note_message("~w does not look like a tests source directory, aborting.",[TmpDir]),
+       -> remove_dir(TestRunDir)
+       ; note_message("~w does not look like a tests source directory, aborting.",[TestRunDir]),
          throw(error(existence_error(source_sink,InputBase), cleanup_global_runners/1-1))
        )
     ; true % nothing to clean
@@ -320,8 +350,8 @@ cleanup_global_runners(TmpDir) :-
    tests.".
 
 show_untested_exp_preds(Alias) :-
-    tmp_dir(TmpDir),
-    cleanup_unittest(TmpDir),
+    tmp_dir(TestRunDir),
+    cleanup_unittest(TestRunDir),
     get_assertion_info(current, Alias, _Modules),
     findall(Message, current_untested_pred(Alias, Message), Messages),
     % TODO: rtchecks_pretty:compact_list/2 was called here, needed?
@@ -350,22 +380,6 @@ current_untested_pred(Alias, Message) :-
     Message = message_lns(FileName, LB, LE, warning,
         [Module, ':', F, '/', A, ' does not have any unit test']).
 
-:- pred test_result_summary(FileName,IdxTestSummaries)
-    :: sourcename * list(struct)
-# "Database that stores test results as a mapping from an atomic
-   @var{FileName} to a list of results of each test in that module
-   @var{IdxTestSummaries}. Each element of this list is a pair of the
-   format @var{TestAttributes}-@var{TestSummary} where
-   @var{TestAttributes} is represented by a term
-   test_attributes(Module,Pred,Arity,Dict,Comm,Src,LB,LE), and
-   @var{TestSummary} is a list of counter structures of the form
-   [count(st(RTCErrors, Signals, Result),TestStatusNumber)]
-   where @var{RTCErrors} and @var{Signals} are lists that contain
-   information of signals and rtchecks errors, detected while running
-   the test, and @var{TestStatusNumber}=1 and is later used in
-   the statistical summary preparation.".
-% atom @var{FileName} is the same as the @var{Src} one.
-:- data test_result_summary/2.
 
 :- pred run_tests_in_dir_rec(BaseDir, Opts) : pathname * list(test_option)
 # "Executes all the tests in the modules of the given directory and
@@ -428,36 +442,26 @@ test_option := treat_related | dir_rec.
 
     @item @tt{show_stats} : print the test results statistics to
           the standard output;
-@comment{
-% TODO: merge with the regrtest
-%        @item @tt{save} : save test results file in @tt{module.testout-saved}
-%              file;
-%
-%        @item @tt{briefcompare} : check whether current and saved test
-%              output files differ;
-%
-%        @item @tt{compare} : see the differences in the current and saved
-%              test output files in the diff format;
-}
+
+    @item @tt{save} : save test results file in
+              @tt{module.testout-saved} file;
+
+    @item @tt{briefcompare} : check whether current and saved test
+              output files differ;
+
+    @item @tt{compare} : see the differences in the current and saved
+              test output files in the diff format;
+
     @end{itemize}").
 
 :- regtype test_action(Action) # "@var{Action} is a testing action".
 
 test_action := check | show_output | show_stats .
 % test_action := show_output_short | show_output_full % TODO: verbosity control
-% test_action := save | briefcompare | compare . % TODO: merge with regrtest
+test_action := save | briefcompare | compare .
 
 get_test_opt(Opt, YesNo, Opts) :- member(Opt, Opts), !, YesNo = yes.
 get_test_opt(_  , no   , _).
-
-:- pred get_test_opts(-yesno, -yesno, -yesno, +list)
-    :  var   * var   * var   * list(test_option)
-    => yesno * yesno * yesno * list(test_option).
-
-get_test_opts(DumpOutput, DumpError, RtcEntry, Options) :-
-    get_test_opt(dump_output, DumpOutput, Options),
-    get_test_opt(dump_error,  DumpError , Options),
-    get_test_opt(rtc_entry,   RtcEntry  , Options).
 
 % ----------------------------------------------------------------------
 
@@ -467,17 +471,21 @@ get_test_opts(DumpOutput, DumpError, RtcEntry, Options) :-
       the specified @var{Format} ('output' for test full trace, 'stats'
       for a statistical summary only, 'full' for both), otherwise emits
       a warning message that no test output file is avaiable.".
+% TODO: it is false that it emits a warning message if there is not
+% output
 
 show_test_output(Alias, Format) :-
     show_test_output_(current, Alias, Format).
+% TODO: rewrite as run_tests(Alias, [], [show_output/show_stats])
 
 show_test_related_output(Alias, Format) :-
     show_test_output_(related, Alias, Format).
+% TODO: rewrite as run_tests(Alias, [treat_related], [show_output/show_stats])
 
 show_test_output_(TestMode, Alias, Format) :-
     cleanup_code_and_related_assertions,
     get_assertion_info(TestMode, Alias, Modules),
-    get_all_test_outputs(Modules, TestResults),
+    get_all_test_outputs(Modules, new, TestResults),
     show_test_output_format(Format, TestResults).
 
 show_test_output_format(output, TestResults) :-
@@ -489,7 +497,7 @@ show_test_output_format(full, TestResults) :-
     statistical_summary(['{Total:\n'], TestResults).
 
 :- pred show_test_summaries(TestSummaries)
-# "Pretty print the test results contained in @var{TestSummaries}.".
+   # "Pretty print the test results contained in @var{TestSummaries}.".
 
 show_test_summaries(IdxTestSummaries0) :-
     % TODO: multiple test results bug
@@ -500,54 +508,189 @@ show_test_summaries(IdxTestSummaries0) :-
 
 % ----------------------------------------------------------------------
 
-assert_test_results_dir(no , _  , _    ) :- !.
-assert_test_results_dir(yes, Dir, Alias) :-
-    absolute_file_name(Alias, '_opt', '.pl', '.', _, Base, AbsDir),
-    path_split(Base, AbsDir, Module),
-    get_module_output(Module, Base, TestResult),
-    assertz_fact(test_result_summary(Dir, [TestResult])).
-
-retract_test_results_dir(no , _  ) :- !.
-retract_test_results_dir(yes, Dir) :-
-    findall(TRs, retract_fact(test_result_summary(Dir, TRs)), TRRs),
-    show_test_output_format(stats, TRRs).
-
-run_tests(Dir, Opts0, Actions0) :-
-    select(dir_rec, Opts0, Opts),!,
-    get_test_opt(show_stats, ShowStats, Actions0),
-    ( ShowStats == yes, select(show_stats, Actions0, Actions)
-    ; Actions = Actions0
-    ),
-    ( % (failure-driven loop)
-        current_file_find(testable_module, Dir, Alias),
-        run_tests(Alias, Opts, Actions),
-        assert_test_results_dir(ShowStats, Dir, Alias),
-        fail
-    ; true
-    ),
-    retract_test_results_dir(ShowStats, Dir).
-run_tests(Alias, Opts, Actions) :-
-    tmp_dir(TmpDir),
-    cleanup_unittest(TmpDir),
-    % choose one of two testing scenarios
-    ( member(treat_related, Opts) ->
-        TestMode = related
-      ; TestMode = current
-    ),
+% TODO: ensure Opts and Actions are valid
+run_tests(Target, Opts, Actions) :-
+    clean_db,
+    decide_modules_to_test(Target, Opts, Modules),
     % run the tests
     ( member(check, Actions) ->
-      run_tests_in_module_args(TestMode, Alias, Opts)
+      run_tests_in_all_modules(Modules, Opts)
     ; true
     ),
-    % select kind of output to be printed
+    % show tested predicates' output
+    ( member(dump_output, Opts) -> % TODO: make it an action, not an option
+        dump_output(Modules, new)
+    ; true
+    ),
+    % show tested predicates' error
+    ( member(dump_error, Opts) -> % TODO: make it an action, not an option
+        dump_error(Modules, new)
+    ; true
+    ),
+    % TODO: action to show tested predicates output and error together
+    %
+    % show_test results
     ( member(show_output, Actions) ->
-      show_test_output_(TestMode, Alias, output)
+        get_all_test_outputs(Modules, new, TestResults),
+        show_test_output_format(output, TestResults)
     ; true
     ),
+    % show test statistics
     ( member(show_stats, Actions) ->
-      show_test_output_(TestMode, Alias, stats)
+        get_all_test_outputs(Modules, new, TestResults),
+        show_test_output_format(stats, TestResults)
+    ; true
+    ),
+    ( member(save, Actions) ->
+        save_output(Modules)
+    ; true
+    ),
+    ( member(briefcompare(ReturnStatus), Actions) ->
+        brief_compare(Modules, ReturnStatus)
+    ; true
+    ),
+    ( member(briefcompare, Actions) ->
+        brief_compare(Modules, _)
+    ; true
+    ),
+    ( member(compare, Actions) ->
+        compare(Modules)
+    ; true
+    ),
+    ( member(dump_saved_output, Actions) ->
+        dump_output(Modules, saved)
+    ; true
+    ),
+    ( member(dump_saved_error, Actions) ->
+        dump_error(Modules, saved)
+    ; true
+    ),
+    ( member(show_saved_output, Actions) ->
+        get_all_test_outputs(Modules, saved, TestResults),
+        show_test_output_format(output, TestResults)
+    ; true
+    ),
+    ( member(show_saved_stats, Actions) ->
+        get_all_test_outputs(Modules, saved, TestResults),
+        show_test_output_format(output, TestResults)
     ; true
     ).
+
+decide_modules_to_test(Target, Opts, Modules) :-
+    assert_modules_to_test(Target, Opts),
+    findall(Path-Module,
+            (module_base_path_db(Module,_,Path)),
+            PathsModules0),
+    sort(PathsModules0, PathsModules), % because order is not stable across different intallations (mine and Gitlab's)
+    unzip(PathsModules,_,Modules).
+
+unzip([],[],[]).
+unzip([A-B|L],[A|As], [B|Bs]) :- unzip(L,As,Bs).
+% asserts in module_base_path/3 facts the modules that are required
+% to be tested
+assert_modules_to_test(Target, Opts) :-
+    ( member(dir_rec, Opts) ->
+        (  % (failure-driven loop)
+            current_file_find(testable_module, Target, Path),
+              assert_module_under_test(Path),
+            fail
+        ;
+            true
+        )
+    ;
+        assert_module_under_test(Target)
+    ),
+    (
+        member(treat_related, Opts), % not compatible yet with dir_rec if there are modules with the same name
+        current_fact(module_base_path_db(_,_,Path)),
+          get_related_modules(Path,RelatedModules),
+          member(Mod,RelatedModules),
+            \+ module_base_path_db(Mod,_,_), % TODO: we also need the path since module might not be unique
+            assert_module_under_test(Mod),
+        fail
+    ;
+        true
+    ).
+
+get_related_modules(FileName,RelatedModules) :- % TODO: do it right, and return also paths since modules might not be unique
+    cleanup_code_and_related_assertions,
+    get_assertion_info(related,FileName,RelatedModules).
+
+run_tests_in_all_modules([], _).
+run_tests_in_all_modules([Module|Modules], Opts) :-
+    run_tests_in_one_module(Module, Opts),
+    run_tests_in_all_modules(Modules, Opts).
+% TODO: option for running tests for more than one module at once
+
+run_tests_in_one_module(Module, Opts) :-
+    tmp_dir(TestRunDir),
+    cleanup_unittest(TestRunDir), % TODO: check if module is already read before cleaning and reading again
+    module_base_path_db(Module,_,Path),
+    get_assertion_info(current,Path,[Module]),
+    run_test_assertions(TestRunDir, [Module], Opts).
+
+
+get_output_file(new, Base, File) :-
+    file_test_output_suffix(Suf),
+    atom_concat(Base, Suf, File).
+get_output_file(saved, Base, File) :-
+    file_test_saved_output_suffix(Suf),
+    atom_concat(Base, Suf, File).
+
+dump_output([], _).
+dump_output([Module|Modules], WhichOutput) :-
+    dump_output_(Module, WhichOutput),
+    dump_output(Modules, WhichOutput).
+
+dump_output_(Module, WhichOutput) :-
+    module_base_path_db(Module, Base, _),
+    get_output_file(WhichOutput, Base, FileModOut),
+    retractall_fact(test_output_error_db(_,_,_)),
+    assert_from_file(FileModOut, assert_test_output_error),
+    retractall_fact(test_attributes_db(_,_,_,_,_,_,_,_,_)),
+    assert_from_file(FileModOut, assert_test_attributes),
+    ( % (failure-driven) loop
+        retract_fact(test_attributes_db(TestId,_,F,A,_,Comment,_,LB,LE)),
+        retract_fact(test_output_error_db(TestId,Output,_)),
+          ( Output=[] -> true ;
+              test_description(F,A,Comment,LB,LE,TestMsg),
+              messages([message(note, ['Output in test ', [](TestMsg), ':', '\n'])]),
+              write_string(Output)
+          ),
+        fail
+    ;
+        true
+    ).
+
+dump_error([],_).
+dump_error([Module|Modules],WhichOutput) :-
+    dump_error_(Module, WhichOutput),
+    dump_error(Modules, WhichOutput).
+
+dump_error_(Module, WhichOutput) :-
+    module_base_path_db(Module, Base, _),
+    get_output_file(WhichOutput, Base, FileModOut),
+    retractall_fact(test_output_error_db(_,_,_)),
+    assert_from_file(FileModOut, assert_test_output_error),
+    retractall_fact(test_attributes_db(_,_,_,_,_,_,_,_,_)),
+    assert_from_file(FileModOut, assert_test_attributes),
+    ( % (failure-driven) loop
+        retract_fact(test_attributes_db(TestId,_,F,A,_,Comment,_,LB,LE)),
+        retract_fact(test_output_error_db(TestId,_,Error)),
+          ( Error=[] -> true ;
+              test_description(F,A,Comment,LB,LE,TestMsg),
+              messages([message(note, ['Error in test ', [](TestMsg), ':', '\n'])]),
+              write_string(Error)
+          ),
+        fail
+    ;
+        true
+    ).
+% TODO: exceptions and rtchecks intercepted by test runner are not
+% further printed to error, as it would happen in a normal execution
+% of the predicate
+
+% TODO: allow showing output and error together
 
 % ----------------------------------------------------------------------
 
@@ -563,7 +706,7 @@ run_tests(Alias, Opts, Actions) :-
 run_tests_in_module(Alias, Opts, TestSummaries) :-
     run_tests(Alias, Opts, [check]),
     get_assertion_info(current, Alias, Modules),
-    get_all_test_outputs(Modules, TestSummaries).
+    get_all_test_outputs(Modules, new, TestSummaries).
 
 :- pred run_tests_in_module(Alias, Opts)
     : (sourcename(Alias), list(test_option,Opts))
@@ -586,11 +729,6 @@ run_tests_in_module_check_exp_assrts(Alias) :-
 
 run_tests_related_modules(Alias) :-
     run_tests(Alias, [treat_related], [check, show_output, show_stats]).
-
-run_tests_in_module_args(TestMode, Alias, Opts) :-
-    get_assertion_info(TestMode, Alias, Modules),
-    tmp_dir(TmpDir),
-    run_test_assertions(TmpDir, Modules, Opts).
 
 % ----------------------------------------------------------------------
 
@@ -632,19 +770,19 @@ invoke_unittest(WrapperMods, InputPath, Args0, Opts) :-
 :- pred run_test_assertions(+pathname, +list(atm), +list) +
     (not_fails, no_choicepoints).
 
-run_test_assertions(TmpDir, Modules, Opts) :-
-    mkpath(TmpDir),
-    create_test_input(TmpDir, Modules),
+run_test_assertions(TestRunDir, Modules, Opts) :-
+    mkpath(TestRunDir),
+    create_test_input(TestRunDir, Modules),
     file_test_input(BInFile),
-    path_concat(TmpDir, BInFile, InFile),
+    path_concat(TestRunDir, BInFile, InFile),
     retractall_fact(test_input_db(_, _)),
     assert_from_file(InFile, assert_test_input),
     %
-    empty_output(TmpDir),
+    empty_output(TestRunDir),
     ( test_attributes_db(_, _, _, _, _, _, _, _, _) ->
-      get_test_opts(DumpOutput, DumpError, RtcEntry, Opts),
-      create_wrapper_mods(Modules, TmpDir, RtcEntry, WrapperMods),
-      run_all_tests(TmpDir, WrapperMods, InFile, DumpOutput, DumpError, Opts)
+      get_test_opt(rtc_entry, RtcEntry, Opts),
+      create_wrapper_mods(Modules, TestRunDir, RtcEntry, WrapperMods),
+      do_tests(TestRunDir, Modules, WrapperMods, Opts)
     ; true
     ),
     % even if module has no tests, we write an empty test output file
@@ -652,13 +790,6 @@ run_test_assertions(TmpDir, Modules, Opts) :-
     % which allows detecting newly added tests on regression testing
     write_all_test_outputs(Modules).
 
-:- pred run_all_tests(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs)
-    : pathname * list * pathname * yesno * yesno * list(test_option).
-
-run_all_tests(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs) :-
-    do_tests(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs).
-
-file_test_output_suffix('.testout').
 
 write_all_test_outputs([]).
 write_all_test_outputs([Module|Mods]) :-
@@ -674,34 +805,28 @@ write_module_output(Module, Base) :-
     close(StreamOut).
 
 write_testdata_to_outfile(StreamOut, Module) :-
-    repeat,
-    (  test_input_db(TestId, Module),
-       test_output_db(TestId, TestResult)
-    -> write_data(StreamOut, test_output_db(TestId, TestResult)),
-       retract_fact(test_output_db(TestId, TestResult)),
-       test_attributes_db(TestId, Module, F, A, Dict, Comment, S, LB, LE),
-       write_data(StreamOut,
-                  test_attributes_db(TestId, Module, F, A, Dict, Comment,
-                          S, LB, LE)),
-       retract_fact(test_attributes_db(TestId, Module, F, A, Dict,
-                  Comment, S, LB, LE)),
-       fail
+    ( % (failure-driven loop)
+        test_input_db(TestId, Module), % backtracking here
+          retract_fact(test_attributes_db(TestId, Module, A,B,C,D,E,F,G)),
+          write_data(StreamOut, test_attributes_db(TestId, Module, A,B,C,D,E,F,G)),
+          retract_fact(test_output_error_db(TestId, Output, Error)),
+          write_data(StreamOut, test_output_error_db(TestId, Output, Error)),
+          retract_fact(test_output_db(TestId, TestResult)), % backtracking here
+            write_data(StreamOut, test_output_db(TestId, TestResult)),
+        fail
     ;
-        !
+        true
     ).
 
-get_all_test_outputs(Modules, TestResults) :-
-    get_test_outputs_(Modules, [], TestResults).
+get_all_test_outputs([], _, []).
+get_all_test_outputs([Module|Modules], WhichOutput, [TestResult|TestResults]) :-
+    get_module_output(Module, WhichOutput, TestResult),
+    get_all_test_outputs(Modules, WhichOutput, TestResults).
 
-get_test_outputs_([], TestResults, TestResults).
-get_test_outputs_([Module|Mods], Acc, TestResults) :-
-    module_base(Module, Base),
-    get_module_output(Module, Base, TestResult),
-    get_test_outputs_(Mods, [ TestResult | Acc], TestResults).
-
-get_module_output(Module, Base, TestResult) :-
-    file_test_output_suffix(Suf),
-    atom_concat(Base, Suf, FileModOut),
+get_module_output(Module, WhichOutput, TestResult) :-
+    (module_base(Module, Base) -> true ; module_base_path_db(Module, Base, _)),
+    % TODO: redefine show_test_output/2 as run_tests(Alias,[show_output/show_stats],[]) and use only mod_base_file_db
+    get_output_file(WhichOutput, Base, FileModOut),
     retractall_fact(test_output_db(_, _)),
     retractall_fact(test_attributes_db(_, _, _, _, _, _, _, _, _)),
     assert_from_file(FileModOut, assert_test_output),
@@ -779,6 +904,7 @@ is_failed_test_result(exception(predicate, timeout)). % PANIC
 :- data test_input_db/2.
 :- data test_output_db/2.
 :- data test_attributes_db/9.
+:- data test_output_error_db/3.
 
 assert_test_input(test_input_db(A, B)) :-
     assertz_fact(test_input_db(A, B)).
@@ -789,20 +915,17 @@ assert_test_output(test_output_db(A, B)) :-
 assert_test_attributes(test_attributes_db(A, B, C, D, E, F, G, H, I)) :-
     assertz_fact(test_attributes_db(A, B, C, D, E, F, G, H, I)).
 
-dump_output(yes, StrOut) :- write_string(StrOut).
-dump_output(no,  _).
+assert_test_output_error(test_output_error_db(TestId, Output, Error)) :-
+    assertz_fact(test_output_error_db(TestId, Output, Error)).
 
-dump_error(yes, StrErr) :- write_string(StrErr).
-dump_error(no,  _).
-
-:- pred do_tests(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs)
-    :  pathname * list * pathname * yesno * yesno * list
+:- pred do_tests(TestRunDir, Modules, WrapperMods, RunnerArgs)
+    :  pathname * list(atom) * list * list(test_option)
 # "Calls the runner as an external process. If some test aborts, calls
    recursively with the rest of the tests".
-do_tests(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs) :-
-    do_tests_(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs, no).
+do_tests(TestRunDir, Modules, WrapperMods, RunnerArgs) :-
+    do_tests_(TestRunDir, Modules, WrapperMods, RunnerArgs, no).
 
-do_tests_(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs, Resume) :-
+do_tests_(TestRunDir, Modules, WrapperMods, RunnerArgs, Resume) :-
     current_prolog_flag(unittest_default_timeout,TimeoutN),
     atom_number(TimeoutAtm,TimeoutN),
     RunnerArgs2 = [timeout,TimeoutAtm |RunnerArgs],
@@ -811,7 +934,7 @@ do_tests_(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs, Res
     ; RunnerArgs3 = RunnerArgs2
     ),
     % this process call appends new outputs to OutFile
-    invoke_unittest(WrapperMods, InputPath ,RunnerArgs3,
+    invoke_unittest(WrapperMods, TestRunDir ,RunnerArgs3,
                  [stdin(null),
                   stdout(string(StrOut)),
                   stderr(string(StrErr)),
@@ -820,40 +943,53 @@ do_tests_(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs, Res
     (Status==101 -> % returned by unittest_runner.pl when a wrapper module does not compile
         message(error, ['Compilation failed. Please make sure all relevant predicates',
                         ' and properties for testing are exported. Compilation log:']),
-        dump_output(yes, StrOut),
-        dump_error(yes, StrErr)
+        write_string(StrOut),
+        write_string(StrErr)
         % Note: Syntactic compilation errors of the modules under test
         % are detected earlier, in the call to
         % get_code_and_related_assertions/5 in the predicate
         % get_assertion_info/3.
         %
+        % TODO: this will only show errors and warnings if compilation
+        % fails (i.e, if there are errors, but not if there are only
+        % warnings). These includes warnings specific to unittest
+        % (e.g., texec test with comp property)
+        %
+        % TODO: write aborted results for each tests or abort
+        % completely. Right now it prints the messages but it shows
+        % the tests as passed in the stadistics
+        %
         % TODO: save compilation status in test.out
         %
         % TODO: unique return status for run_tests_in_module/3
     ;
-        dump_output(DumpOutput, StrOut),
-        dump_error(DumpError, StrErr),
-        %
         file_test_output(BOutFile),
-        path_concat(TmpDir, BOutFile, OutFile),
+        path_concat(TestRunDir, BOutFile, OutFile),
         retractall_fact(test_output_db(_, _)),
         assert_from_file(OutFile, assert_test_output),
-        ( test_with_no_output(TestId)
+        retractall_fact(test_output_error_db(_, _, _)),
+        assert_from_file(OutFile, assert_test_output_error),
+        ( aborted_test(TestId)
           ->  % no output both in output file and output db (test aborted)
+              get_stdout_redirection_file(TestRunDir, StdoutFile),
+              file_to_string(StdoutFile, StdoutString),
+              get_stderr_redirection_file(TestRunDir, StderrFile),
+              file_to_string(StderrFile, StderrString),
               TestResult = st([], [], aborted(StrOut, StrErr)),
               % mark the test as aborted
               open(OutFile, append, IO),
               write_data(IO, test_output_db(TestId, TestResult)),
+              write_data(IO, test_output_error_db(TestId, StdoutString, StderrString)),
               close(IO),
               % continue testing
-              do_tests_(TmpDir, WrapperMods, InputPath, DumpOutput, DumpError, RunnerArgs, yes(TestId))
+              do_tests_(TestRunDir, Modules, WrapperMods, RunnerArgs, yes(TestId))
           ; true % (all tests had output)
           )
     ).
 
-test_with_no_output(TestId) :-
+aborted_test(TestId) :- % TODO: have a less of a hack mechanism to detect this
     test_input_db(TestId0,_Module),
-    \+(test_output_db(TestId0,_TestResult)), !,
+    \+(test_output_error_db(TestId0,_Output,_Error)), !,
     TestId = TestId0.
 
 % :- pred atom_concat_(+atm,+atm,-atm) + (not_fails, no_choicepoints).
@@ -862,9 +998,9 @@ test_with_no_output(TestId) :-
 
 :- pred create_test_input(+pathname, +list(atm)) + (not_fails, no_choicepoints).
 
-create_test_input(TmpDir, Modules) :-
+create_test_input(TestRunDir, Modules) :-
     file_test_input(BFileTestInput),
-    path_concat(TmpDir, BFileTestInput, FileTestInput),
+    path_concat(TestRunDir, BFileTestInput, FileTestInput),
     cleanup_test_attributes,
     open(FileTestInput, write, SI),
     (
@@ -899,14 +1035,14 @@ get_test(Module, TestId, Type, Pred, Body, Dict, Src, LB, LE) :-
     make_test_id(Module, Src, LB, LE, TestId).
 
 create_wrapper_mods([], _, _, []) :- !.
-create_wrapper_mods([Module|Ms], TmpDir, RtcEntry, [WrapperFile|WFs]) :-
-    create_wrapper_mod(Module, TmpDir, RtcEntry, WrapperFile),
-    create_wrapper_mods(Ms, TmpDir, RtcEntry, WFs).
+create_wrapper_mods([Module|Ms], TestRunDir, RtcEntry, [WrapperFile|WFs]) :-
+    create_wrapper_mod(Module, TestRunDir, RtcEntry, WrapperFile),
+    create_wrapper_mods(Ms, TestRunDir, RtcEntry, WFs).
 
-create_wrapper_mod(Module, TmpDir, RtcEntry, WrapperFile) :-
+create_wrapper_mod(Module, TestRunDir, RtcEntry, WrapperFile) :-
     module_base(Module, Base),
-    ( wrapper_file_name(TmpDir, Module, WrapperFile),
-      create_module_wrapper(TmpDir, Module, RtcEntry, Base, WrapperFile)
+    ( wrapper_file_name(TestRunDir, Module, WrapperFile),
+      create_module_wrapper(TestRunDir, Module, RtcEntry, Base, WrapperFile)
     -> true
     ; message(error, ['Failure in create_wrapper_mod/4'])
     ).
@@ -924,7 +1060,7 @@ collect_test_modules(Src) :=
 
 % We create module wrappers that contains the test entries from the original source.
 % In that way the original modules are not polluted with test code.
-create_module_wrapper(TmpDir, Module, RtcEntry, Src, WrapperFile) :-
+create_module_wrapper(TestRunDir, Module, RtcEntry, Src, WrapperFile) :-
     Header = [
             (:- module(_, _, [assertions, nativeprops, rtchecks])),
             (:- use_module(library(unittest/unittest_runner_aux))),
@@ -938,7 +1074,7 @@ create_module_wrapper(TmpDir, Module, RtcEntry, Src, WrapperFile) :-
     % here link the TestEntry clause with the ARef test identifier
     TestEntry = internal_runtest_module(Module, ARef),
     findall(Clause,
-            gen_test_entry(TmpDir, Module, RtcEntry, Src, TestEntry, ARef, Clause),
+            gen_test_entry(TestRunDir, Module, RtcEntry, Src, TestEntry, ARef, Clause),
             Clauses),
     %
     Clauses2 = ~flatten([
@@ -953,9 +1089,9 @@ create_module_wrapper(TmpDir, Module, RtcEntry, Src, WrapperFile) :-
 % TODO: remove this dependency --NS
 :- use_module(library(rtchecks/rtchecks_tr), [collect_assertions/3]).
 
-gen_test_entry(TmpDir, Module, RtcEntry, Src, TestEntry, ARef, Clause) :-
+gen_test_entry(TestRunDir, Module, RtcEntry, Src, TestEntry, ARef, Clause) :-
     % test entries, or default failing clause if there are none
-    if(do_gen_each_test_entry(TmpDir, Module, RtcEntry, Src, TestEntry, ARef, Clause),
+    if(do_gen_each_test_entry(TestRunDir, Module, RtcEntry, Src, TestEntry, ARef, Clause),
        true,
        do_gen_default_test_entry(TestEntry, Clause)).
 
@@ -966,7 +1102,7 @@ do_gen_default_test_entry(TestEntry, Clause) :- % Why is this clause needed?
 %       fix?  Depends on if we allow tests for imports -- otherwise
 %       this code is still useful for writing test assertions of
 %       impldef preds such as foreign.
-do_gen_each_test_entry(TmpDir, Module, RtcEntry, Src, TestEntry, TestId, Clause) :-
+do_gen_each_test_entry(TestRunDir, Module, RtcEntry, Src, TestEntry, TestId, Clause) :-
     % get current test assertion
     get_test(Module, TestId, AType, Pred, ABody, ADict, ASource, ALB, ALE),
     TestInfo = testinfo(TestId, AType, Pred, ABody, ADict, ASource, ALB, ALE),
@@ -988,7 +1124,7 @@ do_gen_each_test_entry(TmpDir, Module, RtcEntry, Src, TestEntry, TestId, Clause)
     ),
     % this term is later expanded in the wrapper file by the goal
     % translation of the rtchecks package
-    TestBody = '$test_entry_body'(TestInfo, Assertions, PLoc, TmpDir),
+    TestBody = '$test_entry_body'(TestInfo, Assertions, PLoc, TestRunDir),
     Clause = clause(TestEntry, TestBody, ADict).
 
 

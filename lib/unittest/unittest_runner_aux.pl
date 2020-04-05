@@ -75,27 +75,27 @@ process_runner_args([_|Args]) :-
 
 :- meta_predicate testing(?, ?, goal, goal, ?).
 
-testing(ARef, TmpDir, Precond, Pred, Options) :-
+testing(ARef, TestRunDir, Precond, Pred, Options) :-
     get_option(timeout,Options,Timeout),
     get_option(times,Options,NTimes),
     between(1,NTimes,_), % repeat n times
-    testing_(Timeout,ARef, TmpDir, Precond, Pred, Options).
+    testing_(Timeout,ARef, TestRunDir, Precond, Pred, Options).
 % TODO: how should output and statistics behave wrt times(N)?
 
 :- meta_predicate testing_(?, ?, ?, goal, goal, ?).
-testing_(0,ARef, TmpDir, Precond, Pred, Options) :- !,
-    testing__(ARef, TmpDir, Precond, Pred, Options).
-testing_(Timeout,ARef, TmpDir, Precond, Pred, Options) :-
+testing_(0,ARef, TestRunDir, Precond, Pred, Options) :- !,
+    testing__(ARef, TestRunDir, Precond, Pred, Options).
+testing_(Timeout,ARef, TestRunDir, Precond, Pred, Options) :-
     call_with_time_limit(
         Timeout, % mS
-        testing__(ARef, TmpDir, Precond, Pred, Options),
+        testing__(ARef, TestRunDir, Precond, Pred, Options),
         _ % time_limit_exception is caught and handled in an inner catch/3.
     ).
 
 :- meta_predicate testing__(?, ?, goal, goal, ?).
-testing__(ARef, TmpDir, Precond, Pred, Options) :-
+testing__(ARef, TestRunDir, Precond, Pred, Options) :-
     file_test_output(BOut),
-    path_concat(TmpDir,BOut,Out),
+    path_concat(TestRunDir,BOut,Out),
     testing_internal(Precond, Pred, Options, Status),
       open(Out, append, IO),
       write_data(IO, test_output_db(ARef, Status)),
