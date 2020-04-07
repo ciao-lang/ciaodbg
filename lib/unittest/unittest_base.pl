@@ -3,7 +3,6 @@
             empty_output/1,
             file_test_input/1,
             file_test_output/1,
-            group_list/3,
             make_test_id/5,
             runner_global_file_name/1,
             tmp_dir/1,
@@ -25,33 +24,11 @@
 
 :- doc(author, "Edison Mera").
 
-:- test group_list(A, B, C) : (A = [a, a, b, a, c, d, a, 1, 2, a, 1], B = [])
-    => ( C = [count(a, 5), count(b, 1), count(c, 1), count(d, 1),
-            count(1, 2), count(2, 1)] ).
-
-group_list([],    M,  M).
-group_list([E|L], M0, M) :-
-    add_to_list(M0, E, M1),
-    !,
-    group_list(L, M1, M).
-
-:- test add_to_list(A, B, C) : (A = [count(b, 3), count(a, 1)], B = a)
-    => (C = [count(b, 3), count(a, 2)]).
 
 :- regtype yesno/1.
 
 yesno(yes).
 yesno(no).
-
-:- export(add_to_list/3).
-
-add_to_list([],               E, [count(E, 1)]).
-add_to_list([count(E, N0)|M], E, [count(E, N)|M]) :-
-    !,
-    N is N0 + 1.
-add_to_list([count(E, N)|M0], F, [count(E, N)|M]) :-
-    !,
-    add_to_list(M0, F, M).
 
 % show_result_summary((Name=Value)) :-
 %       format("~w\t~w\n", [Name, Value]).
@@ -98,20 +75,34 @@ empty_output(TmpDir) :-
     path_concat(TmpDir,BOut,Out),
     string_to_file("", Out).
 
-%% The commented out lines can be used to save data in text mode and
+
+%% The commented out line can be used to save data in text mode and
 %% facilitate debugging --EMM
-:- use_module(library(fastrw), [fast_read/2, fast_write/2]).
-% :- use_module(library(read)).
+% :- compilation_fact(pretty_testout).
+
+:- if(defined(pretty_testout)).
+
+:- use_module(library(read), [read/2]).
+:- use_module(library(write), [portray_clause/2]).
 
 read_data(SI, Term) :-
-    % read(SI, Term),
-    % Term \== end_of_file.
+    read(SI, Term),
+    Term \== end_of_file.
+
+write_data(SI, Term) :-
+    portray_clause(SI, Term).
+
+:- else.
+
+:- use_module(library(fastrw), [fast_read/2, fast_write/2]).
+
+read_data(SI, Term) :-
     fast_read(SI, Term).
 
 write_data(SI, Term) :-
-    % portray_clause(SI, Term).
     fast_write(SI, Term).
 
+:- endif.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% stdout and stderr redirection files %%%

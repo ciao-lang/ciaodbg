@@ -9,7 +9,6 @@
             run_tests/3,
 
             show_untested_exp_preds/1,
-            show_test_summaries/1,
             show_test_output/2,
             show_test_related_output/2,
 
@@ -28,11 +27,6 @@
 :- use_module(library(terms),      [atom_concat/2]).
 :- use_module(library(sort),       [sort/2]).
 :- use_module(library(aggregates), [findall/3]).
-:- use_module(library(rtchecks/rtchecks_pretty),
-    [
-        pretty_prop/3,
-        rtcheck_to_messages/2
-    ]).
 :- use_module(library(assertions/assrt_lib),
     [
         cleanup_code_and_related_assertions/0,
@@ -42,7 +36,7 @@
         assertion_body/7
     ]).
 :- use_module(library(system),   [copy_file/2, file_exists/1]).
-:- use_module(library(hiordlib), [maplist/2, foldl/4]).
+:- use_module(library(hiordlib), [maplist/2]).
 :- use_module(library(compiler/c_itf), [exports/5, defines_module/2]).
 :- use_module(library(lists),
     [
@@ -60,7 +54,6 @@
         empty_output/1,
         file_test_input/1,
         file_test_output/1,
-        group_list/3,
         make_test_id/5,
         runner_global_file_name/1,
         tmp_dir/1,
@@ -496,15 +489,7 @@ show_test_output_format(full, TestResults) :-
     show_test_summaries(TestResults),
     statistical_summary(['{Total:\n'], TestResults).
 
-:- pred show_test_summaries(TestSummaries)
-   # "Pretty print the test results contained in @var{TestSummaries}.".
-
-show_test_summaries(IdxTestSummaries0) :-
-    % TODO: multiple test results bug
-    flatten(IdxTestSummaries0, IdxTestSummaries),
-    foldl(process_runtime_check, IdxTestSummaries, Messages, []),
-    % TODO: rtchecks_pretty:compact_list/2 was called here, needed?
-    messages(Messages).
+:- reexport(library(unittest/unittest_summaries), [show_test_summaries/1]).
 
 % ----------------------------------------------------------------------
 
@@ -839,67 +824,12 @@ get_module_output(Module, WhichOutput, TestResult) :-
     :  atm(Module)
     => struct(IdxTestSummary).
 
-get_one_test_assertion_output(Module, TestAttributes-TestSummary) :-
+get_one_test_assertion_output(Module, TestAttributes-TestResults) :-
     test_attributes_db(TestId, Module, F, A, Dict, Comment, Source, LB, LE),
     findall(TestResult, test_output_db(TestId, TestResult), TestResults),
-    group_list(TestResults, [], TestSummary),
     TestAttributes = test_attributes(Module, F, A, Dict, Comment,
                                      Source, LB, LE).
 
-count_text(1, '') :- !.
-count_text(N, [' ', N, ' times']).
-
-signals_text([],      '') :- !.
-signals_text(Signals, [' Signals thrown: ', ~~(Signals)]).
-
-comment_text("",      '') :- !.
-comment_text(Comment, [' <<', $$(Comment), '>>']).
-
-:- pred process_runtime_check(TATS, M0, M) : nonvar(TATS) => nonvar(M0)
-    + not_fails.
-
-process_runtime_check(TestAttributes-TestSummary) -->
-    {TestAttributes = test_attributes(Module, F, A, Dict, Comment,
-            Source, LB, LE)},
-    foldl(process_runtime_check_ta(Module, F, A, Dict, Comment, Source, LB, LE),
-          TestSummary).
-
-process_runtime_check_ta(Module, F, A, Dict, Comment, Source, LB, LE, count(ErrorStatus, Count)) -->
-    {ErrorStatus = st(RTCErrors, Signals0, Result0)},
-    {pretty_prop(t(Result0, Signals0), Dict, t(Result, Signals))},
-    {count_text(Count, CountMsg)},
-    {signals_text(Signals, SignalsMsg)},
-    {comment_text(Comment, CommentMsg)},
-    (
-        {is_failed_test(ErrorStatus)} ->
-        [message_lns(Source, LB, LE, error, [Module, ':', F, '/', A,
-                    ' (Result: ', ''({Result}), [](CountMsg),
-                    ') Failed test', [](CommentMsg), '.', [](SignalsMsg)])
-        ],
-        foldl(rtcheck_to_messages_, RTCErrors)
-    ;
-        [message_lns(Source, LB, LE, note, [Module, ':', F,
-                    '/', A, ' (Result: ', ''({Result}), [](CountMsg),
-                    ') Passed test', [](CommentMsg), '.', [](SignalsMsg)])]
-    ),
-    !.
-
-rtcheck_to_messages_(E, Msgs, Msgs0) :-
-    rtcheck_to_messages(E, Ys),
-    append(Ys, Msgs0, Msgs).
-
-is_failed_test(st([_|_], _, _)) :- !.
-is_failed_test(st(_,     _, Result)) :- is_failed_test_result(Result).
-
-% TODO: treat PANIC in special way, other than test failure.
-% TODO: similar behavior should be in rtchecks
-is_failed_test_result(aborted(_, _)). % TODO: global property aborts/1 (like Major Exception), treat as test fail
-is_failed_test_result(fail(precondition)).  % Show warning
-is_failed_test_result(exception(precondition, _)). % PANIC
-is_failed_test_result(exception(postcondition, _)). % PANIC
-is_failed_test_result(exception(predicate, timeout)). % PANIC
-% TODO: is_failed_test_result(exception(predicate, _)).  assertions should assume no_exception/1 by default.
-% TODO: timeouts and exceptions in general need to be treated better
 
 :- data test_input_db/2.
 :- data test_output_db/2.
@@ -975,7 +905,7 @@ do_tests_(TestRunDir, Modules, WrapperMods, RunnerArgs, Resume) :-
               file_to_string(StdoutFile, StdoutString),
               get_stderr_redirection_file(TestRunDir, StderrFile),
               file_to_string(StderrFile, StderrString),
-              TestResult = st([], [], aborted(StrOut, StrErr)),
+              TestResult = st(unknown, [], [], aborted(StrOut, StrErr)),
               % mark the test as aborted
               open(OutFile, append, IO),
               write_data(IO, test_output_db(TestId, TestResult)),

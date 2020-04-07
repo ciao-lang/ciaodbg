@@ -26,8 +26,13 @@
    results of the tests.".
 
 % The results of a test, written in an output file by the test runner,
-% are a term of the form st(RtcErrors,Signals,Status) for each
+% are a term of the form st(Id,RtcErrors,Signals,Result) for each
 % solution of the predicate, where:
+%
+% - Id is result_id(Time,Case,Sol), and specifies the
+% - the following args refer to the Sol-th solution of the test, for
+% - the Case-th case generated from the precondition, and in the
+% - Time-th time the test have been executed
 %
 % - RtcErrors is the list of runtime-check errors intercepted for that
 %   solution
@@ -57,14 +62,11 @@
 % TODO: move this documentation to unittest.pl
 
 % IdxTestSummaries is of the form
-% [[TestAttributes-[count(st(RtcErrors,Signals,TestResult), N)]]],
-% where N is the number of times the test result st(...) occurs for
-% the test with TestAttributes
+% [[TestAttributes-[st(Id,RtcErrors,Signals,TestResult)]]],
 statistical_summary(Tag, IdxTestSummaries0) :-
     flatten(IdxTestSummaries0, IdxTestSummaries),
-    statistical_filter(IdxTestSummaries, stats(0,0,0,0,0,0),
-        stats(NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)),
-    NTotal is NSuccess+NFail+NFailPre+NAborted+NTimeout,
+    statistical_filter(IdxTestSummaries, stats(0,0,0,0,0,0,0),
+        stats(NTotal,NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)),
     NTotal > 0, !,
     sformat(S, "Passed: ~w (~2f\%) Failed: ~w (~2f\%) " ||
         "Precond Failed: ~w (~2f\%) Aborted: ~w (~2f\%) " ||
@@ -96,30 +98,33 @@ statistical_summary(_,_). % reached if NTotal=0. Print something?
 
 statistical_filter([], Stats, Stats).
 statistical_filter([_-TestSummary|TSs], Stats0, Stats) :-
-    update_summary(TestSummary, Stats0, Stats1),
-    statistical_filter(TSs, Stats1, Stats).
+    inc_stat(total,Stats0,Stats1),
+    update_summary(TestSummary, Stats1, Stats2),
+    statistical_filter(TSs, Stats2, Stats).
 
 % case 1: There was no output written by the tests, so unittest.pl
-% deduces the test aborted and writes itself the output st(_,_,aborted(?,?)).
-update_summary([count(st(_, _, aborted(_, _)),_C)|_Rest], Stats0, Stats) :- !, % _C=1, _Rest=[]
+% deduces the test aborted and writes itself the output st(_,_,_,aborted(?,?)).
+update_summary([st(_, _, _, aborted(_, _))], Stats0, Stats) :- !,
     inc_stat(aborted,Stats0,Stats).
 %
 % case 2: The precondition of the test failed
-update_summary([count(st(_, _, fail(precondition)),_C)|_Rest], Stats0, Stats) :- !, % _C=1, _Rest=[]
+update_summary([st(_, _, _, fail(precondition))], Stats0, Stats) :- !,
     inc_stat(fail_pre,Stats0,Stats).
 %
 % case 3: The precondition of the test threw an exception
-update_summary([count(st(_, _, exception(precondition,_)),_C)|_Rest], Stats0, Stats) :- !, % _C=1, _Rest=[]
+update_summary(Summ, Stats0, Stats) :-
+    member(st(_, _, _, exception(precondition,_)), Summ), !,
     inc_stat(aborted,Stats0,Stats). % or increase_fail_precondition?
 %
 % case 4: The postcondition of the test threw an exception
 update_summary(Summ, Stats0, Stats) :-
-    member(count(st(_, _, exception(postcondition,_))),Summ), !,
+    member(st(_, _, _, exception(postcondition,_)),Summ), !,
     inc_stat(aborted,Stats0,Stats).
 %
 % case 5: Catch timeout exceptions as a special case
 % TODO: needs to be improved
-update_summary([count(st(_, _, exception(predicate,timeout)),_C)|_Rest], Stats0, Stats) :- !, % ? 
+update_summary(Summ, Stats0, Stats) :-
+    member(st(_, _, _, exception(predicate,timeout)),Summ), !,
     inc_stat(timeout,Stats0,Stats). 
 %
 % case 6: At least one runtime-check error occurred during testing
@@ -130,7 +135,7 @@ update_summary(Summ, Stats0, Stats) :-
     inc_stat(failed,Stats0,Stats1),
     inc_stat_n(rtchecks,Stats1,N,Stats).
 %
-% other cases: st([],_,St), St in {true, fail(predicate), exception(predicate)}
+% other cases: st(_,[],_,St), St in {true, fail(predicate), exception(predicate)}
 update_summary(_, Stats0, Stats) :-
     inc_stat(success,Stats0,Stats).
 
@@ -138,31 +143,34 @@ number_rtc_errors(Summ,N) :-
     number_rtc_errors_(Summ,0,N).
 
 number_rtc_errors_([],N,N).
-number_rtc_errors_([count(st(RTCErrors, _, _),C)|Summ],Acc0,N) :-
+number_rtc_errors_([st(_,RTCErrors, _, _)|Summ],Acc0,N) :-
     length(RTCErrors,K),
-    Acc is Acc0 + K*C,
+    Acc is Acc0 + K,
     number_rtc_errors_(Summ,Acc,N).
 
 inc_stat(Stat, Stats0, NewStats) :-
     inc_stat_n(Stat, Stats0, 1, NewStats).
 
-inc_stat_n(success, stats(NSuccess0,NFail,NFailPre,NAborted,NTimeout,NRTCErrors), N,
-           stats(NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
+inc_stat_n(total, stats(NTotal0, NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors), N,
+           stats(NTotal, NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
+    NTotal is NTotal0+N.
+inc_stat_n(success, stats(NTotal, NSuccess0,NFail,NFailPre,NAborted,NTimeout,NRTCErrors), N,
+           stats(NTotal, NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
     NSuccess is NSuccess0+N.
-inc_stat_n(failed, stats(NSuccess,NFail0,NFailPre,NAborted,NTimeout,NRTCErrors), N,
-           stats(NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
+inc_stat_n(failed, stats(NTotal, NSuccess,NFail0,NFailPre,NAborted,NTimeout,NRTCErrors), N,
+           stats(NTotal, NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
     NFail is NFail0+N.
-inc_stat_n(fail_pre, stats(NSuccess,NFail,NFailPre0,NAborted,NTimeout,NRTCErrors), N,
-           stats(NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
+inc_stat_n(fail_pre, stats(NTotal, NSuccess,NFail,NFailPre0,NAborted,NTimeout,NRTCErrors), N,
+           stats(NTotal, NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
     NFailPre is NFailPre0+N.
-inc_stat_n(aborted, stats(NSuccess,NFail,NFailPre,NAborted0,NTimeout,NRTCErrors), N,
-           stats(NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
+inc_stat_n(aborted, stats(NTotal, NSuccess,NFail,NFailPre,NAborted0,NTimeout,NRTCErrors), N,
+           stats(NTotal, NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
     NAborted is NAborted0+N.
-inc_stat_n(timeout, stats(NSuccess,NFail,NFailPre,NAborted,NTimeout0,NRTCErrors), N,
-           stats(NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
+inc_stat_n(timeout, stats(NTotal, NSuccess,NFail,NFailPre,NAborted,NTimeout0,NRTCErrors), N,
+           stats(NTotal, NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
     NTimeout is NTimeout0+N.
-inc_stat_n(rtchecks, stats(NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors0), N,
-           stats(NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
+inc_stat_n(rtchecks, stats(NTotal, NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors0), N,
+           stats(NTotal, NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
     NRTCErrors is NRTCErrors0+N.
 
 

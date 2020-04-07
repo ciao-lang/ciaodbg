@@ -78,7 +78,9 @@ process_runner_args([_|Args]) :-
 testing(ARef, TestRunDir, Precond, Pred, Options) :-
     get_option(timeout,Options,Timeout),
     get_option(times,Options,NTimes),
+    reset_times,
     between(1,NTimes,_), % repeat n times
+    inc_times,
     testing_(Timeout,ARef, TestRunDir, Precond, Pred, Options).
 % TODO: how should output and statistics behave wrt times(N)?
 
@@ -107,7 +109,7 @@ testing__(_,_,_,_,_).
 :- data signals_db/1.
 
 :- meta_predicate testing_internal(goal, goal, ?, ?).
-testing_internal(Precond, Pred, Options, st(RTCErrors, Signals, Result)) :-
+testing_internal(Precond, Pred, Options, st(ResultId, RTCErrors, Signals, Result)) :-
     retractall_fact(rtcheck_db(_)),
     retractall_fact(signals_db(_)),
     intercept(
@@ -116,7 +118,9 @@ testing_internal(Precond, Pred, Options, st(RTCErrors, Signals, Result)) :-
         handle_signal(E)
     ),
     findall(E, retract_fact(signals_db(E)), Signals),
-    findall(RTCError, retract_fact(rtcheck_db(RTCError)), RTCErrors).
+    findall(RTCError, retract_fact(rtcheck_db(RTCError)), RTCErrors),
+    result_id(ResultId).
+
 
 handle_signal(control_c) :- !, % used for tiemouts
     send_signal(control_c).
@@ -138,7 +142,9 @@ handle_rtcheck(RTError) :-
 
 :- meta_predicate exec_test(goal, goal, ?, ?).
 exec_test(Precond,Pred,Options,Result) :-
+    reset_cases,
     generate_test_case(Precond,Options,Result),
+    inc_cases,
     (nonvar(Result) -> true % some error in generation, returned as Result
     ;
         run_test(Pred,Options,Result)
@@ -165,11 +171,13 @@ generation_exception(PrecEx, exception(precondition, PrecEx)).
 :- meta_predicate run_test(goal,?,?).
 run_test(Pred,Options,Result) :-
     get_option(try_sols,Options,NSols),
+    reset_sols,
     catch(
         backtrack_n_times((Pred, Result=true),NSols,not_n_sols_reached(Result)),
         Ex,
         run_test_exception(Ex,Result)
-    ).
+    ),
+    inc_sols.
 % TODO: coverage warnings when there are more than NSols solutions?
 
 not_n_sols_reached(Result, 0) :- !,
@@ -231,5 +239,52 @@ backtrack_n_times_(nsol(NFound),_,_,Handler) :-
     Handler(NFound).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+:- data ntime/1.
+:- data ncase/1.
+:- data nsol/1.
+
+result_id(result_id(Time,Case,Sol)) :-
+    ntime(Time),
+    ncase(Case),
+    nsol(Sol).
+
+inc_times :-
+    update(ncase(0)),
+    update(nsol(0)),
+    ntime(N),
+    N1 is N+1,
+    update(ntime(N1)).
+
+inc_cases :-
+    update(nsol(0)),
+    ncase(N),
+    N1 is N+1,
+    update(ncase(N1)).
+
+inc_sols :-
+    nsol(N),
+    N1 is N+1,
+    update(nsol(N1)).
+
+reset_times :-
+    update(ntime(0)),
+    update(ncase(0)),
+    update(nsol(0)).
+
+reset_cases :-
+    update(ncase(0)),
+    update(nsol(0)).
+
+reset_sols :-
+    update(nsol(0)).
+
+update(ntime(N)) :- retractall_fact(ntime(_)), assertz_fact(ntime(N)).
+update(ncase(N)) :- retractall_fact(ncase(_)), assertz_fact(ncase(N)).
+update(nsol(N)) :- retractall_fact(nsol(_)), assertz_fact(nsol(N)).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 % TODO: unify with ciaotest
