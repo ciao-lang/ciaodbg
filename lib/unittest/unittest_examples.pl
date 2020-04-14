@@ -12,45 +12,31 @@
 
 @section{test_examples.pl}
 
-@begin{verbatim}
-@includeverbatim{unittest/examples/test_examples.pl}
-@end{verbatim}
+@includecode{unittest/examples/test_examples.pl}
 
 @section{ceval1.pl}
 
-@begin{verbatim}
-@includeverbatim{unittest/examples/ceval1.pl}
-@end{verbatim}
+@includecode{unittest/examples/ceval1.pl}
 
 @section{ceval2.pl}
 
-@begin{verbatim}
-@includeverbatim{unittest/examples/ceval2.pl}
-@end{verbatim}
+@includecode{unittest/examples/ceval2.pl}
 
 @section{length.pl}
 
-@begin{verbatim}
-@includeverbatim{unittest/examples/length.pl}
-@end{verbatim}o
+@includecode{unittest/examples/length.pl}
 
 @section{civil_registry.pl}
 
-@begin{verbatim}
-@includeverbatim{unittest/examples/civil_registry.pl}
-@end{verbatim}
+@includecode{unittest/examples/civil_registry.pl}
 
 @section{qsort.pl}
 
-@begin{verbatim}
-@includeverbatim{unittest/examples/qsort.pl}
-@end{verbatim}
+@includecode{unittest/examples/qsort.pl}
 
 @section{relationships.pl}
 
-@begin{verbatim}
-@includeverbatim{unittest/examples/relationships.pl}
-@end{verbatim}
+@includecode{unittest/examples/relationships.pl}
 
 ").
 
