@@ -1,10 +1,16 @@
-:- module(test_timeout, [test_pred/1], [assertions,dynamic]).
+:- module(test_timeout, [q/2,test_pred/1], [assertions,dynamic]).
 
 :- doc(author, "Ignacio Casso").
 :- doc(author, "Manuel Hermenegildo").
 
 % Not working yet? 
 % :- set_prolog_flag(unittest_default_timeout,500).
+
+:- test q(X,Y) => (Y=1 ; Y=2) + (try_sols(1), timeout(500)) # "Should succeed.".
+:- test q(X,Y) => (Y=1 ; Y=2) + (try_sols(2), timeout(500)) # "Should time out (on second solution).".
+
+q(a,1).
+q(b,2) :- q(b,2).
 
 :- test test_pred(N) : (N=5)                     # "Timeout test 1,  should probably not time out.".
 :- test test_pred(N) : (N=50)                    # "Timeout test 2a, should probably not time out.".
