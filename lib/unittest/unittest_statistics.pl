@@ -124,7 +124,7 @@ update_summary(Summ, Stats0, Stats) :-
 % case 5: Catch timeout exceptions as a special case
 % TODO: needs to be improved
 update_summary(Summ, Stats0, Stats) :-
-    member(st(_, _, _, exception(predicate,timeout)),Summ), !,
+    member(st(_, _, _, timeout),Summ), !,
     inc_stat(timeout,Stats0,Stats). 
 %
 % case 6: At least one runtime-check error occurred during testing
@@ -135,7 +135,7 @@ update_summary(Summ, Stats0, Stats) :-
     inc_stat(failed,Stats0,Stats1),
     inc_stat_n(rtchecks,Stats1,N,Stats).
 %
-% other cases: st(_,[],_,St), St in {true, fail(predicate), exception(predicate)}
+% other cases: st(_,[],_,St), St in {true, fail(predicate), exception(predicate,_)}
 update_summary(_, Stats0, Stats) :-
     inc_stat(success,Stats0,Stats).
 

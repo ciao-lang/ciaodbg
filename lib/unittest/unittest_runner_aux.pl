@@ -1,5 +1,5 @@
 :- module(unittest_runner_aux,
-    [ assert_test_id/1,
+    [
       get_active_test/2,
       process_runner_args/1,
       testing/5
@@ -21,6 +21,7 @@
 :- use_module(engine(stream_basic), [open/3, close/1]).
 :- use_module(library(timeout), [call_with_time_limit/3]).
 :- use_module(library(between), [between/3]).
+:- use_module(library(lists), [member/2]).
 
 :- use_module(library(unittest/unittest_base),
     [
@@ -28,18 +29,17 @@
         file_test_output/1
     ]).
 
-
 % ----------------------------------------------------------------------
 
-:- data test_id_db/2.
 :- data skip_tests_before/1.
 :- data active_test/0.
 :- data default_timeout/1.
 
 % ----------------------------------------------------------------------
 
-assert_test_id(test_input_db(ARef, Mod)) :-
-    assertz_fact(test_id_db(ARef, Mod)).
+:- use_module(library(unittest/unittest_db), [test_attributes_db/8]).
+test_id_db(ARef, Mod) :-
+    test_attributes_db(ARef, Mod,_,_,_,_,_,_).
 
 get_active_test(ARef, Mod) :-
     (\+ skip_tests_before(_)), !,
@@ -73,6 +73,8 @@ process_runner_args([_|Args]) :-
 
 % ----------------------------------------------------------------------
 
+% TODO: call testing/5 from runner, instrument in wrapper Pred instead
+
 :- meta_predicate testing(?, ?, goal, goal, ?).
 
 testing(ARef, TestRunDir, Precond, Pred, Options) :-
@@ -98,7 +100,7 @@ testing_(Timeout,ARef, TestRunDir, Precond, Pred, Options) :-
 testing__(ARef, TestRunDir, Precond, Pred, Options) :-
     file_test_output(BOut),
     path_concat(TestRunDir,BOut,Out),
-    testing_internal(Precond, Pred, Options, Status),
+    testing_internal(ARef, Precond, Pred, Options, Status),
       open(Out, append, IO),
       write_data(IO, test_output_db(ARef, Status)),
       close(IO),
@@ -109,17 +111,18 @@ testing__(_,_,_,_,_).
 :- data signals_db/1.
 
 :- meta_predicate testing_internal(goal, goal, ?, ?).
-testing_internal(Precond, Pred, Options, st(ResultId, RTCErrors, Signals, Result)) :-
+testing_internal(ARef, Precond, Pred, Options, st(ResultId, RTCErrors, Signals, Result)) :-
     retractall_fact(rtcheck_db(_)),
     retractall_fact(signals_db(_)),
     intercept(
-        exec_test(Precond, Pred, Options, Result),
+        exec_test(Precond, Pred, Options, Result0),
         E,
         handle_signal(E)
     ),
     findall(E, retract_fact(signals_db(E)), Signals),
     findall(RTCError, retract_fact(rtcheck_db(RTCError)), RTCErrors),
-    result_id(ResultId).
+    result_id(ResultId),
+    test_result(Result0, ARef, Result).
 
 
 handle_signal(control_c) :- !, % used for tiemouts
@@ -139,6 +142,20 @@ handle_rtcheck(RTError) :-
 %% handle_rtcheck(RtCheck) :- % saves and keeps executing
 %%     assertz_fact(rtcheck_db(RTError))).
 
+
+test_result(fail(predicate), ARef, true) :-
+    test_attributes_db(ARef,_,_,_,_,_,Comp,_),
+    member(C,Comp),failure_comp(C), !.
+test_result(exception(predicate,_), ARef, true) :-
+    test_attributes_db(ARef,_,_,_,_,_,Comp,_),
+    member(C,Comp),exception_comp(C), !.
+test_result(Status, _, Status).
+
+failure_comp(fails(_)).
+failure_comp(possibly_fails(_)).
+exception_comp(exception(_)).
+exception_comp(exception(_,_)).
+exception_comp(possible_exceptions(_,_)).
 
 :- meta_predicate exec_test(goal, goal, ?, ?).
 exec_test(Precond,Pred,Options,Result) :-
@@ -164,7 +181,7 @@ not_n_cases_reached(Result,0) :- !,
     Result = fail(precondition).
 % not_n_cases_reached(Result,N) :- fail.
 
-% generation_exception(time_limit_exceeded, exception(predicate, timeout)).
+% generation_exception(time_limit_exceeded, timeout).
 generation_exception(PrecEx, exception(precondition, PrecEx)).
 
 
@@ -185,11 +202,11 @@ not_n_sols_reached(Result, 0) :- !,
 % not_n_sols_reached(Result, N) :- fail.
 
 % rtchecks/1 exceptions, thrown by rtcheck/6 signal handler
-run_test_exception(rtcheck(_RtcError), exception(predicate,rtcheck)) :- !. % _RtcError saved elsewhere
-run_test_exception(postcondition(rtcheck(_RtcError)), exception(predicate,rtcheck)) :- !.
+run_test_exception(rtcheck(_RtcError), rtcheck_error) :- !. % _RtcError saved elsewhere
+run_test_exception(postcondition(rtcheck(_RtcError)), rtcheck_error) :- !. % can this actually happen?
 % time_limit_exceeded exceptions,
-run_test_exception(postcondition(time_limit_exceeded),exception(predicate,timeout)) :- !. % TODO: distinguish exception(postcondition, timeout)?
-run_test_exception(time_limit_exceeded,exception(predicate,timeout)) :- !.
+run_test_exception(postcondition(time_limit_exceeded),timeout) :- !. % TODO: distinguish timeout(postcondition)?
+run_test_exception(time_limit_exceeded,timeout) :- !.
 % predicate exceptions
 run_test_exception(postcondition(PostEx),exception(postcondition,PostEx)) :- !.
 run_test_exception(Ex,exception(predicate,Ex)).

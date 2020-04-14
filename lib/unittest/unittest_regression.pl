@@ -113,8 +113,8 @@ difference(show,Diff) :-
     there_are_differences.
 
 compare_tests(Module, Mode) :-
-    retract_fact(new_test_attributes_db(TestId, Module, F, A, Dict, Comment, _, LB, LE)), !,
-    ( retract_fact(saved_test_attributes_db(TestId, Module, F, A, Dict, Comment, _, LB, LE)) ->
+    retract_fact(new_test_attributes_db(TestId, Module, F, A, Dict, Comment, _, loc(_, LB, LE))), !,
+    ( retract_fact(saved_test_attributes_db(TestId, Module, F, A, Dict, Comment, _, loc(_, LB, LE))) ->
         test_description(F,A,Comment,LB,LE,TestMsg),
         compare_test_results(TestId, Mode, TestMsg),
         compare_test_output_error(TestId, Mode, TestMsg)
@@ -124,7 +124,7 @@ compare_tests(Module, Mode) :-
     ),
     compare_tests(Module, Mode).
 compare_tests(Module, Mode) :-
-    retract_fact(saved_test_attributes_db(TestId, Module, F, A, _, Comment, _, LB, LE)), !,
+    retract_fact(saved_test_attributes_db(TestId, Module, F, A, _, Comment, _, loc(_, LB, LE))), !,
     test_description(F,A,Comment,LB,LE,_TestMsg),
     difference(Mode, ['\t', 'Missing test: ', TestId, '.\n']),
     compare_tests(Module, Mode).
@@ -206,19 +206,19 @@ compare_test_output_error(_TestId, show,TestMsg) :-
 %%%%%%
 
 :- data new_test_output_db/2.
-:- data new_test_attributes_db/9.
+:- data new_test_attributes_db/8.
 :- data new_test_output_error_db/3.
 
 :- data saved_test_output_db/2.
-:- data saved_test_attributes_db/9.
+:- data saved_test_attributes_db/8.
 :- data saved_test_output_error_db/3.
 
 clean_output_db :-
     retractall_fact(new_test_output_db(_,_)),
-    retractall_fact(new_test_attributes_db(_,_,_,_,_,_,_,_,_)),
+    retractall_fact(new_test_attributes_db(_,_,_,_,_,_,_,_)),
     retractall_fact(new_test_output_error_db(_,_,_)),
     retractall_fact(saved_test_output_db(_,_)),
-    retractall_fact(saved_test_attributes_db(_,_,_,_,_,_,_,_,_)),
+    retractall_fact(saved_test_attributes_db(_,_,_,_,_,_,_,_)),
     retractall_fact(saved_test_output_error_db(_,_,_)).
     
 
@@ -234,15 +234,15 @@ get_saved_output_db(M) :-
 
 assert_new_output(test_output_db(A,B)) :-
     assertz_fact(new_test_output_db(A,B)).
-assert_new_output(test_attributes_db(A, B, C, D, E, F, G, H, I)) :-
-    assertz_fact(new_test_attributes_db(A, B, C, D, E, F, G, H, I)).
+assert_new_output(test_attributes_db(A, B, C, D, E, F, G, H)) :-
+    assertz_fact(new_test_attributes_db(A, B, C, D, E, F, G, H)).
 assert_new_output(test_output_error_db(A,B,C)) :-
     assertz_fact(new_test_output_error_db(A,B,C)).
 
 assert_saved_output(test_output_db(A,B)) :-
     assertz_fact(saved_test_output_db(A,B)).
-assert_saved_output(test_attributes_db(A, B, C, D, E, F, G, H, I)) :-
-    assertz_fact(saved_test_attributes_db(A, B, C, D, E, F, G, H, I)).
+assert_saved_output(test_attributes_db(A, B, C, D, E, F, G, H)) :-
+    assertz_fact(saved_test_attributes_db(A, B, C, D, E, F, G, H)).
 assert_saved_output(test_output_error_db(A,B,C)) :-
     assertz_fact(saved_test_output_error_db(A,B,C)).
 

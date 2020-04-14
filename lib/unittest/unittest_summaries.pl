@@ -114,7 +114,7 @@ result(exception(predicate,_)).
 result(fail(precondition)).
 result(exception(precondition,_)).
 result(exception(postcondition,_)).
-result(exception(predicate,timeout)).
+result(timeout).
 %
 % introduced by unittest.pl when no output was saved by the test
 % runner. Output and Error are the runner standard and error
@@ -177,7 +177,7 @@ one_line_message_(TestAttributes, TestResults, Msg) :- % postcondition checking 
     Description = [' Exception thrown while checking test success field.'].
 %
 one_line_message_(TestAttributes, TestResults, Msg) :- % test timed out
-    first_result(TestResults, exception(predicate, timeout)), !,
+    first_result(TestResults, timeout), !,
     header(aborted,TestAttributes,Msg,Description),
     Description = [' Time limit for the test exceeded.'].
 %
@@ -256,12 +256,13 @@ one_result_to_messages(Status, TestAttributes, Messages, MessagesTail) :-
 % one-line summary, where (aborted > fail(precond) = ex(preocond) >
 % ex(poscond) > timeout > rtcheck > ex(pred) > fail(pred) > true)
 specific_result_message(true, Msg, Msg). % TODO:
+specific_result_message(rtcheck_error, Msg, Msg). % TODO:
 specific_result_message(fail(predicate), Msg, Msg). % TODO:
 specific_result_message(exception(predicate,_), Msg, Msg). % TODO:
 specific_result_message(fail(precondition), Msg, Msg). % TODO:
 specific_result_message(exception(precondition,_), Msg, Msg). % TODO:
 specific_result_message(exception(postcondition,_), Msg, Msg). % TODO:
-specific_result_message(exception(predicate,timeout), Msg, Msg). % TODO:
+specific_result_message(timeout, Msg, Msg). % TODO:
 specific_result_message(aborted(_Output, []), Msg, Tail) :- !,
     Msg = ['Test aborted.\n'| Tail].
 specific_result_message(aborted(_Output, Error), Msg, Tail) :-

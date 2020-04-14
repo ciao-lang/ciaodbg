@@ -83,10 +83,14 @@
 
 :- use_module(library(unittest/unittest_db),
               [
-                  % data
+                  % modules
                   module_base_path_db/3,
-                  % preds
                   assert_module_under_test/1,
+                  % test attributes
+                  test_attributes_db/8,
+                  cleanup_test_attributes/0,
+                  assert_test_attributes/1,
+                  %
                   clean_db/0
               ]).
 :- use_module(library(unittest/unittest_regression),
@@ -100,7 +104,6 @@
 
 :- export([
     test_output_db/2,
-    test_attributes_db/9,
     test_output_error_db/3
 ]). % temporal, used in unittest_regression and unittest_database
 
@@ -316,9 +319,6 @@ cleanup_unittest(TestRunDir) :-
     cleanup_code_and_related_assertions,
     cleanup_test_attributes,
     cleanup_global_runners(TestRunDir).
-
-cleanup_test_attributes :-
-    retractall_fact(test_attributes_db(_, _, _, _, _, _, _, _, _)).
 
 :- pred cleanup_global_runners(TestRunDir) : pathname(TestRunDir).
 cleanup_global_runners(TestRunDir) :-
@@ -632,10 +632,10 @@ dump_output_(Module, WhichOutput) :-
     get_output_file(WhichOutput, Base, FileModOut),
     retractall_fact(test_output_error_db(_,_,_)),
     assert_from_file(FileModOut, assert_test_output_error),
-    retractall_fact(test_attributes_db(_,_,_,_,_,_,_,_,_)),
+    cleanup_test_attributes,
     assert_from_file(FileModOut, assert_test_attributes),
     ( % (failure-driven) loop
-        retract_fact(test_attributes_db(TestId,_,F,A,_,Comment,_,LB,LE)),
+        retract_fact(test_attributes_db(TestId,_,F,A,_,Comment,_,loc(_,LB,LE))),
         retract_fact(test_output_error_db(TestId,Output,_)),
           ( Output=[] -> true ;
               test_description(F,A,Comment,LB,LE,TestMsg),
@@ -657,10 +657,10 @@ dump_error_(Module, WhichOutput) :-
     get_output_file(WhichOutput, Base, FileModOut),
     retractall_fact(test_output_error_db(_,_,_)),
     assert_from_file(FileModOut, assert_test_output_error),
-    retractall_fact(test_attributes_db(_,_,_,_,_,_,_,_,_)),
+    cleanup_test_attributes,
     assert_from_file(FileModOut, assert_test_attributes),
     ( % (failure-driven) loop
-        retract_fact(test_attributes_db(TestId,_,F,A,_,Comment,_,LB,LE)),
+        retract_fact(test_attributes_db(TestId,_,F,A,_,Comment,_,loc(_,LB,LE))),
         retract_fact(test_output_error_db(TestId,_,Error)),
           ( Error=[] -> true ;
               test_description(F,A,Comment,LB,LE,TestMsg),
@@ -757,14 +757,10 @@ invoke_unittest(WrapperMods, InputPath, Args0, Opts) :-
 
 run_test_assertions(TestRunDir, Modules, Opts) :-
     mkpath(TestRunDir),
-    create_test_input(TestRunDir, Modules),
-    file_test_input(BInFile),
-    path_concat(TestRunDir, BInFile, InFile),
-    retractall_fact(test_input_db(_, _)),
-    assert_from_file(InFile, assert_test_input),
+    create_test_input(TestRunDir, Modules), % asserts and writes in input file test_attributes_db/8 facts
     %
     empty_output(TestRunDir),
-    ( test_attributes_db(_, _, _, _, _, _, _, _, _) ->
+    ( test_attributes_db(_, _, _, _, _, _, _, _) ->
       get_test_opt(rtc_entry, RtcEntry, Opts),
       create_wrapper_mods(Modules, TestRunDir, RtcEntry, WrapperMods),
       do_tests(TestRunDir, Modules, WrapperMods, Opts)
@@ -791,9 +787,8 @@ write_module_output(Module, Base) :-
 
 write_testdata_to_outfile(StreamOut, Module) :-
     ( % (failure-driven loop)
-        test_input_db(TestId, Module), % backtracking here
-          retract_fact(test_attributes_db(TestId, Module, A,B,C,D,E,F,G)),
-          write_data(StreamOut, test_attributes_db(TestId, Module, A,B,C,D,E,F,G)),
+        retract_fact(test_attributes_db(TestId, Module, A,B,C,D,E,F)), % backtracking here
+          write_data(StreamOut, test_attributes_db(TestId, Module, A,B,C,D,E,F)),
           retract_fact(test_output_error_db(TestId, Output, Error)),
           write_data(StreamOut, test_output_error_db(TestId, Output, Error)),
           retract_fact(test_output_db(TestId, TestResult)), % backtracking here
@@ -813,7 +808,7 @@ get_module_output(Module, WhichOutput, TestResult) :-
     % TODO: redefine show_test_output/2 as run_tests(Alias,[show_output/show_stats],[]) and use only mod_base_file_db
     get_output_file(WhichOutput, Base, FileModOut),
     retractall_fact(test_output_db(_, _)),
-    retractall_fact(test_attributes_db(_, _, _, _, _, _, _, _, _)),
+    cleanup_test_attributes,
     assert_from_file(FileModOut, assert_test_output),
     assert_from_file(FileModOut, assert_test_attributes),
     findall(IdxTestSummary,
@@ -825,25 +820,17 @@ get_module_output(Module, WhichOutput, TestResult) :-
     => struct(IdxTestSummary).
 
 get_one_test_assertion_output(Module, TestAttributes-TestResults) :-
-    test_attributes_db(TestId, Module, F, A, Dict, Comment, Source, LB, LE),
+    test_attributes_db(TestId, Module, F, A, Dict, Comment, _, loc(Source, LB, LE)),
     findall(TestResult, test_output_db(TestId, TestResult), TestResults),
     TestAttributes = test_attributes(Module, F, A, Dict, Comment,
                                      Source, LB, LE).
 
 
-:- data test_input_db/2.
 :- data test_output_db/2.
-:- data test_attributes_db/9.
 :- data test_output_error_db/3.
-
-assert_test_input(test_input_db(A, B)) :-
-    assertz_fact(test_input_db(A, B)).
 
 assert_test_output(test_output_db(A, B)) :-
     assertz_fact(test_output_db(A, B)).
-
-assert_test_attributes(test_attributes_db(A, B, C, D, E, F, G, H, I)) :-
-    assertz_fact(test_attributes_db(A, B, C, D, E, F, G, H, I)).
 
 assert_test_output_error(test_output_error_db(TestId, Output, Error)) :-
     assertz_fact(test_output_error_db(TestId, Output, Error)).
@@ -918,7 +905,7 @@ do_tests_(TestRunDir, Modules, WrapperMods, RunnerArgs, Resume) :-
     ).
 
 aborted_test(TestId) :- % TODO: have a less of a hack mechanism to detect this
-    test_input_db(TestId0,_Module),
+    test_attributes_db(TestId0,_Module,_,_,_,_,_,_),
     \+(test_output_error_db(TestId0,_Output,_Error)), !,
     TestId = TestId0.
 
@@ -936,11 +923,12 @@ create_test_input(TestRunDir, Modules) :-
     (
         member(Module, Modules),
         get_test(Module, TestId, _Type, Pred, Body, Dict, Src, LB, LE),
-        assertion_body(_Pred, _, _, _, _, Comment, Body),
+        assertion_body(_Pred, _, _, _, Comp, Comment, Body),
         functor(Pred, F, A),
         assertz_fact(test_attributes_db(TestId, Module, F, A, Dict, Comment,
-                Src, LB, LE)),
-        write_data(SI, test_input_db(TestId, Module)),
+                Comp, loc(Src, LB, LE))),
+        write_data(SI, test_attributes_db(TestId, Module, F, A, Dict, Comment,
+                Comp, loc(Src, LB, LE))),
         fail
     ;
         close(SI)

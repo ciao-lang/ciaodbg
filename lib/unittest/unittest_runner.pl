@@ -7,7 +7,6 @@
 :- use_module(library(unittest/unittest_runner_aux),
               [
                   process_runner_args/1,
-                  assert_test_id/1,
                   get_active_test/2
               ]).
 :- use_module(library(unittest/unittest_utils), [assert_from_file/2]).
@@ -19,7 +18,10 @@
                   get_stdout_redirection_file/2,
                   get_stderr_redirection_file/2
               ]).
-
+:- use_module(library(unittest/unittest_db),
+              [
+                  assert_test_attributes/1
+              ]).
 
 % stop_on_first_error(false).
 main(Args0) :-
@@ -27,7 +29,7 @@ main(Args0) :-
     process_runner_args(Args),
     file_test_input(InFile),
     path_concat(TestRunDir, InFile, FileTestInput),
-    assert_from_file(FileTestInput,assert_test_id),
+    assert_from_file(FileTestInput,assert_test_attributes),
     file_test_output(OutFile),
     path_concat(TestRunDir, OutFile, FileTestOutput),
     runtests(TestRunDir, FileTestOutput).
