@@ -35,17 +35,17 @@ test_pred(N) :-
     test_pred__(N1).
 
 test_pred__(N) :-
-	abolish(p/1),
-	N1 is N*1000,
-	test_pred_(N1).
+    abolish(p/1),
+    N1 is N*1000,
+    test_pred_(N1).
 
 test_pred_(0).
 test_pred_(N) :-
-	N>0,
-	do_something,
-	N1 is N-1,
-	test_pred_(N1).
+    N>0,
+    do_something,
+    N1 is N-1,
+    test_pred_(N1).
 
 do_something :-
-	assert(p(a)),
-	retract(p(_)).
+    assert(p(a)),
+    retract(p(_)).
