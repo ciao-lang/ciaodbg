@@ -22,6 +22,7 @@
 :- use_module(library(timeout), [call_with_time_limit/3]).
 :- use_module(library(between), [between/3]).
 :- use_module(library(lists), [member/2]).
+:- use_module(library(assertions/assrt_lib), [assertion_body/7]).
 
 :- use_module(library(unittest/unittest_base),
     [
@@ -144,10 +145,12 @@ handle_rtcheck(RTError) :-
 
 
 test_result(fail(predicate), ARef, true) :-
-    test_attributes_db(ARef,_,_,_,_,_,Comp,_),
+    test_attributes_db(ARef,_,_,_,_,_,Body,_),
+    assertion_body(_,_,_,_,Comp,_,Body),
     member(C,Comp),failure_comp(C), !.
 test_result(exception(predicate,_), ARef, true) :-
-    test_attributes_db(ARef,_,_,_,_,_,Comp,_),
+    test_attributes_db(ARef,_,_,_,_,_,Body,_),
+    assertion_body(_,_,_,_,Comp,_,Body),
     member(C,Comp),exception_comp(C), !.
 test_result(Status, _, Status).
 

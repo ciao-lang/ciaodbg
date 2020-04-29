@@ -44,11 +44,14 @@
         append/3,
         length/2,
         select/3,
-        union/3
+        intersection/3,
+        difference/3
     ]).
 :- use_module(library(llists), [flatten/2]).
 :- use_module(library(system_extra), [mkpath/1]).
 :- use_module(library(compiler/exemaker), [make_exec/2]).
+:- use_module(library(hiordlib), [maplist/3]).
+
 :- use_module(library(unittest/unittest_base),
     [
         empty_output/1,
@@ -79,7 +82,7 @@
         path_split/3
     ]).
 :- use_module(library(messages),[note_message/2]).
-
+:- use_module(library(formulae), [list_to_conj/2]).
 
 :- use_module(library(unittest/unittest_db),
               [
@@ -635,7 +638,8 @@ dump_output_(Module, WhichOutput) :-
     cleanup_test_attributes,
     assert_from_file(FileModOut, assert_test_attributes),
     ( % (failure-driven) loop
-        retract_fact(test_attributes_db(TestId,_,F,A,_,Comment,_,loc(_,LB,LE))),
+        retract_fact(test_attributes_db(TestId,_,F,A,_,_,Body,loc(_,LB,LE))),
+        assertion_body(_,_,_,_,_,Comment,Body),
         retract_fact(test_output_error_db(TestId,Output,_)),
           ( Output=[] -> true ;
               test_description(F,A,Comment,LB,LE,TestMsg),
@@ -660,7 +664,8 @@ dump_error_(Module, WhichOutput) :-
     cleanup_test_attributes,
     assert_from_file(FileModOut, assert_test_attributes),
     ( % (failure-driven) loop
-        retract_fact(test_attributes_db(TestId,_,F,A,_,Comment,_,loc(_,LB,LE))),
+        retract_fact(test_attributes_db(TestId,_,F,A,_,_,Body,loc(_,LB,LE))),
+        assertion_body(_,_,_,_,_,Comment,Body),
         retract_fact(test_output_error_db(TestId,_,Error)),
           ( Error=[] -> true ;
               test_description(F,A,Comment,LB,LE,TestMsg),
@@ -820,7 +825,8 @@ get_module_output(Module, WhichOutput, TestResult) :-
     => struct(IdxTestSummary).
 
 get_one_test_assertion_output(Module, TestAttributes-TestResults) :-
-    test_attributes_db(TestId, Module, F, A, Dict, Comment, _, loc(Source, LB, LE)),
+    test_attributes_db(TestId, Module, F, A, Dict, _, Body, loc(Source, LB, LE)),
+    assertion_body(_,_,_,_,_,Comment,Body),
     findall(TestResult, test_output_db(TestId, TestResult), TestResults),
     TestAttributes = test_attributes(Module, F, A, Dict, Comment,
                                      Source, LB, LE).
@@ -922,19 +928,31 @@ create_test_input(TestRunDir, Modules) :-
     open(FileTestInput, write, SI),
     (
         member(Module, Modules),
-        get_test(Module, TestId, _Type, Pred, Body, Dict, Src, LB, LE),
-        assertion_body(_Pred, _, _, _, Comp, Comment, Body),
+        module_base_path_db(Module,Base,_),
+        get_test(Module, TestId, Type, Pred, Body0, Dict, Src, LB, LE),
+        assertion_body(Pred,Compat,Calls,Succ,Comp0,Comment,Body0),
+        intersection(Comp0, ~valid_texec_comp_props, TestOptions0),
+        difference(Comp0, ~valid_texec_comp_props, Comp),
+        texec_warning(Type, Comp, Pred, asrloc(loc(Src,LB,LE))),
+        assertion_body(Pred,Compat,Calls,Succ,Comp,Comment,Body),
         functor(Pred, F, A),
-        assertz_fact(test_attributes_db(TestId, Module, F, A, Dict, Comment,
-                Comp, loc(Src, LB, LE))),
-        write_data(SI, test_attributes_db(TestId, Module, F, A, Dict, Comment,
-                Comp, loc(Src, LB, LE))),
+        get_test_options(TestOptions0,Base,TestOptions),
+        assertz_fact(test_attributes_db(TestId, Module, F, A, Dict, TestOptions,
+                Body, loc(Src, LB, LE))),
+        write_data(SI, test_attributes_db(TestId, Module, F, A, Dict, TestOptions,
+                Body, loc(Src, LB, LE))),
         fail
     ;
         close(SI)
     ),
     atom_concat(FileTestInput, '.bak', FileTestInput0),
     copy_file(FileTestInput, FileTestInput0).
+
+get_test_options(Options, _, Options) :-
+    member(timeout(_,_), Options), !.
+get_test_options(Options, ModuleBase, [timeout(_,Timeout)|Options]) :-
+    clause_read(ModuleBase, 1, unittest_default_timeout(Timeout), _, _, _, _), !.
+get_test_options(Options, _, Options).
 
 :- pred get_test(Module, TestId, Type, Pred, Body, Dict, Src, LB, LE )
     :  atm(Module)
@@ -960,7 +978,7 @@ create_wrapper_mods([Module|Ms], TestRunDir, RtcEntry, [WrapperFile|WFs]) :-
 create_wrapper_mod(Module, TestRunDir, RtcEntry, WrapperFile) :-
     module_base(Module, Base),
     ( wrapper_file_name(TestRunDir, Module, WrapperFile),
-      create_module_wrapper(TestRunDir, Module, RtcEntry, Base, WrapperFile)
+      create_module_wrapper(Module, RtcEntry, Base, WrapperFile)
     -> true
     ; message(error, ['Failure in create_wrapper_mod/4'])
     ).
@@ -978,7 +996,7 @@ collect_test_modules(Src) :=
 
 % We create module wrappers that contains the test entries from the original source.
 % In that way the original modules are not polluted with test code.
-create_module_wrapper(TestRunDir, Module, RtcEntry, Src, WrapperFile) :-
+create_module_wrapper(Module, RtcEntry, Src, WrapperFile) :-
     Header = [
             (:- module(_, _, [assertions, nativeprops, rtchecks])),
             (:- use_module(library(unittest/unittest_runner_aux))),
@@ -986,13 +1004,15 @@ create_module_wrapper(TestRunDir, Module, RtcEntry, Src, WrapperFile) :-
             (:- use_module(library(rtchecks/rtchecks_basic))),
             (:- use_module(library(unittest/unittest_props))),
             (:- use_module(Src)),
-            (:- multifile internal_runtest_module/2)
+            (:- discontiguous test_entry/3),
+            (:- multifile test_entry/3),
+            (:- discontiguous test_check_pred/3),
+            (:- multifile test_check_pred/3)
     ],
     collect_test_modules(Src, TestModules),
     % here link the TestEntry clause with the ARef test identifier
-    TestEntry = internal_runtest_module(Module, ARef),
-    findall(Clause,
-            gen_test_entry(TestRunDir, Module, RtcEntry, Src, TestEntry, ARef, Clause),
+    findall(Cls,
+            gen_test_entry(Module, RtcEntry, Src, Cls),
             Clauses),
     %
     Clauses2 = ~flatten([
@@ -1007,23 +1027,15 @@ create_module_wrapper(TestRunDir, Module, RtcEntry, Src, WrapperFile) :-
 % TODO: remove this dependency --NS
 :- use_module(library(rtchecks/rtchecks_tr), [collect_assertions/3]).
 
-gen_test_entry(TestRunDir, Module, RtcEntry, Src, TestEntry, ARef, Clause) :-
-    % test entries, or default failing clause if there are none
-    if(do_gen_each_test_entry(TestRunDir, Module, RtcEntry, Src, TestEntry, ARef, Clause),
-       true,
-       do_gen_default_test_entry(TestEntry, Clause)).
-
-do_gen_default_test_entry(TestEntry, Clause) :- % Why is this clause needed?
-    Clause = clause(TestEntry, fail, []).
-
 % TODO: tests abort when the predicate is not defined in the module,
 %       fix?  Depends on if we allow tests for imports -- otherwise
 %       this code is still useful for writing test assertions of
-%       impldef preds such as foreign.
-do_gen_each_test_entry(TestRunDir, Module, RtcEntry, Src, TestEntry, TestId, Clause) :-
+%       impldef preds such as foreign
+gen_test_entry(Module, RtcEntry, Src, Clauses) :-
     % get current test assertion
-    get_test(Module, TestId, AType, Pred, ABody, ADict, ASource, ALB, ALE),
-    TestInfo = testinfo(TestId, AType, Pred, ABody, ADict, ASource, ALB, ALE),
+    test_attributes_db(TestId, Module, _, _, ADict, _, ABody, loc(ASource, ALB, ALE)),
+    assertion_body(Pred,_,Calls,_,_,_,ABody),
+    TestInfo = testinfo(Pred, ABody, ADict, ASource, ALB, ALE),
     % Collect assertions for runtime checking during unit tests:
     %  - none if RtcEntry = no
     %  - none if the module uses rtchecks (already instruments its predicates)
@@ -1042,11 +1054,44 @@ do_gen_each_test_entry(TestRunDir, Module, RtcEntry, Src, TestEntry, TestId, Cla
     ),
     % this term is later expanded in the wrapper file by the goal
     % translation of the rtchecks package
-    TestBody = '$test_entry_body'(TestInfo, Assertions, PLoc, TestRunDir),
-    Clause = clause(TestEntry, TestBody, ADict).
+    TestBody = '$check_pred_body'(TestInfo, Assertions, PLoc),
+    Clauses = [
+        clause(test_check_pred(Module, TestId, Pred), TestBody, ADict),
+        clause(test_entry(Module,TestId,Pred), ~list_to_conj(Calls), ADict)
+    ].
+
 
 
 :- pop_prolog_flag(write_strings).
+
+valid_texec_comp_props([times(_, _), try_sols(_, _), generate_from_calls_n(_,_), timeout(_,_)]).
+
+:- pred texec_warning(AType, GPProps, Pred, AsrLoc)
+    : (atm(AType), list(GPProps), term(Pred), struct(AsrLoc))
+  # "A @tt{texec} assertion cannot contain any computational properties
+    except @pred{times/2} and @pred{try_sols/2}.  So if a @tt{texec}
+    assertion contains any other computational property the corresponding
+    test will be generated as if the assertion was of the type
+    @tt{test}. The user is notified of this fact by a warning message.
+    @var{AType} takes values @tt{texec} and @tt{test}, @var{GPProps}
+    is a list of non-ground comp properties, @var{Pred} is a predicate
+    from the test assertion and @var{AsrLoc} is the locator of the
+    test assertion.".
+
+texec_warning(texec, GPProps, Pred, asrloc(loc(ASource, ALB, ALE))) :-
+    \+ GPProps == [], !,
+    functor(Pred, F, A),
+    maplist(comp_prop_to_name, GPProps, GPNames),
+    Message = message_lns(ASource, ALB, ALE, warning,
+            ['texec assertion for ', F, '/', A,
+             ' can have only unit test commands, ',
+             'not comp properties: \n', ''(GPNames),
+             '\nProcessing it as a test assertion']),
+    messages([Message]). % TODO: use message/2?
+texec_warning(_, _, _, _).
+
+comp_prop_to_name(C0, C) :- C0 =.. [F, _|A], C =.. [F|A].
+
 
 % ---------------------------------------------------------------------------
 % Generate modules from terms

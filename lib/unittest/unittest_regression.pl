@@ -15,6 +15,7 @@
 :- use_module(library(process), [process_call/3]).
 :- use_module(engine(messages_basic), [messages/1]).
 :- use_module(library(system), [mktemp_in_tmp/2, delete_file/1]).
+:- use_module(library(assertions/assrt_lib), [assertion_body/7]).
 
 :- use_module(library(unittest/unittest_db),
               [
@@ -113,8 +114,9 @@ difference(show,Diff) :-
     there_are_differences.
 
 compare_tests(Module, Mode) :-
-    retract_fact(new_test_attributes_db(TestId, Module, F, A, Dict, Comment, _, loc(_, LB, LE))), !,
-    ( retract_fact(saved_test_attributes_db(TestId, Module, F, A, Dict, Comment, _, loc(_, LB, LE))) ->
+    retract_fact(new_test_attributes_db(TestId, Module, F, A, Dict, _, Body, loc(_, LB, LE))), !,
+    assertion_body(_,_,_,_,_,Comment,Body),
+    ( retract_fact(saved_test_attributes_db(TestId, Module, F, A, Dict, _, Body, loc(_, LB, LE))) ->
         test_description(F,A,Comment,LB,LE,TestMsg),
         compare_test_results(TestId, Mode, TestMsg),
         compare_test_output_error(TestId, Mode, TestMsg)
@@ -124,7 +126,8 @@ compare_tests(Module, Mode) :-
     ),
     compare_tests(Module, Mode).
 compare_tests(Module, Mode) :-
-    retract_fact(saved_test_attributes_db(TestId, Module, F, A, _, Comment, _, loc(_, LB, LE))), !,
+    retract_fact(saved_test_attributes_db(TestId, Module, F, A, _, _, Body, loc(_, LB, LE))), !,
+    assertion_body(_,_,_,_,_,Comment,Body),
     test_description(F,A,Comment,LB,LE,_TestMsg),
     difference(Mode, ['\t', 'Missing test: ', TestId, '.\n']),
     compare_tests(Module, Mode).
