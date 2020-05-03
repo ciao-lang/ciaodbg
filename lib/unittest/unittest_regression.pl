@@ -13,7 +13,7 @@
 :- use_module(engine(stream_basic), [flush_output/0]).
 :- use_module(library(stream_utils), [get_line/1, string_to_file/2]).
 :- use_module(library(process), [process_call/3]).
-:- use_module(engine(messages_basic), [messages/1]).
+:- use_module(engine(messages_basic), [message/2]).
 :- use_module(library(system), [mktemp_in_tmp/2, delete_file/1]).
 :- use_module(library(assertions/assrt_lib), [assertion_body/7]).
 
@@ -110,7 +110,7 @@ there_are_differences :-
 
 difference(brief,_) :- fail.
 difference(show,Diff) :-
-    messages([message(Diff)]),
+    message(user, Diff),
     there_are_differences.
 
 compare_tests(Module, Mode) :-
@@ -184,7 +184,7 @@ compare_test_output_error(TestId, show, TestMsg) :-
         there_are_differences,
         string_to_tmp_file(SavedOutput, SavedOutputFile),
         string_to_tmp_file(Output, OutputFile),
-        messages([message(['Output differences in test ', [](TestMsg), ':', '\n'])]),
+        message(user, ['Output differences in test ', [](TestMsg), ':', '\n']),
         process_call(path(diff),
                    [SavedOutputFile, OutputFile],
                    [status(_)]),
@@ -196,7 +196,7 @@ compare_test_output_error(TestId, show, TestMsg) :-
         there_are_differences,
         string_to_tmp_file(SavedError, SavedErrorFile),
         string_to_tmp_file(Error, ErrorFile),
-        messages([message(['Error differences in test ', [](TestMsg), ':', '\n'])]),
+        message(user, ['Error differences in test ', [](TestMsg), ':', '\n']),
         process_call(path(diff),
                    [SavedErrorFile, ErrorFile],
                    [status(_)]),
@@ -204,7 +204,7 @@ compare_test_output_error(TestId, show, TestMsg) :-
         delete_file(SavedErrorFile)
     ).
 compare_test_output_error(_TestId, show,TestMsg) :-
-    messages([message(['Missing output/error information in test ', [](TestMsg), '.\n'])]).
+    message(user, ['Missing output/error information in test ', [](TestMsg), '.\n']).
 
 %%%%%%
 
