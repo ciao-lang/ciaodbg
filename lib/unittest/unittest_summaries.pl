@@ -80,7 +80,7 @@ and signals intercepted are printed.
 :- use_module(library(rtchecks/rtchecks_pretty),
     [
         pretty_prop/3,
-        rtcheck_to_messages/2
+        rtcheck_to_message/3
     ]).
 
 % --------------------------------------------------------------
@@ -115,25 +115,16 @@ result(fail(precondition)).
 result(exception(precondition,_)).
 result(exception(postcondition,_)).
 result(timeout).
-%
-% introduced by unittest.pl when no output was saved by the test
-% runner. Output and Error are the runner standard and error
-% outputs. Bug: If the test runner had time to write some output
-% before aborting (e.g., it aborted in the second solution of the
-% predicate), the information that it aborted is lost
 result(aborted(Output, Error)) :-
     string(Output),
     string(Error).
-% TODO: complete
 
 % -------------------------------------------------------------------
 
 
 show_test_summaries(IdxTestSummaries0) :-
-    % TODO: multiple test results bug
     flatten(IdxTestSummaries0, IdxTestSummaries),
     tests_results_to_messages(IdxTestSummaries, Messages, []),
-    % TODO: rtchecks_pretty:compact_list/2 was called here, needed?
     messages(Messages).
 
 tests_results_to_messages([], Messages, Messages).
@@ -208,19 +199,10 @@ first_result(TestResults, Result) :-
 
 header(Status, TestAttributes, Msg, MsgTail) :-
     TestAttributes = test_attributes(Module, F, A, _Dict, Comment, Source, LB, LE),
-    status_text(Status,StatusMsg),
     module_text(Source,Module,ModuleMsg),
     descriptor_text(Comment, CommentMsg),
-    Msg = message_lns(Source, LB, LE, note, [StatusMsg, ': ', ModuleMsg, F,
+    Msg = message_lns(Source, LB, LE, Status, [ModuleMsg, F,
                     '/', A, [](CommentMsg), '.'|MsgTail]).
-% TODO: get rid of 'Note: ', but still use messages and lines in the
-% correct format.
-
-
-status_text(passed,'PASSED').
-status_text(failed,'FAILED').
-status_text(warning,'WARNING').
-status_text(aborted,'ABORTED').
 
 module_text(Source,Module,'') :-
     atom_concat([_,'/',Module,'.pl'],Source), !.
@@ -235,20 +217,23 @@ descriptor_text(Comment, [' "', $$(Comment), '"']).
 
 one_result_to_messages(Status, TestAttributes, Messages, MessagesTail) :-
     TestAttributes = test_attributes(_Module, _F, _A, Dict, _Comment,
-                                     Source, LB, LE),
-    Status = st(ResultId,RTCErrors, Signals0, Result0),
+                                     _Source, _LB, _LE),
+    Status = st(_ResultId,RTCErrors, Signals0, Result0),
     pretty_prop(t(Result0, Signals0), Dict, t(Result, Signals)),
     specific_result_message(Result, Msg, SignalsMsg),
     signals_text(Signals, SignalsMsg, []),
-    foldl(rtcheck_to_messages_, RTCErrors, Messages0, MessagesTail),
-    ( Msg==[], Messages0==MessagesTail -> % nothing to write
-        Messages=MessagesTail
+    foldl(rtcheck_to_messages_, RTCErrors, RtCheckMessages, MessagesTail),
+    ( Msg==[] ->
+        Messages=RtCheckMessages
     ;
-        (ResultId = result_id(Time,Case,Sol) ->
-            HeaderMsg = ['Time ', Time, ', case ', Case, ', solution ', Sol, ':\n' | Msg]
-        ; HeaderMsg = Msg),
-        Messages = [message_lns(Source, LB, LE, note, HeaderMsg) | Messages0]
+        Messages = [message(Msg) | RtCheckMessages]
     ),
+    %% (Messages==MessagesTail -> true;
+    %%     (ResultId = result_id(Time,Case,Sol) ->
+    %%         HeaderMsg = ['Time ', Time, ', case ', Case, ', solution ', Sol, ':\n' | Msg]
+    %%     ; HeaderMsg = Msg),
+    %%     TrueMessages = [message(HeaderMsg) | Messages0]
+    %% )
     !.
 
 
@@ -273,8 +258,7 @@ specific_result_message(aborted(_Output, Error), Msg, Tail) :-
 signals_text([], Msg, Msg) :- !.
 signals_text(Signals, [' Signals thrown: ', ~~(Signals) | Msg], Msg).
 
-rtcheck_to_messages_(E, Msgs, Msgs0) :-
-    rtcheck_to_messages(E, Ys),
-    append(Ys, Msgs0, Msgs).
+rtcheck_to_messages_(E, [message(Ys)|Msgs0], Msgs0) :-
+    rtcheck_to_message(E, Ys, []).
 
 % TODO: unify with unittest_statistics

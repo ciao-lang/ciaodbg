@@ -97,7 +97,7 @@ compare_(M) :-
     get_saved_output_db(M),
     get_new_output_db(M),
     display('Differences in module '), display(M), display(':'), nl,
-    retractall_fact(there_are_differences),
+    retractall_fact(there_were_differences),
     compare_tests(M, show), % TODO: better messages
     (there_were_differences -> true ; display('None'), nl).
 
