@@ -14,8 +14,10 @@
 :- use_module(library(stream_utils), [get_line/1, string_to_file/2]).
 :- use_module(library(process), [process_call/3]).
 :- use_module(engine(messages_basic), [message/2]).
-:- use_module(library(system), [mktemp_in_tmp/2, delete_file/1]).
+:- use_module(library(system), [delete_file/1, get_tmp_dir/1]).
 :- use_module(library(assertions/assrt_lib), [assertion_body/7]).
+:- use_module(library(pathnames), [path_concat/3]).
+:- use_module(library(write), [numbervars/3]).
 
 :- use_module(library(unittest/unittest_db),
               [
@@ -126,10 +128,10 @@ compare_tests(Module, Mode) :-
     ),
     compare_tests(Module, Mode).
 compare_tests(Module, Mode) :-
-    retract_fact(saved_test_attributes_db(TestId, Module, F, A, _, _, Body, loc(_, LB, LE))), !,
+    retract_fact(saved_test_attributes_db(_TestId, Module, F, A, _, _, Body, loc(_, LB, LE))), !,
     assertion_body(_,_,_,_,_,Comment,Body),
-    test_description(F,A,Comment,LB,LE,_TestMsg),
-    difference(Mode, ['\t', 'Missing test: ', TestId, '.\n']),
+    test_description(F,A,Comment,LB,LE,TestMsg),
+    difference(Mode, ['\t', 'Missing test: ', [](TestMsg), '.\n']),
     compare_tests(Module, Mode).
 compare_tests(_,_).
 % TODO: allow locators to vary, make test id depend on test content
@@ -141,33 +143,25 @@ compare_test_results(TestId, Mode, TestMsg) :-
     ( retract_fact(saved_test_output_db(TestId, SavedResult)) ->
         compare_test_result(SavedResult, Result, Mode, TestMsg)
     ;
-        difference(Mode, ['\t', 'New result in test ', [](TestMsg), ': ', Result, '.\n']) % TODO: result description
+        result_message(Result, ResultText),
+        difference(Mode, ['\t', 'New result in test ', [](TestMsg), ': ', ResultText, '.\n'])
     ),
     compare_test_results(TestId, Mode, TestMsg).
 compare_test_results(TestId, Mode, TestMsg) :-
     retract_fact(saved_test_output_db(TestId, Result)), !,
-    difference(Mode, ['\t', 'Missing result in test ', [](TestMsg), ': ', Result, '.\n']), % TODO: result description
+    result_message(Result, ResultText),
+    difference(Mode, ['\t', 'Missing result in test ', [](TestMsg), ': ', ResultText, '.\n']),
     compare_test_results(TestId, Mode, TestMsg).
 compare_test_results(_,_,_).
 
 compare_test_result(X,X,_,_) :- !.
-compare_test_result(st(RtChecks1,A,B),st(RtChecks2,A,B),_,_) :-
-    compare_rtchecks(RtChecks1,RtChecks2), !.
-compare_test_result(X,Y,Mode,TestMsg) :-
-    difference(Mode, ['\t', 'Different results in test ', [](TestMsg), ': ', X, ' and ', Y, '.\n']). % TODO: results description
+compare_test_result(Result1,Result2,Mode,TestMsg) :-
+    result_message(Result1, Result1Text),
+    result_message(Result2, Result2Text),
+    difference(Mode, ['\t', 'Different results in test ', [](TestMsg), ': ', Result1Text, ' and ', Result2Text, '.\n']).
 
-% TODO: make rtchecks locations independent of path to ciao root
-compare_rtchecks([],[]).
-compare_rtchecks([rtcheck(A,B,C,D,E,Locs1)|RtChecks1], [rtcheck(A,B,C,D,E,Locs2)|RtChecks2]) :-
-    compare_locs(Locs1, Locs2),
-    compare_rtchecks(RtChecks1, RtChecks2).
-
-compare_locs([],[]).
-compare_locs([Loc1|Locs1], [Loc2|Locs2]) :-
-    compare_loc(Loc1,Loc2),
-    compare_locs(Locs1,Locs2).
-
-compare_loc(_,_). % TODO: implement this
+result_message(Result, Result) :-  % TODO: result description
+    numbervars(Result, 0, _).
 
 compare_test_output_error(TestId,_,_) :- % reached if there was not output and error in normal and saved output files (e.g., when compilation failed). % TODO: have each test have aborted result and empty stdout and stderr in this case?
     (\+ saved_test_output_error_db(TestId,_,_)),
@@ -182,11 +176,12 @@ compare_test_output_error(TestId, show, TestMsg) :-
     % comparing output
     ( Output=SavedOutput -> true ;
         there_are_differences,
-        string_to_tmp_file(SavedOutput, SavedOutputFile),
-        string_to_tmp_file(Output, OutputFile),
+        string_to_tmp_file(SavedOutput, 'saved', SavedOutputFile),
+        string_to_tmp_file(Output, 'new', OutputFile),
         message(user, ['Output differences in test ', [](TestMsg), ':', '\n']),
+        get_tmp_dir(TmpDir),
         process_call(path(diff),
-                   [SavedOutputFile, OutputFile],
+                   ['-U', '0', SavedOutputFile, '--label', 'saved', OutputFile, '--label', 'new'],
                    [status(_)]),
         delete_file(OutputFile),
         delete_file(SavedOutputFile)
@@ -194,11 +189,12 @@ compare_test_output_error(TestId, show, TestMsg) :-
     % comparing error
     ( Error = SavedError -> true ;
         there_are_differences,
-        string_to_tmp_file(SavedError, SavedErrorFile),
-        string_to_tmp_file(Error, ErrorFile),
+        string_to_tmp_file(SavedError, 'saved', SavedErrorFile),
+        string_to_tmp_file(Error, 'new', ErrorFile),
         message(user, ['Error differences in test ', [](TestMsg), ':', '\n']),
+        get_tmp_dir(TmpDir),
         process_call(path(diff),
-                   [SavedErrorFile, ErrorFile],
+                   ['-U', '0', SavedErrorFile, '--label', saved, ErrorFile, '--label', new],
                    [status(_)]),
         delete_file(ErrorFile),
         delete_file(SavedErrorFile)
@@ -249,8 +245,9 @@ assert_saved_output(test_attributes_db(A, B, C, D, E, F, G, H)) :-
 assert_saved_output(test_output_error_db(A,B,C)) :-
     assertz_fact(saved_test_output_error_db(A,B,C)).
 
-string_to_tmp_file(Str,TmpFile) :-
-    mktemp_in_tmp('tmpXXXXXX',TmpFile),
+string_to_tmp_file(Str, Name, TmpFile) :-
+    get_tmp_dir(TmpDir),
+    path_concat(TmpDir, Name, TmpFile),
     string_to_file(Str, TmpFile).
 
 :- export(test_description/6).
@@ -265,3 +262,4 @@ test_description(F,A,Comment,LB,LE,TestMsg) :-
 
 % TODO: save testout-saved files in a different directory, like .po,
 % .asr, .itf, etc. regr_db repo?
+

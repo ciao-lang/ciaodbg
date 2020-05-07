@@ -23,6 +23,7 @@
 :- use_module(library(between), [between/3]).
 :- use_module(library(lists), [member/2]).
 :- use_module(library(assertions/assrt_lib), [assertion_body/7]).
+:- use_module(library(bundle/bundle_paths), [bundle_shorten_path/2]).
 
 :- use_module(library(unittest/unittest_base),
     [
@@ -128,21 +129,33 @@ testing_internal(ARef, Precond, Pred, Options, st(ResultId, RTCErrors, Signals, 
 
 handle_signal(control_c) :- !, % used for tiemouts
     send_signal(control_c).
-handle_signal(RTError) :-
-    RTError = rtcheck(_Type, _Pred, _Dict, _Prop, _Valid, _Poss), !,
-    handle_rtcheck(RTError).
+handle_signal(RTError0) :-
+    RTError0 = rtcheck(Type, Pred, Dict, Prop, Valid, Poss0), !,
+    short_paths(Poss0,Poss),
+    RTError = rtcheck(Type, Pred, Dict, Prop, Valid, Poss), !,
+    assertz_fact(rtcheck_db(RTError)),
+    throw(rtcheck(RTError)).
+% Flag for other possible behaviours after rtcheck instead of throw? (e.g., fail or continue)
 handle_signal(E) :-
     assertz_fact(signals_db(E)).
 
-handle_rtcheck(RTError) :-
-    assertz_fact(rtcheck_db(RTError)),
-    throw(rtcheck(RTError)).
-% other possible behaviours. Flag?
-%% handle_rtcheck(RtCheck) :- % saves and looks for other valid traces
-%%     assertz_fact(rtcheck_db(RTError))), fail.
-%% handle_rtcheck(RtCheck) :- % saves and keeps executing
-%%     assertz_fact(rtcheck_db(RTError))).
+short_paths([],[]).
+short_paths([Loc0|Locs0],[Loc|Locs]) :-
+    short_path(Loc0,Loc),
+    short_paths(Locs0,Locs).
 
+short_path(predloc(Pred, loc(Src0, LB, LE)), predloc(Pred, loc(Src, LB, LE))) :- !,
+    bundle_shorten_path(Src0,Src).
+short_path(callloc(Pred, loc(Src0, LB, LE)), callloc(Pred, loc(Src, LB, LE))) :- !,
+    bundle_shorten_path(Src0,Src).
+short_path(litloc(Lit, loc(Src0, LB, LE)-(Pred)), litloc(Lit, loc(Src, LB, LE)-(Pred))) :- !,
+    bundle_shorten_path(Src0,Src).
+short_path(asrloc(loc(Src0, LB, LE)), asrloc(loc(Src, LB, LE))) :- !,
+    bundle_shorten_path(Src0,Src).
+short_path(pploc(loc(Src0, LB, LE)), pploc(loc(Src, LB, LE))) :- !,
+    bundle_shorten_path(Src0,Src).
+short_path(P,P). % needed?
+% TODO: do this in rtchecks, error detection works already with short paths
 
 test_result(fail(predicate), ARef, true) :-
     test_attributes_db(ARef,_,_,_,_,_,Body,_),
@@ -259,7 +272,6 @@ backtrack_n_times_(nsol(NFound),_,_,Handler) :-
     Handler(NFound).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
 :- data ntime/1.
 :- data ncase/1.

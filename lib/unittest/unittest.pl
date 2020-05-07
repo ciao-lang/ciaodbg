@@ -38,6 +38,7 @@
 :- use_module(library(system),   [copy_file/2, file_exists/1]).
 :- use_module(library(hiordlib), [maplist/2]).
 :- use_module(library(compiler/c_itf), [exports/5, defines_module/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_shorten_path/2]).
 :- use_module(library(lists),
     [
         member/2,
@@ -103,7 +104,6 @@
                   compare/1,
                   test_description/6 % move somewhere else
               ]).
-:- use_module(library(regrtest/regrtest_aux), [clean_output/3]).
 
 :- export([
     test_output_db/2,
@@ -929,7 +929,8 @@ create_test_input(TestRunDir, Modules) :-
     (
         member(Module, Modules),
         module_base_path_db(Module,Base,_),
-        get_test(Module, TestId, Type, Pred, Body0, Dict, Src, LB, LE),
+        get_test(Module, TestId, Type, Pred, Body0, Dict, Src0, LB, LE),
+        bundle_shorten_path(Src0,Src),
         assertion_body(Pred,Compat,Calls,Succ,Comp0,Comment,Body0),
         intersection(Comp0, ~valid_texec_comp_props, TestOptions0),
         difference(Comp0, ~valid_texec_comp_props, Comp),
@@ -1048,7 +1049,8 @@ gen_test_entry(Module, RtcEntry, Src, Clauses) :-
     % Get predicate locator for the Pred from the test assertion TestId
     functor(Pred, F, A),
     functor(Head, F, A),
-    ( clause_read(Src, Head, _, _, PSource, PLB, PLE) ->
+    ( clause_read(Src, Head, _, _, PSource0, PLB, PLE) ->
+        bundle_shorten_path(PSource0,PSource),
         PLoc = loc(PSource, PLB, PLE)
     ; PLoc = none
     ),
