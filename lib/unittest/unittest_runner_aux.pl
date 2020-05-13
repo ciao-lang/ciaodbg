@@ -25,11 +25,9 @@
 :- use_module(library(assertions/assrt_lib), [assertion_body/7]).
 :- use_module(library(bundle/bundle_paths), [bundle_shorten_path/2]).
 
-:- use_module(library(unittest/unittest_base),
-    [
-        write_data/2,
-        file_test_output/1
-    ]).
+:- use_module(library(unittest/unittest_base), [write_data/2]).
+
+:- use_module(library(unittest/unittest_db), [file_runtest_output/2]).
 
 % ----------------------------------------------------------------------
 
@@ -100,8 +98,7 @@ testing_(Timeout,ARef, TestRunDir, Precond, Pred, Options) :-
 
 :- meta_predicate testing__(?, ?, goal, goal, ?).
 testing__(ARef, TestRunDir, Precond, Pred, Options) :-
-    file_test_output(BOut),
-    path_concat(TestRunDir,BOut,Out),
+    file_runtest_output(TestRunDir, Out),
     testing_internal(ARef, Precond, Pred, Options, Status),
       open(Out, append, IO),
       write_data(IO, test_output_db(ARef, Status)),

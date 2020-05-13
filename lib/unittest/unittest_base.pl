@@ -1,22 +1,16 @@
 :- module(unittest_base,
         [
-            empty_output/1,
-            file_test_input/1,
-            file_test_output/1,
             make_test_id/5,
             runner_global_file_name/1,
             tmp_dir/1,
             wrapper_file_name/3,
             yesno/1,
             read_data/2,
-            write_data/2,
-            file_test_output_suffix/1,
-            file_test_saved_output_suffix/1
+            write_data/2
         ],
         [assertions, regtypes, unittestdecls, datafacts]).
 
 :- use_module(library(terms), [atom_concat/2]).
-:- use_module(library(stream_utils), [string_to_file/2]).
 :- use_module(library(system), [mktemp_in_tmp/2, delete_file/1]).
 :- use_module(library(pathnames),[path_concat/3]).
 
@@ -51,12 +45,7 @@ get_test_tmp_dir(TmpDir) :-
     mktemp_in_tmp('ciaotestXXXXXX', TmpDir),
     delete_file(TmpDir).
 
-file_test_output('test_output_auto.pl').
-file_test_input('test_input_auto.pl').
 runner_global_file_name('test_run_auto.pl').
-
-file_test_output_suffix('.testout').
-file_test_saved_output_suffix('.testout-saved').
 
 wrapper_file_name(TmpDir, Module, WrapperFile) :-
     atom_concat(Module,'_wrp_auto.pl',WrpModule),
@@ -70,15 +59,10 @@ make_test_id(Module,_Src,LB,LE,TestId) :-
 % TODO: module's might not be unique, include the part of Src that
 % does not depend on path to Ciao root
 
-empty_output(TmpDir) :-
-    file_test_output(BOut),
-    path_concat(TmpDir,BOut,Out),
-    string_to_file("", Out).
-
 
 %% The commented out line can be used to save data in text mode and
 %% facilitate debugging --EMM
-% :- compilation_fact(pretty_testout).
+:- compilation_fact(pretty_testout).
 
 :- if(defined(pretty_testout)).
 

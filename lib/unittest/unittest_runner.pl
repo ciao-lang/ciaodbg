@@ -10,18 +10,16 @@
                   get_active_test/2,
                   testing/5
               ]).
-:- use_module(library(unittest/unittest_utils), [assert_from_file/2]).
 :- use_module(library(unittest/unittest_base),
               [
-                  file_test_input/1,
-                  file_test_output/1,
                   write_data/2,
                   get_stdout_redirection_file/2,
                   get_stderr_redirection_file/2
               ]).
 :- use_module(library(unittest/unittest_db),
               [
-                  assert_test_attributes/1,
+                  runtest_input_file_to_test_attributes_db/1,
+                  file_runtest_output/2,
                   test_attributes_db/8
               ]).
 
@@ -29,11 +27,8 @@
 main(Args0) :-
     import_modules(Args0,[TestRunDir|Args]),
     process_runner_args(Args),
-    file_test_input(InFile),
-    path_concat(TestRunDir, InFile, FileTestInput),
-    assert_from_file(FileTestInput,assert_test_attributes),
-    file_test_output(OutFile),
-    path_concat(TestRunDir, OutFile, FileTestOutput),
+    runtest_input_file_to_test_attributes_db(TestRunDir), % asserts test inputs as test_attributes_db/n
+    file_runtest_output(TestRunDir, FileTestOutput),
     runtests(TestRunDir, FileTestOutput).
 
 import_modules(['--end_wrapper_modules--'|Args], Args) :- !.
