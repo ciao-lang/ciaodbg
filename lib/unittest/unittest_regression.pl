@@ -133,12 +133,15 @@ difference(show,Diff) :-
     there_are_differences.
 
 compare_tests_(Module, Mode) :-
-    retract_fact(test_attributes_db(TestId, Module, F, A, Dict, _, Body, loc(_, LB, LE))), !,
+    retract_fact(test_attributes_db(NewTestId, Module, F, A, _, _, Body, loc(_, LB, LE))), !,
     assertion_body(_,_,_,_,_,Comment,Body),
-    ( retract_fact(saved_test_attributes_db(TestId, Module, F, A, Dict, _, Body, loc(_, LB, LE))) ->
+    ( saved_test_attributes_db(SavedTestId, Module, F, A, _, _, Body2, _),
+      assertion_body(_,_,_,_,_,Comment2,Body2),
+      same_test(Comment, Body, Comment2, Body2),
+      retract_fact(saved_test_attributes_db(SavedTestId, Module, _, _, _, _, _, _)) ->
         test_description(F,A,Comment,LB,LE,TestMsg),
-        compare_test_results(TestId, Mode, TestMsg),
-        compare_test_output_error(TestId, Mode, TestMsg)
+        compare_test_results(NewTestId, SavedTestId, Mode, TestMsg),
+        compare_test_output_error(NewTestId, SavedTestId, Mode, TestMsg)
     ;
         test_description(F,A,Comment,LB,LE,TestMsg),
         difference(Mode, ['\t', 'New test: ', [](TestMsg), '.\n'])
@@ -155,21 +158,21 @@ compare_tests_(_,_).
 % and not locator (e.g., unique id per predicate, plus optional
 % user-provided id or number of assertion of that pred)
 
-compare_test_results(TestId, Mode, TestMsg) :-
-    retract_fact(test_output_db(TestId, Result)), !,
-    ( retract_fact(saved_test_output_db(TestId, SavedResult)) ->
+compare_test_results(NewTestId, SavedTestId, Mode, TestMsg) :-
+    retract_fact(test_output_db(NewTestId, Result)), !,
+    ( retract_fact(saved_test_output_db(SavedTestId, SavedResult)) ->
         compare_test_result(SavedResult, Result, Mode, TestMsg)
     ;
         result_message(Result, ResultText),
         difference(Mode, ['\t', 'New result in test ', [](TestMsg), ': ', ResultText, '.\n'])
     ),
-    compare_test_results(TestId, Mode, TestMsg).
-compare_test_results(TestId, Mode, TestMsg) :-
-    retract_fact(saved_test_output_db(TestId, Result)), !,
+    compare_test_results(NewTestId, SavedTestId, Mode, TestMsg).
+compare_test_results(NewTestId, SavedTestId, Mode, TestMsg) :-
+    retract_fact(saved_test_output_db(SavedTestId, Result)), !,
     result_message(Result, ResultText),
     difference(Mode, ['\t', 'Missing result in test ', [](TestMsg), ': ', ResultText, '.\n']),
-    compare_test_results(TestId, Mode, TestMsg).
-compare_test_results(_,_,_).
+    compare_test_results(NewTestId, SavedTestId, Mode, TestMsg).
+compare_test_results(_,_,_,_).
 
 compare_test_result(X,X,_,_) :- !.
 compare_test_result(Result1,Result2,Mode,TestMsg) :-
@@ -180,16 +183,16 @@ compare_test_result(Result1,Result2,Mode,TestMsg) :-
 result_message(Result, Result) :-  % TODO: result description
     numbervars(Result, 0, _).
 
-compare_test_output_error(TestId,_,_) :- % reached if there was not output and error in normal and saved output files (e.g., when compilation failed). % TODO: have each test have aborted result and empty stdout and stderr in this case?
-    (\+ saved_test_output_error_db(TestId,_,_)),
-    (\+ test_output_error_db(TestId,_,_)),
+compare_test_output_error(NewTestId, SavedTestId,_,_) :- % reached if there was not output and error in normal and saved output files (e.g., when compilation failed). % TODO: have each test have aborted result and empty stdout and stderr in this case?
+    (\+ test_output_error_db(NewTestId,_,_)),
+    (\+ saved_test_output_error_db(SavedTestId,_,_)),
     !.
-compare_test_output_error(TestId, brief,_) :- !,
-    saved_test_output_error_db(TestId,Output,Error),
-    test_output_error_db(TestId,Output,Error).
-compare_test_output_error(TestId, show, TestMsg) :-
-    saved_test_output_error_db(TestId,SavedOutput,SavedError),
-    test_output_error_db(TestId,Output,Error), !,
+compare_test_output_error(NewTestId, SavedTestId, brief,_) :- !,
+    test_output_error_db(NewTestId,Output,Error),
+    saved_test_output_error_db(SavedTestId,Output,Error).
+compare_test_output_error(NewTestId, SavedTestId, show, TestMsg) :-
+    test_output_error_db(NewTestId,Output,Error),
+    saved_test_output_error_db(SavedTestId,SavedOutput,SavedError), !,
     % comparing output
     ( Output=SavedOutput -> true ;
         there_are_differences,
@@ -216,7 +219,7 @@ compare_test_output_error(TestId, show, TestMsg) :-
         delete_file(ErrorFile),
         delete_file(SavedErrorFile)
     ).
-compare_test_output_error(_TestId, show,TestMsg) :-
+compare_test_output_error(_,_,show,TestMsg) :-
     message(user, ['Missing output/error information in test ', [](TestMsg), '.\n']).
 
 %%%%%%
@@ -256,6 +259,17 @@ test_description(F,A,Comment,LB,LE,TestMsg) :-
         CommentMsg = ['"', $$(Comment), '"']),
 
     TestMsg = ['(', F, '/', A, ' ', [](CommentMsg), ' in lines ', LB, '-', LE, ')'].
+
+
+% TODO: document this feature
+same_test("[" || Comment1, _, "[" || Comment2, _) :- !,
+    same_name(Comment1, Comment2).
+same_test(_, Body, _, Body).
+
+same_name("]" || _, "]" || _) :- !.
+same_name([C|Cs1], [C|Cs2]) :-
+    same_name(Cs1, Cs2).
+
 
 % TODO: save output and error toghether, or even save separately
 % output, error, and output+error
