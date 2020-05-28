@@ -401,8 +401,20 @@ module_base(Module, Base) :-
 
 :- regtype test_option(Opt) # "@var{Opt} is a testing option.".
 
-test_option := dump_output   | dump_error | rtc_entry.
+test_option := rtc_entry.
+test_option := stdout(~test_std_option).
+test_option := stderr(~test_std_option).
+test_option := dump_output | dump_error. % backwards compatible, equivalent to save+show
 test_option := treat_related | dir_rec.
+
+% handling of standard stream for testing
+test_std_option := show % show
+                 | save % save (for regression). Default
+                 | null % throw away
+                 | stdout. % redirect to stdout (only for stderr)
+
+% TODO: missing support for redirecting stdin(_)?
+
 
 :- doc(test_action/1, "A global option that specifies a testing
     routine. The current set of actions is:
@@ -493,7 +505,8 @@ run_tests(Target, Opt, Actions) :-
 % rid of meta_predicates to handle this everywhere
 
 :- meta_predicate run_tests(?,?,?,pred(1)).
-run_tests(Target, Opts, Actions, Filter) :- % TODO: ensure Opts and Actions are valid
+run_tests(Target, Opts0, Actions, Filter) :- % TODO: ensure Opts and Actions are valid
+    process_options(Opts0, Opts),
     cleanup_modules_under_test,
     decide_modules_to_test(Target, Opts, Modules),
     read_tests(Modules),
@@ -503,17 +516,15 @@ run_tests(Target, Opts, Actions, Filter) :- % TODO: ensure Opts and Actions are 
     ; true
     ),
     % show tested predicates' output
-    ( member(dump_output, Opts) -> % TODO: make it an action, not an option
-        dump_output(Modules, Filter, new)
+    ( member(show_stdout, Actions) ->
+        show_stdout(Modules, Filter, new) % shows stdout if it is saved in output file
     ; true
     ),
     % show tested predicates' error
-    ( member(dump_error, Opts) -> % TODO: make it an action, not an option
-        dump_error(Modules, Filter, new)
+    ( member(show_stderr, Actions) -> % shows stderr if it is saved in output file
+        show_stderr(Modules, Filter, new)
     ; true
     ),
-    % TODO: action to show tested predicates output and error together
-    %
     % show_test results
     ( member(show_output, Actions) ->
         get_all_test_outputs(Modules, Filter, new, TestResults),
@@ -542,12 +553,12 @@ run_tests(Target, Opts, Actions, Filter) :- % TODO: ensure Opts and Actions are 
         compare(Modules, Filter)
     ; true
     ),
-    ( member(dump_saved_output, Actions) ->
-        dump_output(Modules, Filter, saved)
+    ( member(show_saved_stdout, Actions) ->
+        show_stdout(Modules, Filter, saved)
     ; true
     ),
-    ( member(dump_saved_error, Actions) ->
-        dump_error(Modules, Filter, saved)
+    ( member(show_saved_stderr, Actions) ->
+        show_stderr(Modules, Filter, saved)
     ; true
     ),
     ( member(show_saved_output, Actions) ->
@@ -616,14 +627,14 @@ run_tests_in_one_module(Module, Filter, Opts) :-
     get_assertion_info(current,Path,[Module]),
     run_test_assertions(TestRunDir, [Module], Filter, Opts).
 
-:- meta_predicate dump_output(?,pred(1),?).
-dump_output([], _, _).
-dump_output([Module|Modules], Filter, WhichOutput) :-
-    dump_output_(Module, Filter, WhichOutput),
-    dump_output(Modules, Filter, WhichOutput).
+:- meta_predicate show_stdout(?,pred(1),?).
+show_stdout([], _, _).
+show_stdout([Module|Modules], Filter, WhichOutput) :-
+    show_stdout_(Module, Filter, WhichOutput),
+    show_stdout(Modules, Filter, WhichOutput).
 
-:- meta_predicate dump_output_(?,pred(1),?).
-dump_output_(Module, Filter, WhichOutput) :-
+:- meta_predicate show_stdout_(?,pred(1),?).
+show_stdout_(Module, Filter, WhichOutput) :-
     test_input_file_to_test_attributes_db(Module),
     filter_test_attributes_db(Filter),
     cleanup_test_results,
@@ -636,25 +647,26 @@ dump_output_(Module, Filter, WhichOutput) :-
         retract_fact(test_attributes_db(TestId,_,F,A,_,_,Body,loc(_,LB,LE))),
         assertion_body(_,_,_,_,_,Comment,Body),
         retract_fact(test_output_error_db(TestId,Output,_)),
-          ( Output=[] -> true ;
+          ( Output=[_|_] -> % as opposed to empty, 'dumped', or 'ignored'. % TODO: messages for those
               test_description(F,A,Comment,LB,LE,TestMsg),
               messages([message(note, ['Output in test ', [](TestMsg), ':', '\n'])]),
               write_string(Output)
+          ; true
           ),
         fail
     ;
         true
     ).
 
-:- meta_predicate dump_error(?,pred(1),?).
-dump_error([],_,_).
-dump_error([Module|Modules], Filter, WhichOutput) :-
-    dump_error_(Module, Filter, WhichOutput),
-    dump_error(Modules, Filter, WhichOutput).
-% TODO: unify with dump_output
+:- meta_predicate show_stderr(?,pred(1),?).
+show_stderr([],_,_).
+show_stderr([Module|Modules], Filter, WhichOutput) :-
+    show_stderr_(Module, Filter, WhichOutput),
+    show_stderr(Modules, Filter, WhichOutput).
+% TODO: unify with show_stdout
 
-:- meta_predicate dump_error_(?,pred(1),?).
-dump_error_(Module, Filter, WhichOutput) :-
+:- meta_predicate show_stderr_(?,pred(1),?).
+show_stderr_(Module, Filter, WhichOutput) :-
     test_input_file_to_test_attributes_db(Module),
     filter_test_attributes_db(Filter),
     cleanup_test_results,
@@ -667,10 +679,11 @@ dump_error_(Module, Filter, WhichOutput) :-
         retract_fact(test_attributes_db(TestId,_,F,A,_,_,Body,loc(_,LB,LE))),
         assertion_body(_,_,_,_,_,Comment,Body),
         retract_fact(test_output_error_db(TestId,_,Error)),
-          ( Error=[] -> true ;
+          ( Error=[_|_] ->  % as opposed to empty, 'dumped', 'redirected_to_output' or 'ignored'. % TODO: messages for those
               test_description(F,A,Comment,LB,LE,TestMsg),
               messages([message(note, ['Error in test ', [](TestMsg), ':', '\n'])]),
               write_string(Error)
+          ; true
           ),
         fail
     ;
@@ -833,24 +846,17 @@ do_tests_(TestRunDir, Modules, WrapperMods, RunnerArgs, Resume) :-
     % this process call appends new outputs to OutFile
     invoke_unittest(WrapperMods, TestRunDir ,RunnerArgs3,
                  [stdin(null),
-                  stdout(string(StrOut)),
-                  stderr(string(StrErr)),
+                  stdout(default), % dumping/saving/ignoring output options handled in runner
+                  stderr(default), % dumping/saving/ignoring/redirecting error options handled in runner
                   status(Status)]),
     %
     (Status==101 -> % returned by unittest_runner.pl when a wrapper module does not compile
         message(error, ['Compilation failed. Please make sure all relevant predicates',
-                        ' and properties for testing are exported. Compilation log:']),
-        write_string(StrOut),
-        write_string(StrErr)
+                        ' and properties for testing are exported.'])
         % Note: Syntactic compilation errors of the modules under test
         % are detected earlier, in the call to
         % get_code_and_related_assertions/5 in the predicate
         % get_assertion_info/3.
-        %
-        % TODO: this will only show errors and warnings if compilation
-        % fails (i.e, if there are errors, but not if there are only
-        % warnings). These includes warnings specific to unittest
-        % (e.g., texec test with comp property)
         %
         % TODO: write aborted results for each tests or abort
         % completely. Right now it prints the messages but it shows
@@ -863,28 +869,36 @@ do_tests_(TestRunDir, Modules, WrapperMods, RunnerArgs, Resume) :-
         file_runtest_output(TestRunDir, OutFile),
         cleanup_test_results,
         runtest_output_file_to_test_results_db(TestRunDir),
-        ( aborted_test(TestId)
-          ->  % no output both in output file and output db (test aborted)
-              get_stdout_redirection_file(TestRunDir, StdoutFile),
-              file_to_string(StdoutFile, StdoutString),
-              get_stderr_redirection_file(TestRunDir, StderrFile),
-              file_to_string(StderrFile, StderrString),
-              TestResult = st(unknown, [], [], aborted(StrOut, StrErr)),
-              % mark the test as aborted
-              open(OutFile, append, IO),
-              write_data(IO, test_output_db(TestId, TestResult)),
-              write_data(IO, test_output_error_db(TestId, StdoutString, StderrString)),
-              close(IO),
-              % continue testing
-              do_tests_(TestRunDir, Modules, WrapperMods, RunnerArgs, yes(TestId))
-          ; true % (all tests had output)
-          )
+        ( aborted_test(TestId) -> % reached if test runner aborted while testing TestId
+            recover_from_aborted_test(TestId, TestRunDir, RunnerArgs, OutFile),
+            % continue testing
+            do_tests_(TestRunDir, Modules, WrapperMods, RunnerArgs, yes(TestId))
+        ; true % (all tests had output)
+        )
     ).
 
 aborted_test(TestId) :- % TODO: have a less of a hack mechanism to detect this
     test_attributes_db(TestId0,_Module,_,_,_,_,_,_),
     \+(test_output_error_db(TestId0,_Output,_Error)), !,
+    % test aborted if no output both in output file and output db
     TestId = TestId0.
+
+:- use_module(library(unittest/unittest_runner), [get_stdout/3, get_stderr/3, get_stdout_option/2, get_stderr_option/2]).
+% TODO: unify with unittest_runner properly
+recover_from_aborted_test(TestId, TestRunDir, Options, OutFile) :-
+    % recover and possibly dump stdout until crash
+    get_stdout_option(Options, OutputMode),
+    get_stdout(OutputMode, TestRunDir, StdoutString),
+    % recover and possibly dump stderr until crash
+    get_stderr_option(Options, ErrorMode),
+    get_stderr(ErrorMode, TestRunDir, StderrString),
+    % mark the test as aborted
+    open(OutFile, append, IO),
+    TestResult = st(unknown, [], [], aborted(StdoutString, StderrString)),
+    write_data(IO, test_output_db(TestId, TestResult)),
+    write_data(IO, test_output_error_db(TestId, StdoutString, StderrString)),
+    close(IO).
+% TODO: unify with unittest_runner.pl
 
 % creates or updates .testin files for each module
 read_tests(Modules) :-
@@ -895,6 +909,7 @@ read_tests(Modules) :-
     ;
         true
     ).
+
 
 read_tests_in_module(Module) :-
     file_test_input(Module,_TestIn),
@@ -1156,3 +1171,28 @@ unittest_print_clauses(Term, S, Dict) :-
     set_output(S),
     maplist(unittest_print_clause(S, Dict), Term),
     set_output(CO).
+
+
+% --------------------------------
+% Unittest options
+% -------------------------------
+
+process_options([],[]).
+process_options([Opt0|Opts0],[Opt|Opts]) :-
+    nonvar(Opt0),
+    test_option(Opt0), !,
+    process_option(Opt0,Opt),
+    process_options(Opts0,Opts).
+process_options([Opt|Opts0],Opts) :-
+    message(warning, ['Unknown unittest option ', Opt, '.\n']),
+    process_options(Opts0,Opts).
+
+% options are passed down as runner args, which must be atoms
+process_option(stdout(show), dump_output_real_time).
+process_option(stdout(save), save_output).
+process_option(stdout(null), ignore_output).
+process_option(stderr(show), dump_error_real_time).
+process_option(stderr(save), save_error).
+process_option(stderr(null), ignore_error).
+process_option(stderr(stdout), error_to_output).
+process_option(Opt, Opt).

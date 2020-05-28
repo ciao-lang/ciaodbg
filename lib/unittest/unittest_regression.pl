@@ -218,9 +218,13 @@ compare_test_output_error(NewTestId, SavedTestId, show, TestMsg) :-
                    [status(_)]),
         delete_file(ErrorFile),
         delete_file(SavedErrorFile)
-    ).
+    ), !.
 compare_test_output_error(_,_,show,TestMsg) :-
     message(user, ['Missing output/error information in test ', [](TestMsg), '.\n']).
+% TODO: this last clause is also reached if in
+% test_output_db(TestId,Output,Error), Output or Error are not strings
+% (because they are 'dumped', 'ignored' or
+% 'redirected_to_output'). Have good messages for those too
 
 %%%%%%
 
