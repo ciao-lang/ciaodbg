@@ -1,7 +1,8 @@
 :- module(unittest_statistics,
         [
-            statistical_summary/2, 
-            statistical_filter/3
+            get_statistical_summary/2,
+            print_statistical_summary/1,
+            statistical_summary/1
         ],
         [assertions]).
 
@@ -19,7 +20,7 @@
 :- doc(module, "This module implements predicates for generating
        statistical summaries for the testing processes.").
 
-:- pred statistical_summary(Tag, IdxTestSummaries) : atm * list
+:- pred statistical_summary(IdxTestSummaries) : list
 
 # "Makes the statistic summary with the results of the
    tests. @var{IdxTestSummaries} contains a list of terms with the
@@ -63,44 +64,43 @@
 
 % IdxTestSummaries is of the form
 % [[TestAttributes-[st(Id,RtcErrors,Signals,TestResult)]]],
-statistical_summary(Tag, IdxTestSummaries0) :-
+statistical_summary(IdxTestSummaries0) :-
     flatten(IdxTestSummaries0, IdxTestSummaries),
-    statistical_filter(IdxTestSummaries, stats(0,0,0,0,0,0,0),
-        stats(NTotal,NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)),
+    get_statistical_summary(IdxTestSummaries, Stats),
+    Stats = stats(NTotal,_,_,_,_,_,_),
     NTotal > 0, !,
-    sformat(S, "Passed: ~w (~2f\%) Failed: ~w (~2f\%) " ||
-        "Precond Failed: ~w (~2f\%) Aborted: ~w (~2f\%) " ||
-        "Timeouts: ~w (~2f\%) " ||
-        "Total: ~w Run-Time Errors: ~w~n}~n",
-        [
-            NSuccess, 100*NSuccess/NTotal,
-            NFail, 100*NFail/NTotal,
-            NFailPre, 100*NFailPre/NTotal,
-            NAborted, 100*NAborted/NTotal,
-            NTimeout, 100*NTimeout/NTotal,
-            NTotal,
-            NRTCErrors
-        ]),
-    display_list(Tag),
-    message(note, [$$(S)]).
-statistical_summary(_,_). % reached if NTotal=0. Print something?
+    print_statistical_summary(Stats).
+statistical_summary(_). % reached if NTotal=0. Print something?
 
-% TODO: define type stats(NSuccess, NFail, NFailPre, NAborted, NTimeout, NErrors), all ints
 
-:- pred statistical_filter(IdxTestSummaries, Stats0, Stats)
-%% Stats0 = stats(NSuccess0, NFail0, NFailPre0, NAborted0, NTimeout0, NErrors0)
-%% Stats  = stats(NSuccess,  NFail,  NFailPre,  NAborted,  NTimeout,  NRTCErrors)
+% ---------------------------------------------------------------------------
+
+:- pred get_statistical_summary(IdxTestSummaries, Stats)
+%% Stats0 = stats(NTotal0, NSuccess0, NFail0, NFailPre0, NAborted0, NTimeout0, NErrors0)
+%% Stats  = stats(NTotal, NSuccess,  NFail,  NFailPre,  NAborted,  NTimeout,  NRTCErrors)
 
 # "Narrow the information of the tests and generate the statistical
    information structure needed to perform the statistical summary.
    @var{IdxTestSummaries} contains a list of terms with the results of
    tests. ".
 
-statistical_filter([], Stats, Stats).
+% TODO: define type stats(NSuccess, NFail, NFailPre, NAborted, NTimeout, NErrors), all ints
+
+get_statistical_summary(IdxTestSummaries0, Stats) :-
+    flatten(IdxTestSummaries0, IdxTestSummaries),
+    statistical_filter(IdxTestSummaries, stats(0,0,0,0,0,0,0), Stats).
+
+
+statistical_filter([], Stats0, Stats) :-
+    update_total(Stats0, Stats).
 statistical_filter([_-TestSummary|TSs], Stats0, Stats) :-
     inc_stat(total,Stats0,Stats1),
     update_summary(TestSummary, Stats1, Stats2),
     statistical_filter(TSs, Stats2, Stats).
+
+update_total(stats(_NTotal, NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors),
+             stats(NTotal, NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
+    NTotal is NSuccess+NFail+NFailPre+NAborted+NTimeout.
 
 % case 1: There was no output written by the tests, so unittest.pl
 % deduces the test aborted and writes itself the output st(_,_,_,aborted(?,?)).
@@ -151,6 +151,7 @@ number_rtc_errors_([st(_,RTCErrors, _, _)|Summ],Acc0,N) :-
 inc_stat(Stat, Stats0, NewStats) :-
     inc_stat_n(Stat, Stats0, 1, NewStats).
 
+
 inc_stat_n(total, stats(NTotal0, NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors), N,
            stats(NTotal, NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
     NTotal is NTotal0+N.
@@ -172,6 +173,37 @@ inc_stat_n(timeout, stats(NTotal, NSuccess,NFail,NFailPre,NAborted,NTimeout0,NRT
 inc_stat_n(rtchecks, stats(NTotal, NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors0), N,
            stats(NTotal, NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors)) :-
     NRTCErrors is NRTCErrors0+N.
+
+
+% ----------------------------------------------------------------------------------------
+
+
+:- pred print_statistical_summary(Stats) # "Prints the statistical
+summary of the test, previously computed and given as input
+@var{Stats}. ".
+
+
+print_statistical_summary(Stats) :-
+    Stats = stats(NTotal, NSuccess,NFail,NFailPre,NAborted,NTimeout,NRTCErrors),
+    sformat(S, "Passed: ~w (~2f\%) Failed: ~w (~2f\%) " ||
+        "Precond Failed: ~w (~2f\%) Aborted: ~w (~2f\%) " ||
+        "Timeouts: ~w (~2f\%) " ||
+        "Total: ~w Run-Time Errors: ~w~n}~n",
+        [
+            NSuccess, 100*NSuccess/NTotal,
+            NFail, 100*NFail/NTotal,
+            NFailPre, 100*NFailPre/NTotal,
+            NAborted, 100*NAborted/NTotal,
+            NTimeout, 100*NTimeout/NTotal,
+            NTotal,
+            NRTCErrors
+        ]),
+    display_list(['{Total:\n']),
+    message(note, [$$(S)]).
+print_statistical_summary(_). % reached if NTotal=0. Print something?
+
+
+% -------------------------------------------------------------------------
 
 
 % TODO: IC: I have kept the original stats, but we should redesign

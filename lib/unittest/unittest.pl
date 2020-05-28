@@ -24,7 +24,7 @@
 :- use_module(library(stream_utils), [write_string/1, file_to_string/2]).
 :- use_module(library(streams), [display/1, nl/0]).
 :- use_module(engine(messages_basic), [message/2, messages/1]).
-:- use_module(library(unittest/unittest_statistics), [statistical_summary/2]).
+:- use_module(library(unittest/unittest_statistics), [statistical_summary/1]).
 :- use_module(library(terms),      [atom_concat/2]).
 :- use_module(library(sort),       [sort/2]).
 :- use_module(library(aggregates), [findall/3]).
@@ -478,12 +478,14 @@ show_test_output_(full, Alias, Opts) :-
 show_test_output_format(output, TestResults) :-
     show_test_summaries(TestResults).
 show_test_output_format(stats, TestResults) :-
-    statistical_summary(['{Total:\n'], TestResults).
+    statistical_summary(TestResults).
 show_test_output_format(full, TestResults) :-
     show_test_summaries(TestResults),
-    statistical_summary(['{Total:\n'], TestResults).
+    statistical_summary(TestResults).
 
 :- reexport(library(unittest/unittest_summaries), [show_test_summaries/1]).
+
+:- reexport(library(unittest/unittest_statistics), [statistical_summary/1, get_statistical_summary/2]).
 
 % ----------------------------------------------------------------------
 
@@ -570,7 +572,19 @@ run_tests(Target, Opts0, Actions, Filter) :- % TODO: ensure Opts and Actions are
         get_all_test_outputs(Modules, Filter, saved, TestResults),
         show_test_output_format(output, TestResults)
     ; true
+    ),
+    ( member(status(TestStatus), Actions) ->
+        get_all_test_outputs(Modules, Filter, new, TestResults),
+        get_statistical_summary(TestResults, Stats),
+        Stats=stats(NTotal,NSuccess,_,_,_,_,_),
+        ( NTotal=NSuccess ->
+            TestStatus=0
+        ;
+            TestStatus=1
+        )
+    ; true
     ).
+
 
 decide_modules_to_test(Target, Opts, Modules) :-
     assert_modules_to_test(Target, Opts),
