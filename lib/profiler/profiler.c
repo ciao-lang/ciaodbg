@@ -4,11 +4,11 @@
 #include <ciao/datadefs.h>
 #include <ciao/global_defs.h>
 #include <ciao/profile_hooks.h>
-#include <ciao/alloc.h>
+#include <ciao/eng_alloc.h>
 #include <ciao/wam_alloc.h>
 #include <ciao/support_macros.h>
 #include <ciao/support.h>
-#include <ciao/eng_dbg.h>
+#include <ciao/eng_debug.h>
 #include <ciao/timing.h>
 #include <ciao/dtoa_ryu.h>
 #include "profiler.h"

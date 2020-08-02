@@ -6,7 +6,7 @@
 #include <ciao/support.h>
 #include <ciao/profile_hooks.h>
 #include <ciao/timing.h>
-#include <ciao/eng_dbg.h>
+#include <ciao/eng_debug.h>
 #include <ciao/initial.h>
 #include "profiler.h"
 
