@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <ciao_prolog.h>
 #include <ciao/datadefs.h>
-#include <ciao/support.h>
 #include <ciao/profile_hooks.h>
 #include <ciao/timing.h>
 #include <ciao/eng_debug.h>

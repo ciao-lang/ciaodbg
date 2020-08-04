@@ -35,9 +35,6 @@ This implements a hash table.
 #include <stdlib.h>
 #include <string.h>
 
-#include <ciao/configure.h>
-#include <ciao/datadefs.h>
-
 #ifndef STANDARD
 #include "standard.h"
 #endif

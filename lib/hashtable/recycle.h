@@ -24,6 +24,7 @@ This also decreases memory fragmentation, and freeing all structures
 #ifndef RECYCLE
 #define RECYCLE
 
+/* TODO: remove? */
 #include <ciao/configure.h>
 #include <ciao/datadefs.h>
 #include <ciao/eng_alloc.h>
