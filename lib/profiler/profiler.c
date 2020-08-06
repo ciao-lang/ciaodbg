@@ -2,7 +2,7 @@
 #include <string.h>
 #include <math.h>
 #include <ciao/datadefs.h>
-#include <ciao/profile_hooks.h>
+#include <ciao/eng_profile.h>
 #include <ciao/wam_alloc.h>
 #include <ciao/timing.h>
 #include <ciao/dtoa_ryu.h>
@@ -62,10 +62,10 @@ inttime_t tick_end_profiling=0;
 /* nothing to do */
 #elif defined(PROFILE__USE_USERTIME)
 inttime_t (**proftick)(void)=&usertick;
-inttime_t *profclockfreq=&ciao_statistics.userclockfreq;
+inttime_t *profclockfreq=&ciao_stats.userclockfreq;
 #else
 inttime_t (**proftick)(void)=&walltick;
-inttime_t *profclockfreq=&ciao_statistics.wallclockfreq;
+inttime_t *profclockfreq=&ciao_stats.wallclockfreq;
 # endif
 
 inttime_t profile_freq=0;

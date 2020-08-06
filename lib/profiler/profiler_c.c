@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include <ciao_prolog.h>
 #include <ciao/datadefs.h>
-#include <ciao/profile_hooks.h>
+#include <ciao/eng_profile.h>
 #include <ciao/timing.h>
-#include <ciao/initial.h>
+#include <ciao/eng_registry.h>
 #include "profiler.h"
 
 /* get_profile_active/1 */

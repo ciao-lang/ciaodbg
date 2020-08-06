@@ -10,8 +10,6 @@ Source is http://burtleburtle.net/bob/c/lookupa.c
 --------------------------------------------------------------------
 */
 
-#include <ciao/configure.h>
-
 #ifndef STANDARD
 #include "standard.h"
 #endif
