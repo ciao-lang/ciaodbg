@@ -26,7 +26,7 @@ This also decreases memory fragmentation, and freeing all structures
 
 /* TODO: remove? */
 #include <ciao/datadefs.h>
-#include <ciao/wam_alloc.h>
+#include <ciao/eng_registry.h>
 
 #define ht_alloc(X)     checkalloc(X)
 #define ht_dealloc(X,Y) checkdealloc((tagged_t *)X,Y)

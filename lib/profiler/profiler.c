@@ -3,7 +3,7 @@
 #include <math.h>
 #include <ciao/datadefs.h>
 #include <ciao/eng_profile.h>
-#include <ciao/wam_alloc.h>
+#include <ciao/eng_registry.h>
 #include <ciao/timing.h>
 #include <ciao/dtoa_ryu.h>
 #include "profiler.h"
