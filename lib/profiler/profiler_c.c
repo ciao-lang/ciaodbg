@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 #include <ciao_prolog.h>
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/eng_profile.h>
 #include <ciao/timing.h>
 #include <ciao/eng_registry.h>

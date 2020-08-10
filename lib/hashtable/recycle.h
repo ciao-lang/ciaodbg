@@ -25,7 +25,7 @@ This also decreases memory fragmentation, and freeing all structures
 #define RECYCLE
 
 /* TODO: remove? */
-#include <ciao/datadefs.h>
+#include <ciao/eng.h>
 #include <ciao/eng_registry.h>
 
 #define ht_alloc(X)     checkalloc(X)
