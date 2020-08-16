@@ -453,12 +453,12 @@ get_test_opt(_  , no   , _).
 % ----------------------------------------------------------------------
 
 :- pred show_test_output(Alias, Format) : (sourcename(Alias), atm(Format))
-    # "Given a file @var{Alias}, tries to lookup the respective
+    # "Given a file @var{Alias}, tries to look up the respective
       unittest output file and print it to the standard output in
       the specified @var{Format} ('output' for test full trace, 'stats'
       for a statistical summary only, 'full' for both), otherwise emits
       a warning message that no test output file is avaiable.".
-% TODO: it is false that it emits a warning message if there is not
+% TODO: it is false that it emits a warning message if there is no 
 % output
 
 show_test_output(Alias, Format) :-
