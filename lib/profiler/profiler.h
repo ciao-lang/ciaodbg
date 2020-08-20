@@ -6,6 +6,7 @@
 #define _CIAO_PROFILER_H
 
 #include <ciao/timing.h>
+#include <ciao/internals.h>
 #include "hashtab.h"
 
 /* Uncomment this if you like to turn off the time profiling */
