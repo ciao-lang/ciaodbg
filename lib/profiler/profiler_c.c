@@ -479,7 +479,7 @@ CBOOL__PROTO(prolog_cost_center_edge_ticks)
 
   enter=GetInteger(X(4));
   leave=GetInteger(X(5));
-  return cunify(Arg,MakeFloat(Arg,ecc->times[enter][leave]),X(6));
+  return cunify(Arg,BoxFloat(ecc->times[enter][leave]),X(6));
 }
 
 /* cost_center_node_counts/5 */
@@ -537,7 +537,7 @@ CBOOL__PROTO(prolog_cost_center_node_ticks)
       }
     }
   while (ht_next(cct));
-  return cunify(Arg,MakeFloat(Arg,times),X(4));
+  return cunify(Arg,BoxFloat(times),X(4));
 }
 
 /* cost_center_global_counts/3 */
@@ -585,7 +585,7 @@ CBOOL__PROTO(prolog_cost_center_global_ticks)
       times+=ecc->times[enter][leave];
     }
   while (ht_next(cct));
-  return cunify(Arg,MakeFloat(Arg,times),X(2));
+  return cunify(Arg,BoxFloat(times),X(2));
 }
 
 /* For profiler_utils_base.pl */
