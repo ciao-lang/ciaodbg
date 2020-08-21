@@ -225,7 +225,7 @@ int profile_trace;
 #endif
 
 #define GET_DEFINITION(NAME, ARITY)                                     \
-  insert_definition(predicates_location,init_atom_check((NAME)),(ARITY),TRUE)
+  insert_definition(predicates_location,GET_ATOM((NAME)),(ARITY),TRUE)
 /*
   example:
   
