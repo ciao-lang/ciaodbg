@@ -12,7 +12,7 @@
 
 CBOOL__PROTO(prolog_get_profile_active)
 {
-  return cunify(Arg,MakeSmall(profile),X(0));
+  CBOOL__LASTUNIFY(MakeSmall(profile),X(0));
 }
 
 /* add_node_cc/2 */
@@ -24,7 +24,7 @@ CBOOL__PROTO(prolog_add_node_cc)
   definition_t *f;
   DEREF(X(0),X(0));
   DEREF(X(1),X(1));
-  f=GET_DEFINITION(GetString(X(0)), GetInteger(X(1)));
+  f=GET_DEFINITION(GetString(X(0)), TaggedToIntmach(X(1)));
   add_node_cc(active_frame[1].node_table_cc, f);
   return TRUE;
 }
@@ -261,7 +261,7 @@ CBOOL__PROTO(prolog_cc_call_ncnf)
     PROFILE__TIME_INI;
     DEREF(X(0),X(0));
     DEREF(X(1),X(1));
-    f[0]=GET_DEFINITION(GetString(X(0)), GetInteger(X(1)));
+    f[0]=GET_DEFINITION(GetString(X(0)), TaggedToIntmach(X(1)));
     f[1]=active_ecc->functor[0];
 #if defined(PROFILE)
     if (profile_hooks && active_ecc->hooks) {
@@ -275,7 +275,7 @@ CBOOL__PROTO(prolog_cc_call_ncnf)
     active_ecc=get_edge_cc(active_frame->edge_table_cc, f);
 #if defined(PROFILE)
     DEREF(X(2),X(2));
-    active_ecc->hooks=GetInteger(X(2));
+    active_ecc->hooks=TaggedToIntmach(X(2));
     if (profile_hooks) {
       if (active_ecc->hooks) {
         ENABLE_HOOKS(f[0]);
@@ -338,7 +338,7 @@ CBOOL__PROTO(prolog_have_overhead)
   definition_t *f;
   DEREF(X(0),X(0));
   DEREF(X(1),X(1));
-  f=GET_DEFINITION(GetString(X(0)), GetInteger(X(1)));
+  f=GET_DEFINITION(GetString(X(0)), TaggedToIntmach(X(1)));
   result=functor_have_overhead(active_frame+1,f);
   return result;
 }
@@ -365,9 +365,9 @@ CBOOL__PROTO(prolog_profile_reset)
 CBOOL__PROTO(prolog_get_trace_active)
 {
 #if defined(PROFILE__TRACER)
-  return cunify(Arg,MakeSmall(profile_trace),X(0));
+  CBOOL__LASTUNIFY(MakeSmall(profile_trace),X(0));
 #else
-  return cunify(Arg,MakeSmall(0),X(0));
+  CBOOL__LASTUNIFY(MakeSmall(0),X(0));
 #endif
 }
 
@@ -380,7 +380,7 @@ CBOOL__PROTO(prolog_set_trace_active)
   DEREF(X(0),X(0));
   if(!IsInteger(X(0)))
     BUILTIN_ERROR(TYPE_ERROR(INTEGER),X(0),1);
-  profile_trace=GetInteger(X(0));
+  profile_trace=TaggedToIntmach(X(0));
   return TRUE;
 #else
   return FALSE;
@@ -392,9 +392,9 @@ CBOOL__PROTO(prolog_set_trace_active)
 CBOOL__PROTO(prolog_get_hooks_active)
 {
 #if defined(PROFILE)
-  return cunify(Arg,MakeSmall(profile_hooks),X(0));
+  CBOOL__LASTUNIFY(MakeSmall(profile_hooks),X(0));
 #else
-  return cunify(Arg,MakeSmall(0),X(0));
+  CBOOL__LASTUNIFY(MakeSmall(0),X(0));
 #endif
 }
 
@@ -407,7 +407,7 @@ CBOOL__PROTO(prolog_set_hooks_active)
   DEREF(X(0),X(0));
   if(!IsInteger(X(0)))
     BUILTIN_ERROR(TYPE_ERROR(INTEGER),X(0),1);
-  profile_hooks=GetInteger(X(0));
+  profile_hooks=TaggedToIntmach(X(0));
   return TRUE;
 #else
   return FALSE;
@@ -424,7 +424,7 @@ CBOOL__PROTO(prolog_using_timestamp)
 #else
   using_timestamp=0;
 #endif
-  return cunify(Arg,MakeSmall(using_timestamp),X(0));
+  CBOOL__LASTUNIFY(MakeSmall(using_timestamp),X(0));
 }
 
 /* total_time/1 */
@@ -449,13 +449,13 @@ CBOOL__PROTO(prolog_cost_center_edge_counts)
   DEREF(X(4),X(4));
   DEREF(X(5),X(5));
 
-  f[0]=GET_DEFINITION(GetString(X(0)), GetInteger(X(1)));
-  f[1]=GET_DEFINITION(GetString(X(2)), GetInteger(X(3)));
+  f[0]=GET_DEFINITION(GetString(X(0)), TaggedToIntmach(X(1)));
+  f[1]=GET_DEFINITION(GetString(X(2)), TaggedToIntmach(X(3)));
   ecc=get_edge_cc(active_frame->edge_table_cc, f);
 
-  enter=GetInteger(X(4));
-  leave=GetInteger(X(5));
-  return cunify(Arg,MakeSmall(ecc->counts[enter][leave]),X(6));
+  enter=TaggedToIntmach(X(4));
+  leave=TaggedToIntmach(X(5));
+  CBOOL__LASTUNIFY(MakeSmall(ecc->counts[enter][leave]),X(6));
 }
 
 /* cost_center_edge_ticks/7 */
@@ -473,13 +473,13 @@ CBOOL__PROTO(prolog_cost_center_edge_ticks)
   DEREF(X(4),X(4));
   DEREF(X(5),X(5));
 
-  f[0]=GET_DEFINITION(GetString(X(0)), GetInteger(X(1)));
-  f[1]=GET_DEFINITION(GetString(X(2)), GetInteger(X(3)));
+  f[0]=GET_DEFINITION(GetString(X(0)), TaggedToIntmach(X(1)));
+  f[1]=GET_DEFINITION(GetString(X(2)), TaggedToIntmach(X(3)));
   ecc=get_edge_cc(active_frame->edge_table_cc, f);
 
-  enter=GetInteger(X(4));
-  leave=GetInteger(X(5));
-  return cunify(Arg,BoxFloat(ecc->times[enter][leave]),X(6));
+  enter=TaggedToIntmach(X(4));
+  leave=TaggedToIntmach(X(5));
+  CBOOL__LASTUNIFY(BoxFloat(ecc->times[enter][leave]),X(6));
 }
 
 /* cost_center_node_counts/5 */
@@ -497,9 +497,9 @@ CBOOL__PROTO(prolog_cost_center_node_counts)
   DEREF(X(2),X(2));
   DEREF(X(3),X(3));
 
-  f=GET_DEFINITION(GetString(X(0)), GetInteger(X(1)));
-  enter=GetInteger(X(2));
-  leave=GetInteger(X(3));
+  f=GET_DEFINITION(GetString(X(0)), TaggedToIntmach(X(1)));
+  enter=TaggedToIntmach(X(2));
+  leave=TaggedToIntmach(X(3));
   
   if (ht_first(cct)) do {
       ecc=(edge_cc_t *)ht_stuff(cct);
@@ -508,7 +508,7 @@ CBOOL__PROTO(prolog_cost_center_node_counts)
       }
     }
   while (ht_next(cct));
-  return cunify(Arg,MakeSmall(counts),X(4));
+  CBOOL__LASTUNIFY(MakeSmall(counts),X(4));
 }
 
 /* cost_center_node_ticks/5 */
@@ -526,9 +526,9 @@ CBOOL__PROTO(prolog_cost_center_node_ticks)
   DEREF(X(2),X(2));
   DEREF(X(3),X(3));
 
-  f=GET_DEFINITION(GetString(X(0)), GetInteger(X(1)));
-  enter=GetInteger(X(2));
-  leave=GetInteger(X(3));
+  f=GET_DEFINITION(GetString(X(0)), TaggedToIntmach(X(1)));
+  enter=TaggedToIntmach(X(2));
+  leave=TaggedToIntmach(X(3));
   
   if (ht_first(cct)) do {
       ecc=(edge_cc_t *)ht_stuff(cct);
@@ -537,7 +537,7 @@ CBOOL__PROTO(prolog_cost_center_node_ticks)
       }
     }
   while (ht_next(cct));
-  return cunify(Arg,BoxFloat(times),X(4));
+  CBOOL__LASTUNIFY(BoxFloat(times),X(4));
 }
 
 /* cost_center_global_counts/3 */
@@ -553,15 +553,15 @@ CBOOL__PROTO(prolog_cost_center_global_counts)
   DEREF(X(0),X(0));
   DEREF(X(1),X(1));
 
-  enter=GetInteger(X(0));
-  leave=GetInteger(X(1));
+  enter=TaggedToIntmach(X(0));
+  leave=TaggedToIntmach(X(1));
   
   if (ht_first(cct)) do {
       ecc=(edge_cc_t *)ht_stuff(cct);
       counts+=ecc->counts[enter][leave];
     }
   while (ht_next(cct));
-  return cunify(Arg,MakeSmall(counts),X(2));
+  CBOOL__LASTUNIFY(MakeSmall(counts),X(2));
 }
 
 /* cost_center_global_ticks/3 */
@@ -577,15 +577,15 @@ CBOOL__PROTO(prolog_cost_center_global_ticks)
   DEREF(X(0),X(0));
   DEREF(X(1),X(1));
 
-  enter=GetInteger(X(0));
-  leave=GetInteger(X(1));
+  enter=TaggedToIntmach(X(0));
+  leave=TaggedToIntmach(X(1));
   
   if (ht_first(cct)) do {
       ecc=(edge_cc_t *)ht_stuff(cct);
       times+=ecc->times[enter][leave];
     }
   while (ht_next(cct));
-  return cunify(Arg,BoxFloat(times),X(2));
+  CBOOL__LASTUNIFY(BoxFloat(times),X(2));
 }
 
 /* For profiler_utils_base.pl */
