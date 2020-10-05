@@ -205,7 +205,7 @@ CVOID__PROTO(profile__hook_cut_)
   cp_younger = ChoiceCharOffset(cp_younger, -next_alt->choice_offset);
   while(ChoiceYounger(cp_younger, cp_older)) {
     get_cc_item(active_ecc->cc_item_table,cp_younger->functor)->prof.skips++;
-    cp_younger = ChoiceCharOffset(cp_younger, -cp_younger->next_alt->choice_offset);
+    cp_younger = ChoiceCont(cp_younger);
   };
   if (!ChoiceYounger(cp_older, cp_younger)) {
     get_cc_item(active_ecc->cc_item_table,cp_younger->functor)->prof.skips++;
