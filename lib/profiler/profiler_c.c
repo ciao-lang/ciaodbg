@@ -43,7 +43,7 @@ CBOOL__PROTO(prolog_cc_call_ncnf);
 
 CBOOL__PROTO(prolog_cc_call)
 {
-  CBOOL__UnifyCons(ChoiceToTagged(w->node),X(4));
+  CBOOL__UnifyCons(ChoiceToTagged(w->choice),X(4));
   return prolog_cc_call_ncnf(Arg);
 }
 
@@ -53,19 +53,19 @@ CBOOL__PROTO(prolog_cc_redo_1)
 {
   if (profile) {
     PROFILE__TIME_INI;
-    node_t *n1, *n2;
+    choice_t *n1, *n2;
     DEREF(X(0),X(0));
     DEREF(X(1),X(1));
     n1=ChoiceFromTagged(X(0));
     n2=ChoiceFromTagged(X(1));
     if (n1==n2) {
       DEREF(X(2),X(2));
-      w->node=ChoiceFromTagged(X(2));
-      SetShadowregs(w->node);
+      w->choice=ChoiceFromTagged(X(2));
+      SetShadowregs(w->choice);
     }
     PROFILE__TIME_END;
   } else {
-    w->node=w->next_node; /* DOCUT */
+    w->choice=w->previous_choice; /* DOCUT */
   }
   return TRUE;
 }
@@ -76,18 +76,18 @@ CBOOL__PROTO(prolog_cc_redo_1_nf)
 {
   if (profile) {
     PROFILE__TIME_INI;
-    node_t *n1, *n2;
+    choice_t *n1, *n2;
     DEREF(X(0),X(0));
     DEREF(X(1),X(1));
     n1=ChoiceFromTagged(X(1));
     n2=ChoiceFromTagged(X(0));
     if (n1==n2) {
-      w->node=n1;
-      SetShadowregs(w->node);
+      w->choice=n1;
+      SetShadowregs(w->choice);
     }
     PROFILE__TIME_END;
   } else {
-    w->node=w->next_node; /* DOCUT */
+    w->choice=w->previous_choice; /* DOCUT */
   }
   return TRUE;
 }
@@ -166,7 +166,7 @@ CVOID__PROTO(prolog_cc_exit_common)
 
 CBOOL__PROTO(prolog_cc_exit)
 {
-  CBOOL__UnifyCons(ChoiceToTagged(w->node),X(2));
+  CBOOL__UnifyCons(ChoiceToTagged(w->choice),X(2));
   if (profile) {
     bool_t r;
     edge_cc_t *cc;
@@ -186,9 +186,9 @@ CBOOL__PROTO(prolog_cc_exit)
 CBOOL__PROTO(prolog_cc_fail_1)
 {
   if (profile) {
-    CBOOL__UnifyCons(ChoiceToTagged(w->node),X(0));
+    CBOOL__UnifyCons(ChoiceToTagged(w->choice),X(0));
   } else {
-    w->node=w->next_node; /* DOCUT */
+    w->choice=w->previous_choice; /* DOCUT */
   }
   return TRUE;
 }
@@ -243,8 +243,8 @@ CBOOL__PROTO(prolog_cc_exit_nc)
     PROFILE__TIME_INI;
     prolog_cc_exit_common(Arg);
     DEREF(X(1),X(1));
-    w->node=ChoiceFromTagged(X(1));
-    SetShadowregs(w->node);
+    w->choice=ChoiceFromTagged(X(1));
+    SetShadowregs(w->choice);
     PROFILE__TIME_END;
   }
   return TRUE;
@@ -313,7 +313,7 @@ CBOOL__PROTO(prolog_cc_exit_ncnf)
 
 CBOOL__PROTO(prolog_cc_call_nf)
 {
-  CBOOL__UnifyCons(ChoiceToTagged(w->node),X(4));
+  CBOOL__UnifyCons(ChoiceToTagged(w->choice),X(4));
   return prolog_cc_call_ncnf(Arg);
 }
 

@@ -170,8 +170,8 @@ CVOID__PROTO(profile__hook_redo_)
   definition_t *f;
   PROFILE__TIME_INI;
   streamfile=Output_Stream_Ptr->streamfile;
-  if (w->node!=InitialNode) {
-    f=w->next_node->functor;
+  if (w->choice!=InitialNode) {
+    f=w->previous_choice->functor;
   } else {
     f=NULL;
     /*       f=profile_leave_exit; */
@@ -193,19 +193,19 @@ CVOID__PROTO(profile__hook_redo_)
 
 CVOID__PROTO(profile__hook_cut_)
 {
-/*   show_nodes(w, w->node, w->next_node); */
-  node_t *cp_younger=w->node;
-  node_t *cp_older=w->next_node;
+/*   show_nodes(w, w->choice, w->previous_choice); */
+  choice_t *cp_younger=w->choice;
+  choice_t *cp_older=w->previous_choice;
   int i=0;
   try_node_t *next_alt;
   if (cp_younger->next_alt)
     next_alt = cp_younger->next_alt;
   else
     next_alt = w->next_alt;
-  cp_younger = ChoiceCharOffset(cp_younger, -next_alt->node_offset);
+  cp_younger = ChoiceCharOffset(cp_younger, -next_alt->choice_offset);
   while(ChoiceYounger(cp_younger, cp_older)) {
     get_cc_item(active_ecc->cc_item_table,cp_younger->functor)->prof.skips++;
-    cp_younger = ChoiceCharOffset(cp_younger, -cp_younger->next_alt->node_offset);
+    cp_younger = ChoiceCharOffset(cp_younger, -cp_younger->next_alt->choice_offset);
   };
   if (!ChoiceYounger(cp_older, cp_younger)) {
     get_cc_item(active_ecc->cc_item_table,cp_younger->functor)->prof.skips++;
@@ -230,7 +230,7 @@ CVOID__PROTO(profile__hook_fail_)
 CVOID__PROTO(profile__hook_proceed_)
 {
   PROFILE__TIME_INI;
-  ShowFuncPoint(Output_Stream_Ptr->streamfile,"-proc",0,0,w->node->functor);
+  ShowFuncPoint(Output_Stream_Ptr->streamfile,"-proc",0,0,w->choice->functor);
   ShowFuncPoint2(Output_Stream_Ptr->streamfile," proc",0,0,
                  active_ecc->functor[0], active_ecc->functor[1]);
   PROFILE__TIME_END;
@@ -239,7 +239,7 @@ CVOID__PROTO(profile__hook_proceed_)
 CVOID__PROTO(profile__hook_neck_proceed_)
 {
   PROFILE__TIME_INI;
-  ShowFuncPoint(Output_Stream_Ptr->streamfile,"-nprc",0,0,w->node->functor);
+  ShowFuncPoint(Output_Stream_Ptr->streamfile,"-nprc",0,0,w->choice->functor);
   ShowFuncPoint2(Output_Stream_Ptr->streamfile," nprc",0,0,
                  active_ecc->functor[0], active_ecc->functor[1]);
   PROFILE__TIME_END;
