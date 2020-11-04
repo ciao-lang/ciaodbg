@@ -11,7 +11,7 @@
 
 :- use_module(library(unittest/unittest_runner_aux),
               [
-                  process_runner_args/1,
+                  process_runner_args/4,
                   get_active_test/2,
                   testing/5
               ]).
@@ -29,21 +29,32 @@
               ]).
 
 % stop_on_first_error(false).
+
+% Expected arguments in main/1:
+%   --begin_module_wrappers-- Mods --end_module_wappers--: List of Wrappers for modules under test.
+%   dir TestRunDir: Temporary directory for test files.
+%   timeout Timeout: Default timeout for tests.
+%   resume_after ARef: Optional argument to skip tests until test with id ARef.
+%   suff Suff. Optional argument to set optional suffix (internals:opt_suff/1) in runner
+%   Stdout Mode: dump_output_real_time, ignore_output...
+%   Stderr Mode: dump_error_real_time, ignore_error, error_to_output...
+%   load Module: Additional module to load. Unused. Obsolete?
+%   other unittest driver options (unittest:test_option/1) might be passed down to the runner aside from stdout and stderr options. They are ignored.
 main(Args0) :-
-    import_modules(Args0,[TestRunDir|Args]),
-    process_runner_args(Args),
+    process_runner_args(Args0, TestRunDir, WrpModules, Args),
+    import_modules(WrpModules),
     runtest_input_file_to_test_attributes_db(TestRunDir), % asserts test inputs as test_attributes_db/n
     file_runtest_output(TestRunDir, FileTestOutput),
     runtests(TestRunDir, FileTestOutput, Args).
 
-import_modules(['--end_wrapper_modules--'|Args], Args) :- !.
-import_modules([M|Ms], Args) :-
+import_modules([]).
+import_modules([M|Ms]) :-
     intercept(
         use_module(M,[]), % we only care about multifiles test_check_pred/3 and test_entry/3
         compilation_error,
         halt(101) % return code handled by unittest.pl
     ),
-    import_modules(Ms, Args).
+    import_modules(Ms).
 % TODO: distinguish which is the module that does not compile
 
 runtests(TestRunDir, OutputFile, Args) :-

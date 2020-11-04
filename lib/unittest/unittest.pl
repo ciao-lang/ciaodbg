@@ -38,7 +38,7 @@
     ]).
 :- use_module(library(system),   [copy_file/2, file_exists/1]).
 :- use_module(library(hiordlib), [maplist/2]).
-:- use_module(library(compiler/c_itf), [exports/5, defines_module/2]).
+:- use_module(library(compiler/c_itf), [exports/5, defines_module/2, module_from_base/2]).
 :- use_module(library(bundle/bundle_paths), [bundle_shorten_path/2]).
 :- use_module(library(lists),
     [
@@ -53,6 +53,7 @@
 :- use_module(library(system_extra), [mkpath/1]).
 :- use_module(library(compiler/exemaker), [make_exec/2]).
 :- use_module(library(hiordlib), [maplist/3]).
+:- use_module(engine(internals), [opt_suff/1]).
 
 :- use_module(library(unittest/unittest_base),
     [
@@ -72,14 +73,9 @@
         current_file_find/3,
         remove_dir/1
     ]).
-:- use_module(library(pathnames),
-    [
-        pathname/1,
-        path_concat/3,
-        path_split/3
-    ]).
-:- use_module(library(messages),[note_message/2]).
-:- use_module(library(formulae), [list_to_conj/2]).
+:- use_module(library(pathnames), [pathname/1]).
+:- use_module(library(messages),  [note_message/2]).
+:- use_module(library(formulae),  [list_to_conj/2]).
 
 :- use_module(library(unittest/unittest_db)).
 :- use_module(library(unittest/unittest_regression),
@@ -341,9 +337,10 @@ unittest_type(texec).
     : ( sourcename(Alias), var(Message) )
     => struct(Message).
 current_untested_pred(Alias, Message) :-
-    absolute_file_name(Alias, '_opt', '.pl', '.', FileName, FileBase,
-        AbsDir),
-    path_concat(AbsDir,Module,FileBase),
+    current_fact(opt_suff(Suff)),
+    absolute_file_name(Alias, Suff, '.pl', '.', FileName, FileBase,
+         _AbsDir),
+    module_from_base(FileBase, Module),
     exports(FileBase, F, A, _DefType, _Meta),
     functor(Pred, F, A),
     \+ (
@@ -366,17 +363,6 @@ current_untested_pred(Alias, Message) :-
 run_tests_in_dir_rec(BaseDir, Opts) :-
     run_tests(BaseDir, [dir_rec | Opts], [check, show_output, show_stats]).
 
-module_base(Module, Base) :-
-    defines_module(Base, Module),
-    !.
-module_base(Module, Base) :-
-    (
-        unittest_type(Type),
-        assertion_read(_, Module, check, Type, _, _, Base, _, _),
-        atom_concat([_, '/', Module, '.pl'], Base) -> true
-    ;
-        fail
-    ).
 
 % ----------------------------------------------------------------------
 :- doc(test_option/1,"A global option that controls the
@@ -510,8 +496,8 @@ run_tests(Target, Opt, Actions) :-
 run_tests(Target, Opts0, Actions, Filter) :- % TODO: ensure Opts and Actions are valid
     process_options(Opts0, Opts),
     cleanup_modules_under_test,
-    decide_modules_to_test(Target, Opts, Modules),
-    read_tests(Modules),
+    decide_modules_to_test(Target, Opts, Modules0),
+    read_tests(Modules0, Modules),
     % run the tests
     ( member(check, Actions) ->
       run_tests_in_all_modules(Modules, Filter, Opts)
@@ -591,11 +577,12 @@ decide_modules_to_test(Target, Opts, Modules) :-
     findall(Path-Module,
             (module_base_path_db(Module,_,Path)),
             PathsModules0),
-    sort(PathsModules0, PathsModules), % because order is not stable across different intallations (mine and Gitlab's)
+    sort(PathsModules0, PathsModules), % because order is not stable across different intallations (e.g., mine (IC) and Gitlab's)
     unzip(PathsModules,_,Modules).
 
 unzip([],[],[]).
 unzip([A-B|L],[A|As], [B|Bs]) :- unzip(L,As,Bs).
+
 % asserts in module_base_path/3 facts the modules that are required
 % to be tested
 assert_modules_to_test(Target, Opts) :-
@@ -613,7 +600,7 @@ assert_modules_to_test(Target, Opts) :-
     (
         member(treat_related, Opts), % not compatible yet with dir_rec if there are modules with the same name
         current_fact(module_base_path_db(_,_,Path)),
-          get_related_modules(Path,RelatedModules),
+          get_related_modules(Path,RelatedModules), % TODO: handle syntactic errors in get_code_and_related_assertions/5
           member(Mod,RelatedModules),
             \+ module_base_path_db(Mod,_,_), % TODO: we also need the path since module might not be unique
             assert_module_under_test(Mod),
@@ -749,6 +736,8 @@ run_tests_related_modules(Alias) :-
 
 % ----------------------------------------------------------------------
 
+:- use_module(engine(internals), [opt_suff/1]).
+
 :- export(get_assertion_info/3).
 :- doc(hide,get_assertion_info/3).
 :- pred get_assertion_info(TestMode, Alias, Modules)
@@ -760,12 +749,13 @@ run_tests_related_modules(Alias) :-
     list of all realted test module names (@var{TestMode} =
     @tt{related})".
 get_assertion_info(current, Alias, [Module]) :-
-    absolute_file_name(Alias, '_opt', '.pl', '.', FileName, Base, AbsDir),
-    path_split(Base, AbsDir, Module),
-    get_code_and_related_assertions(FileName, Module, Base, '.pl', AbsDir).
+    current_fact(opt_suff(Suff)),
+    absolute_file_name(Alias, Suff, '.pl', '.', FileName, Base, AbsDir),
+    module_from_base(Base, Module),
+    get_code_and_related_assertions(FileName, Module, Base, '.pl', AbsDir). % TODO: handle syntactic erros
 get_assertion_info(related, Alias, Modules) :-
     absolute_file_name(Alias, FileName),
-    get_code_and_related_assertions(FileName, _, _, _, _),
+    get_code_and_related_assertions(FileName, _, _, _, _), % TODO: handle syntactic erros
     set_of_modules(Modules).
 
 set_of_modules := ~sort(~findall(Module, current_assr_module(Module))).
@@ -779,8 +769,7 @@ current_assr_module(Module) :-
 unittest_exec := ~libcmd_path(ciaodbg, plexe, 'unittest_runner').
 
 :- use_module(ciaobld(cpx_process), [cpx_process_call/3]).
-invoke_unittest(WrapperMods, InputPath, Args0, Opts) :-
-    append(WrapperMods, ['--end_wrapper_modules--', InputPath|Args0], Args),
+invoke_unittest(Args, Opts) :-
     cpx_process_call(~unittest_exec, Args, Opts).
 
 
@@ -849,16 +838,22 @@ get_one_test_assertion_output(Module, TestAttributes-TestResults) :-
 do_tests(TestRunDir, Modules, WrapperMods, RunnerArgs) :-
     do_tests_(TestRunDir, Modules, WrapperMods, RunnerArgs, no).
 
-do_tests_(TestRunDir, Modules, WrapperMods, RunnerArgs, Resume) :-
+do_tests_(TestRunDir, Modules, WrapperMods, RunnerArgs0, Resume) :-
     current_prolog_flag(unittest_default_timeout,TimeoutN),
     atom_number(TimeoutAtm,TimeoutN),
-    RunnerArgs2 = [timeout,TimeoutAtm |RunnerArgs],
+    RunnerArgs1 = [timeout,TimeoutAtm |RunnerArgs0],
     ( Resume = yes(ContIdx) ->
-        RunnerArgs3 = [resume_after,ContIdx |RunnerArgs2]
+        RunnerArgs2 = [resume_after,ContIdx |RunnerArgs1]
+    ; RunnerArgs2 = RunnerArgs1
+    ),
+    ( opt_suff(Suff) ->
+        RunnerArgs3 = [suff, Suff | RunnerArgs2]
     ; RunnerArgs3 = RunnerArgs2
     ),
+    append(['--begin_wrapper_modules--' | WrapperMods], ['--end_wrapper_modules--' | RunnerArgs3], RunnerArgs4),
+    RunnerArgs = [dir, TestRunDir | RunnerArgs4],
     % this process call appends new outputs to OutFile
-    invoke_unittest(WrapperMods, TestRunDir ,RunnerArgs3,
+    invoke_unittest(RunnerArgs,
                  [stdin(null),
                   stdout(default), % dumping/saving/ignoring output options handled in runner
                   stderr(default), % dumping/saving/ignoring/redirecting error options handled in runner
@@ -915,15 +910,12 @@ recover_from_aborted_test(TestId, TestRunDir, Options, OutFile) :-
 % TODO: unify with unittest_runner.pl
 
 % creates or updates .testin files for each module
-read_tests(Modules) :-
-    ( % (failure-driven loop)
-        member(Module, Modules),
-          read_tests_in_module(Module),
-          fail
-    ;
-        true
-    ).
-
+read_tests([],[]).
+read_tests([M|Modules0],[M|Modules]) :-
+    read_tests_in_module(M), !,
+    read_tests(Modules0,Modules).
+read_tests([_|Modules0],Modules) :-
+    read_tests(Modules0,Modules).
 
 read_tests_in_module(Module) :-
     file_test_input(Module,_TestIn),
@@ -932,10 +924,18 @@ read_tests_in_module(Module) :-
     create_input_file(Module).
 % TODO: do it right with itfs. Ask Jose
 
+:- data compilation_error/0.
+
 create_input_file(Module) :-
     module_base_path_db(Module,Base,Path),
     cleanup_code_and_related_assertions, % TODO: check if last get_code_and_related_assertion read this module
-    get_code_and_related_assertions(Path, Module, Base, '.pl', _AbsDir),
+    retractall_fact(compilation_error),
+    intercept(
+        get_code_and_related_assertions(Path, Module, Base, '.pl', _AbsDir),
+        compilation_error,
+        assertz_fact(compilation_error) % just "fail" or "!, fail" does not work. Why? Spurious choicepoints in get_code_and_related_assertions/5?
+    ),
+    (retract_fact(compilation_error) -> !, fail ; true), % message?
     file_test_input(Module,TestIn),
     open(TestIn, write, SI),
     ( % (failure-driven loop)
@@ -1006,7 +1006,7 @@ create_wrapper_mods([Module|Ms], TestRunDir, RtcEntry, [WrapperFile|WFs]) :-
     create_wrapper_mods(Ms, TestRunDir, RtcEntry, WFs).
 
 create_wrapper_mod(Module, TestRunDir, RtcEntry, WrapperFile) :-
-    module_base(Module, Base),
+    module_base_path_db(Module,Base,_),
     ( wrapper_file_name(TestRunDir, Module, WrapperFile),
       create_module_wrapper(Module, RtcEntry, Base, WrapperFile)
     -> true

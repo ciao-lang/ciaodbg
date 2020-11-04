@@ -60,10 +60,10 @@
   % and driver
 
 :- use_module(library(streams), [open/3, close/1, absolute_file_name/7]).
-:- use_module(library(pathnames), [path_split/3]).
-:- use_module(library(compiler/c_itf), [defines_module/2]).
+:- use_module(library(compiler/c_itf), [defines_module/2, module_from_base/2]).
 :- use_module(library(pathnames), [path_concat/3]).
 :- use_module(library(stream_utils), [string_to_file/2]).
+:- use_module(engine(internals), [opt_suff/1]).
 
 :- use_module(library(unittest/unittest_base), [write_data/2]).
 :- use_module(library(unittest/unittest_utils), [assert_from_file/2]).
@@ -88,9 +88,13 @@ assert_module_under_test(Module) :- % arg is a module
 % get_code_and_related_assertions and for related modules, so
 % defines_module/2 will work
 %
+
+:- use_module(engine(io_basic)).
+
 assert_module_under_test(Alias) :- % arg is an alias path
-    absolute_file_name(Alias, '_opt', '.pl', '.', AbsFileName, Base, AbsDir), !,
-    path_split(Base, AbsDir, Module),
+    current_fact(opt_suff(Suff)),
+    absolute_file_name(Alias, Suff, '.pl', '.', AbsFileName, Base, _AbsDir), !,
+    module_from_base(Base, Module),
     assertz_fact(module_base_path_db(Module, Base, AbsFileName)).
 % TODO: check FileName exists, just in case
 

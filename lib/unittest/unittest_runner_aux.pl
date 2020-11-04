@@ -1,7 +1,7 @@
 :- module(unittest_runner_aux,
     [
       get_active_test/2,
-      process_runner_args/1,
+      process_runner_args/4,
       testing/5
     ],
     [assertions, hiord, datafacts]).
@@ -24,6 +24,7 @@
 :- use_module(library(lists), [member/2]).
 :- use_module(library(assertions/assrt_lib), [assertion_body/7]).
 :- use_module(library(bundle/bundle_paths), [bundle_shorten_path/2]).
+:- use_module(library(compiler/c_itf), [opt_suffix/2]).
 
 :- use_module(library(unittest/unittest_base), [write_data/2]).
 
@@ -55,21 +56,33 @@ get_active_test(ARef, Mod) :-
     ARef = ARef0,
     Mod  = Mod0.
 
-process_runner_args([]) :- !.
-process_runner_args([resume_after, ARef|Args]) :- !,
+process_runner_args([],_,_,[]) :- !.
+process_runner_args([dir, TestRunDir | Args0], TestRunDir, WrpModules, Args) :- !,
+    process_runner_args(Args0, TestRunDir, WrpModules, Args).
+process_runner_args(['--begin_wrapper_modules--' | Args0], TestRunDir, WrpModules, Args) :- !,
+    get_wrapper_modules(Args0, WrpModules, Args1),
+    process_runner_args(Args1, TestRunDir, WrpModules, Args).
+process_runner_args([resume_after, ARef|Args0], TestRunDir, WrpModules, Args) :- !,
     retractall_fact(skip_tests_before(_)),
     assertz_fact(skip_tests_before(ARef)),
-    process_runner_args(Args).
-process_runner_args([load, Module|Args]) :- !,
+    process_runner_args(Args0, TestRunDir, WrpModules, Args).
+process_runner_args([load, Module|Args0], TestRunDir, WrpModules, Args) :- !,
     use_module(Module),
-    process_runner_args(Args).
-process_runner_args([timeout, TimeoutAtm|Args]) :-
+    process_runner_args(Args0, TestRunDir, WrpModules, Args).
+process_runner_args([timeout, TimeoutAtm | Args0], TestRunDir, WrpModules, Args) :- !,
     retractall_fact(default_timeout(_)),
     atom_number(TimeoutAtm,Timeout),
     assertz_fact(default_timeout(Timeout)),
-    process_runner_args(Args).
-process_runner_args([_|Args]) :-
-    process_runner_args(Args).
+    process_runner_args(Args0, TestRunDir, WrpModules, Args).
+process_runner_args([suff, Suff | Args0], TestRunDir, WrpModules, Args) :- !,
+    opt_suffix(_,Suff), % save and restore old suffix?
+    process_runner_args(Args0, TestRunDir, WrpModules, Args).
+process_runner_args([Arg|Args0], TestRunDir, WrpModules, [Arg|Args]) :- % abort? warning?
+    process_runner_args(Args0, TestRunDir, WrpModules, Args).
+
+get_wrapper_modules(['--end_wrapper_modules--'| Args], [], Args) :- !.
+get_wrapper_modules([WrpM | WrpMs], [WrpM | WrpModules], Args) :-
+    get_wrapper_modules(WrpMs, WrpModules, Args).
 
 % ----------------------------------------------------------------------
 
