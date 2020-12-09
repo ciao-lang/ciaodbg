@@ -1166,7 +1166,7 @@ print_clause(clause(Head, Body, Dict), IO) :-
 %       current_output(CO),
 %       set_output(S),
 %       writeq(Term),
-%       write('.'),
+%       write(' .'),
 %       nl,
 %       set_output(CO).
 
@@ -1175,7 +1175,7 @@ unittest_print_clause(S, Dict, Term) :-
     current_output(CO),
     set_output(S),
     writeq(ATerm),
-    write('.'),
+    write(' .'),
     nl,
     set_output(CO).
 %       portray_clause(S, ATerm).
