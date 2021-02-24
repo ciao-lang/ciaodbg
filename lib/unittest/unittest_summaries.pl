@@ -48,9 +48,11 @@ followings:
 
   @item Test timed out
 
-  @item Generation from calls field throwed an exception
+  @item Generation from calls field threw an exception
 
-  @item Postcondition-checking throwed an exception
+  @item Postcondition-checking threw an exception
+       
+  @end{itemize}
 
 @end{itemize}
 
