@@ -32,14 +32,11 @@ be used independently of CiaoPP and also has updated functionality.}
 There are several main applications of run-time checks:
 
 @begin{itemize}
-
-  @item To improve debugging of certain predicates, specifying some
+@item To improve debugging of certain predicates, specifying some
   expected behavior that is checked at run-time with the assertions.
-
-  @item To avoid manual implementation of run-time checks that should
+@item To avoid manual implementation of run-time checks that should
   be done in some predicates, leaving the code clean and
   understandable.
-
 @end{itemize}
 
 
@@ -697,23 +694,19 @@ it is necessary to edit two files (suppose the original property is
 defined in a module @file{foo.pl}):
 
 @begin{itemize}
-
-  @item the @file{foo_rtc.pl} module that contains the custom
-    property implementation and is placed in the same folder as
-    @file{foo.pl}. Make sure the custom property implementation is
-    exported from both modules.
-
-
-  @item @file{$CIAOROOT/core/lib/rtchecks/rtchecks_rt_propimpl.pl}, a
-    database file that stores the links between different property
-    implementations in the format of declarations '@tt{:-
-    rtc_impl(ModOr:PropOr/ArityOr, ModRt:PropRt/ArityRt).}' where
-    @var{ModOr} and @var{ModRt} are names of the two modules that
-    contain the original and the custom property definitions,
-    @var{PropOr} and @var{PropRt} are the two different property
-    implementations with respective arities @var{ArityOr} and
-    @var{ArityRt}.
-
+@item @file{foo_rtc.pl}, module that contains the custom
+  property implementation and is placed in the same folder as
+  @file{foo.pl}. Make sure the custom property implementation is
+  exported from both modules.
+@item @file{$CIAOROOT/core/lib/rtchecks/rtchecks_rt_propimpl.pl}, a
+  database file that stores the links between different property
+  implementations in the format of declarations '@tt{:-
+  rtc_impl(ModOr:PropOr/ArityOr, ModRt:PropRt/ArityRt).}' where
+  @var{ModOr} and @var{ModRt} are names of the two modules that
+  contain the original and the custom property definitions,
+  @var{PropOr} and @var{PropRt} are the two different property
+  implementations with respective arities @var{ArityOr} and
+  @var{ArityRt}.
 @end{itemize}
 
 After these edits the @lib{rtchecks} library needs to be rebuilt.
