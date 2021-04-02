@@ -149,8 +149,8 @@
    output of the predicate is the correct one for the input
    provided.
 
-   @item @var{Properties} specifies some global properties that the
-   predicate should meet, in the same way as other assertions. For
+   @item @var{Golbal properties} specifies some global properties that
+   the predicate should meet, in the same way as other assertions. For
    example, @code{not_fails} means that the predicate does not fail,
    @code{exception(error(a,b))} means that the predicate should throw
    the exception @code{error(a,b)}, and so on.
@@ -208,12 +208,25 @@ complex(c(A, B)) :-
    Tests with a @tt{false} (or @tt{true}) prefix are not run. 
 
    There are some specific properties that only apply to testing which
-   are provided in module @lib{unittest_props.pl}. For example, the
-   limit to the number of solutions to be generated for the tested
-   predicate can be set with the property @code{try_sols(N)}, a
-   timeout to a test can be set with the property @code{timeout(N)},
-   @code{times(N)} specifies that the given test should be executed
-   @code{N} times, etc.
+   are provided in module @lib{unittest_props.pl} (see @ref{Special
+   properties for testing}). For example, the limit to the number of
+   solutions to be generated for the tested predicate can be set with
+   the property @code{try_sols(N)}, a timeout to a test can be set
+   with the property @code{timeout(N)}, @code{times(N)} specifies that
+   the given test should be executed @code{N} times, etc.
+
+@subsection{Unit tests as examples}
+
+   The special property @tt{example} can be used to mark the unit test
+   as an example, so that it is documented as such in manuals. The
+   default behavior in @apl{lpdoc} is to not include the unit tests in
+   manuals unless they are marked this way. For example, the following
+   test would be included in the manual as an example:
+
+@begin{verbatim}
+:- test ceval(A, B) : (A = c(3, 4) + c(1, 2) - c(2, 3))
+    => (B = c(2, 3)) + (not_fails, is_det, example).
+@end{verbatim}
 
 @subsection{Running tests in a bundle}
 
