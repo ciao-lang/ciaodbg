@@ -57,7 +57,7 @@ profile_call(Goal) :-
 
 :- meta_predicate profile(goal).
 
-:- pred profile(Goal) :: callable # "Evaluates @var{Goal}, collect
+:- pred profile(Goal) :: cgoal # "Evaluates @var{Goal}, collect
    profile information related with the evaluation and dump the
    information.".
 

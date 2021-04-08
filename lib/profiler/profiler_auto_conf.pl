@@ -46,7 +46,7 @@
 :- use_module(library(compiler/global_module_options)).
 :- use_module(library(pretty_print)).
 
-:- pred cc_auto_conf/4 :: callable * nnegint * list * term
+:- pred cc_auto_conf/4 :: cgoal * nnegint * list * term
 # "Same as @var{cc_auto_conf/5} applied to time.".
 
 :- meta_predicate cc_auto_conf(goal, ?, ?, ?).
@@ -56,7 +56,7 @@ cc_auto_conf(Goal, Cond, Goals, Tree) :-
     cc_auto_conf(time(Freq), Goal, Cond, Goals, Tree).
 
 :- pred cc_auto_conf(Field, Goal, Cond, Goals, Tree) :: info_item_name *
-    callable * nnegint * list * term
+    cgoal * nnegint * list * term
 # "Auto configuration of cost centers in order to find the sub-graph @var{Goals}
     of the call graph that is responsible of the performance leak. @var{Goal} 
     is the call to be profiled and @var{Field} is the resource name w.r.t. 
@@ -73,7 +73,7 @@ cc_auto_conf(Field, Goal, Cond, Goals, Tree, ProfileInfo, NIter) :-
     cc_auto_conf_(Field, [Module], Module, Goal, Cond, Goals, Tree,
         ProfileInfo, NIter).
 
-:- pred cc_auto_conf/4 :: info_item_name * list * callable * term
+:- pred cc_auto_conf/4 :: info_item_name * list * cgoal * term
 # "Same as @var{cc_auto_conf/3} able to deal with modular programs.".
 
 :- meta_predicate cc_auto_conf(?, ?, goal, ?, ?, ?).

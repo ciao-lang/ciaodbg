@@ -786,7 +786,7 @@ invoke_unittest(Args, Opts) :-
     cpx_process_call(~unittest_exec, Args, Opts).
 
 
-:- pred run_test_assertions(+pathname, +list(atm), +callable, +list) +
+:- pred run_test_assertions(+pathname, +list(atm), +cgoal, +list) +
     (not_fails, no_choicepoints).
 
 :- meta_predicate run_test_assertions(?,?,pred(1),?).
@@ -972,7 +972,7 @@ create_input_file(Module) :-
 % TODO: create a temporary module that imports all modules and do
 % get_code_and_related_assertions of that module only once
 
-:- pred create_test_input(+pathname, +list(atm), +callable) + (not_fails, no_choicepoints).
+:- pred create_test_input(+pathname, +list(atm), +cgoal) + (not_fails, no_choicepoints).
 
 % asserts test attributes in test_attributes_db/n and writes them in
 % runner input file

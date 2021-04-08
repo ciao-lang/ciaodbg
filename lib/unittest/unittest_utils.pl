@@ -9,7 +9,7 @@
 :- doc(author, "Edison Mera").
 
 :- meta_predicate assert_from_file(?, pred(1)).
-:- pred assert_from_file/2 : sourcename * callable.
+:- pred assert_from_file/2 : sourcename * cgoal.
 assert_from_file(File, AssertMethod) :-
     open(File, read, SI),
     repeat,

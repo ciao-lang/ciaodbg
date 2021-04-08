@@ -23,7 +23,7 @@ get_option(ticks).
 
 :- meta_predicate measure(goal, ?).
 
-:- pred measure(Goal, Value) : callable(Goal) => num(Value) #
+:- pred measure(Goal, Value) : cgoal(Goal) => num(Value) #
     "Same as measure/3, but uses ticks to measure the time.".
 
 measure(Goal, Value) :-
@@ -33,7 +33,7 @@ measure(Goal, Value) :-
 :- meta_predicate measure(?, goal, ?).
 
 :- pred measure(Option, Goal, Value) ::
-    (atom(Option), callable(Goal)) => num(Value)
+    (atom(Option), cgoal(Goal)) => num(Value)
 # "Unifies @var{Value} with the time spent in evaluate @var{Goal},
    using the type of time @var{Option}.".
 

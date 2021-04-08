@@ -8,7 +8,7 @@
 
 :- use_module(library(profiler/profiler_rt)).
 
-:- pred cost_center(Name, Goal) :: atm * callable # "Defines a
+:- pred cost_center(Name, Goal) :: atm * cgoal # "Defines a
     cost center named @var{Name} at program point-level.  Due to
     implementation limitations, you can not define any predicate
     named @var{Name/0}, because we handle such cost centers like
