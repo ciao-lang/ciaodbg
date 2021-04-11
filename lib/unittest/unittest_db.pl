@@ -139,15 +139,21 @@ filter_test_attributes_db(Filter) :-
 :- export(test_output_error_db/3).
 :- data test_output_error_db/3.
 
+:- export(test_output_event/1).
+:- data test_output_event/1.
+
 assert_test_results(test_output_db(A, B)) :-
     assertz_fact(test_output_db(A, B)).
 assert_test_results(test_output_error_db(A, B, C)) :-
     assertz_fact(test_output_error_db(A, B, C)).
+assert_test_results(test_output_event(E)) :-
+    assertz_fact(test_output_event(E)).
 
 :- export(cleanup_test_results/0).
 cleanup_test_results :-
     retractall_fact(test_output_db(_, _)),
-    retractall_fact(test_output_error_db(_, _, _)).
+    retractall_fact(test_output_error_db(_, _, _)),
+    retractall_fact(test_output_event(_)).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -291,3 +297,8 @@ file_runtest_output(TestRunDir, TestOut) :-
 runtest_output_file_to_test_results_db(TestRunDir) :-
     file_runtest_output(TestRunDir, TestOut),
     assert_from_file(TestOut, assert_test_results).
+
+:- export(runtest_output_file_reset/1).
+runtest_output_file_reset(TestRunDir) :-
+    file_runtest_output(TestRunDir, TestOut),
+    string_to_file("", TestOut).

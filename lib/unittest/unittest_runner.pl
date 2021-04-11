@@ -13,7 +13,8 @@
               [
                   process_runner_args/4,
                   get_active_test/2,
-                  testing/5
+                  testing/5,
+                  timed_out/0
               ]).
 :- use_module(library(unittest/unittest_base),
               [
@@ -59,7 +60,7 @@ import_modules([M|Ms]) :-
 
 runtests(TestRunDir, OutputFile, Args) :-
     ( % (failure-driven loop)
-        get_active_test(TestId, Module),
+      get_active_test(TestId, Module),
       % TODO: use data predicate to store the testing
       %       status of the predicate, whether some
       %       input failed (thus no testing to be
@@ -67,9 +68,16 @@ runtests(TestRunDir, OutputFile, Args) :-
       % TODO: requires splitting runtests/0 into 2
       %       preds with 2 failure-driven loops,
       %       one for TestIds and another for all
-        %       results for a chosen TestId
+      %       results for a chosen TestId
         runtest_module(TestRunDir, OutputFile, Args, Module, TestId),
-        fail
+        ( timed_out ->
+            !, % (end loop)
+            % previous test had a timeout, force a runner restart
+            open(OutputFile, append, S),
+            write_data(S, test_output_event(continue_after(TestId))),
+            close(S)
+        ; fail % (loop)
+        )
     ; true
     ).
 

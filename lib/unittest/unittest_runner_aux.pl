@@ -33,7 +33,6 @@
 % ----------------------------------------------------------------------
 
 :- data skip_tests_before/1.
-:- data active_test/0.
 :- data default_timeout/1.
 
 % ----------------------------------------------------------------------
@@ -42,6 +41,8 @@
 test_id_db(ARef, Mod) :-
     test_attributes_db(ARef, Mod,_,_,_,_,_,_).
 
+% TODO: simplify
+:- data active_test/0.
 get_active_test(ARef, Mod) :-
     (\+ skip_tests_before(_)), !,
      test_id_db(ARef, Mod).
@@ -85,6 +86,9 @@ get_wrapper_modules([WrpM | WrpMs], [WrpM | WrpModules], Args) :-
     get_wrapper_modules(WrpMs, WrpModules, Args).
 
 % ----------------------------------------------------------------------
+
+:- export(timed_out/0).
+:- data timed_out/0.
 
 % TODO: call testing/5 from runner, instrument in wrapper Pred instead
 
@@ -134,8 +138,8 @@ testing_internal(ARef, Precond, Pred, Options, st(ResultId, RTCErrors, Signals, 
     findall(E, retract_fact(signals_db(E)), Signals),
     findall(RTCError, retract_fact(rtcheck_db(RTCError)), RTCErrors),
     result_id(ResultId),
-    test_result(Result0, ARef, Result).
-
+    test_result(Result0, ARef, Result),
+    ( Result = timeout -> set_fact(timed_out) ; true ).
 
 handle_signal(control_c) :- !, % used for tiemouts
     send_signal(control_c).
@@ -212,6 +216,7 @@ generation_exception(PrecEx, exception(precondition, PrecEx)).
 
 
 :- meta_predicate run_test(goal,?,?).
+% run_test(_,_,Result) :- !, Result = timeout. % (debug: simulate timeouts)
 run_test(Pred,Options,Result) :-
     get_option(try_sols,Options,NSols),
     reset_sols,

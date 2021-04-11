@@ -20,9 +20,8 @@
         [assertions, regtypes, isomodes, nativeprops, dcg, fsyntax, hiord, datafacts, define_flag]).
 
 :- use_module(engine(stream_basic)).
-:- use_module(engine(io_basic), [nl/0]).
+:- use_module(library(streams), [nl/0]).
 :- use_module(library(stream_utils), [write_string/1, file_to_string/2]).
-:- use_module(library(streams), [display/1, nl/0]).
 :- use_module(engine(messages_basic), [message/2, messages/1]).
 :- use_module(library(unittest/unittest_statistics), [statistical_summary/1]).
 :- use_module(library(terms),      [atom_concat/2]).
@@ -783,6 +782,7 @@ unittest_exec := ~libcmd_path(ciaodbg, plexe, 'unittest_runner').
 
 :- use_module(ciaobld(cpx_process), [cpx_process_call/3]).
 invoke_unittest(Args, Opts) :-
+    % TODO: run on background? (process file_runtest_output as it is written)
     cpx_process_call(~unittest_exec, Args, Opts).
 
 
@@ -793,6 +793,10 @@ invoke_unittest(Args, Opts) :-
 run_test_assertions(TestRunDir, Modules, Filter, Opts) :-
     mkpath(TestRunDir),
     create_test_input(TestRunDir, Modules, Filter), % asserts and writes in input file test_attributes_db/8 facts
+    % Even if module has no tests, we write an empty test output file
+    % in order to mark that testing had been performed on a module,
+    % which allows detecting newly added tests on regression testing
+    write_all_test_outputs(Modules), % (Initial empty outputs)
     %
     ( test_attributes_db(_, _, _, _, _, _, _, _) ->
       get_test_opt(rtc_entry, RtcEntry, Opts),
@@ -800,12 +804,11 @@ run_test_assertions(TestRunDir, Modules, Filter, Opts) :-
       do_tests(TestRunDir, Modules, WrapperMods, Opts)
     ; true
     ),
-    % even if module has no tests, we write an empty test output file
-    % in order to mark that testing had been performed on a module,
-    % which allows detecting newly added tests on regression testing
-    write_all_test_outputs(Modules).
+    write_all_test_outputs(Modules). % TODO: mark them as finished?
 
-
+% even if module has no tests, we write an empty test output file
+% in order to mark that testing had been performed on a module,
+% which allows detecting newly added tests on regression testing
 write_all_test_outputs([]).
 write_all_test_outputs([Module|Mods]) :-
     test_results_db_to_file_test_output(Module),
@@ -843,19 +846,18 @@ get_one_test_assertion_output(Module, TestAttributes-TestResults) :-
     TestAttributes = test_attributes(Module, F, A, Dict, Comment,
                                      Source, LB, LE).
 
-
-:- pred do_tests(TestRunDir, Modules, WrapperMods, RunnerArgs)
+:- pred do_tests(TestRunDir, Modules, WrapperMods, Opts)
     :  pathname * list(atom) * list * list(test_option)
 # "Calls the runner as an external process. If some test aborts, calls
    recursively with the rest of the tests".
-do_tests(TestRunDir, Modules, WrapperMods, RunnerArgs) :-
-    do_tests_(TestRunDir, Modules, WrapperMods, RunnerArgs, no).
+do_tests(TestRunDir, Modules, WrapperMods, Opts) :-
+    do_tests_(first, TestRunDir, Modules, WrapperMods, Opts).
 
-do_tests_(TestRunDir, Modules, WrapperMods, RunnerArgs0, Resume) :-
+do_tests_(Resume, TestRunDir, Modules, WrapperMods, Opts) :-
     current_prolog_flag(unittest_default_timeout,TimeoutN),
     atom_number(TimeoutAtm,TimeoutN),
-    RunnerArgs1 = [timeout,TimeoutAtm |RunnerArgs0],
-    ( Resume = yes(ContIdx) ->
+    RunnerArgs1 = [timeout,TimeoutAtm |Opts],
+    ( Resume = resume_after(ContIdx) ->
         RunnerArgs2 = [resume_after,ContIdx |RunnerArgs1]
     ; RunnerArgs2 = RunnerArgs1
     ),
@@ -865,7 +867,8 @@ do_tests_(TestRunDir, Modules, WrapperMods, RunnerArgs0, Resume) :-
     ),
     append(['--begin_wrapper_modules--' | WrapperMods], ['--end_wrapper_modules--' | RunnerArgs3], RunnerArgs4),
     RunnerArgs = [dir, TestRunDir | RunnerArgs4],
-    % this process call appends new outputs to OutFile
+    % Cleanup runtest output file and call the runner
+    runtest_output_file_reset(TestRunDir),
     invoke_unittest(RunnerArgs,
                  [stdin(null),
                   stdout(default), % dumping/saving/ignoring output options handled in runner
@@ -888,17 +891,28 @@ do_tests_(TestRunDir, Modules, WrapperMods, RunnerArgs0, Resume) :-
         %
         % TODO: unique return status for run_tests_in_module/3
     ;
-        file_runtest_output(TestRunDir, OutFile),
-        cleanup_test_results,
         runtest_output_file_to_test_results_db(TestRunDir),
-        ( aborted_test(TestId) -> % reached if test runner aborted while testing TestId
-            recover_from_aborted_test(TestId, TestRunDir, RunnerArgs, OutFile),
-            % continue testing
-            do_tests_(TestRunDir, Modules, WrapperMods, RunnerArgs, yes(TestId))
-        ; true % (all tests had output)
+        write_all_test_outputs(Modules), % TODO: make incremental! only for new results
+        %
+        obtain_test_cont(TestRunDir, Opts, Cont),
+        ( Cont = yes(TestId) -> % continue
+            do_tests_(resume_after(TestId), TestRunDir, Modules, WrapperMods, Opts)
+        ; true % done
         )
     ).
 
+obtain_test_cont(TestRunDir, Opts, Cont) :-
+    ( retract_fact(test_output_event(continue_after(TestId))) ->
+        % Continue event (e.g., a runner restart)
+        Cont = yes(TestId)
+    ; aborted_test(TestId) ->
+        % No continue event and there are tests without output, assume
+        % that they were aborted.
+        fill_aborted_test(TestId, TestRunDir, Opts),
+        Cont = yes(TestId)
+    ; Cont = no
+    ).
+        
 aborted_test(TestId) :- % TODO: have a less of a hack mechanism to detect this
     test_attributes_db(TestId0,_Module,_,_,_,_,_,_),
     \+(test_output_error_db(TestId0,_Output,_Error)), !,
@@ -907,7 +921,7 @@ aborted_test(TestId) :- % TODO: have a less of a hack mechanism to detect this
 
 :- use_module(library(unittest/unittest_runner), [get_stdout/3, get_stderr/3, get_stdout_option/2, get_stderr_option/2]).
 % TODO: unify with unittest_runner properly
-recover_from_aborted_test(TestId, TestRunDir, Options, OutFile) :-
+fill_aborted_test(TestId, TestRunDir, Options) :-
     % recover and possibly dump stdout until crash
     get_stdout_option(Options, OutputMode),
     get_stdout(OutputMode, TestRunDir, StdoutString),
@@ -915,11 +929,15 @@ recover_from_aborted_test(TestId, TestRunDir, Options, OutFile) :-
     get_stderr_option(Options, ErrorMode),
     get_stderr(ErrorMode, TestRunDir, StderrString),
     % mark the test as aborted
-    open(OutFile, append, IO),
     TestResult = st(unknown, [], [], aborted(StdoutString, StderrString)),
-    write_data(IO, test_output_db(TestId, TestResult)),
-    write_data(IO, test_output_error_db(TestId, StdoutString, StderrString)),
-    close(IO).
+    assertz_fact(test_output_db(TestId, TestResult)),
+    assertz_fact(test_output_error_db(TestId, StdoutString, StderrString)).
+% (do not mark in file!)
+%    open(OutFile, append, IO),
+%    TestResult = st(unknown, [], [], aborted(StdoutString, StderrString)),
+%    write_data(IO, test_output_db(TestId, TestResult)),
+%    write_data(IO, test_output_error_db(TestId, StdoutString, StderrString)),
+%    close(IO).
 % TODO: unify with unittest_runner.pl
 
 % creates or updates .testin files for each module
