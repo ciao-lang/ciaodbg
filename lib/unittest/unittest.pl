@@ -648,14 +648,11 @@ show_stdout([Module|Modules], Filter, WhichOutput) :-
 
 :- meta_predicate show_stdout_(?,pred(1),?).
 show_stdout_(Module, Filter, WhichOutput) :-
+    % TODO: why not 'cleanup_test_attributes'? (JF)
     test_input_file_to_test_attributes_db(Module),
     filter_test_attributes_db(Filter),
     cleanup_test_results,
-    (WhichOutput = new ->
-        file_test_output_to_test_results_db(Module)
-    ;
-        file_saved_test_output_to_test_results_db(Module)
-    ),
+    load_test_output(Module, WhichOutput),
     ( % (failure-driven) loop
         retract_fact(test_attributes_db(TestId,_,F,A,_,_,Body,loc(_,LB,LE))),
         assertion_body(_,_,_,_,_,Comment,Body),
@@ -680,14 +677,11 @@ show_stderr([Module|Modules], Filter, WhichOutput) :-
 
 :- meta_predicate show_stderr_(?,pred(1),?).
 show_stderr_(Module, Filter, WhichOutput) :-
+    % TODO: why not 'cleanup_test_attributes'? (JF)
     test_input_file_to_test_attributes_db(Module),
     filter_test_attributes_db(Filter),
     cleanup_test_results,
-    (WhichOutput = new ->
-        file_test_output_to_test_results_db(Module)
-    ;
-        file_saved_test_output_to_test_results_db(Module)
-    ),
+    load_test_output(Module, WhichOutput),
     ( % (failure-driven) loop
         retract_fact(test_attributes_db(TestId,_,F,A,_,_,Body,loc(_,LB,LE))),
         assertion_body(_,_,_,_,_,Comment,Body),
@@ -826,14 +820,17 @@ get_module_output(Module, Filter, WhichOutput, TestResult) :-
     test_input_file_to_test_attributes_db(Module),
     filter_test_attributes_db(Filter),
     cleanup_test_results,
-    (WhichOutput = new ->
-        file_test_output_to_test_results_db(Module)
-    ;
-        file_saved_test_output_to_test_results_db(Module)
-    ),
+    load_test_output(Module, WhichOutput),
+    mark_missing_as_aborted(Module),
     findall(IdxTestSummary,
             get_one_test_assertion_output(Module, IdxTestSummary),
             TestResult).
+
+load_test_output(Module, WhichOutput) :-
+    ( WhichOutput = new ->
+        file_test_output_to_test_results_db(Module)
+    ; file_saved_test_output_to_test_results_db(Module)
+    ).
 
 :- pred get_one_test_assertion_output(Module, IdxTestSummary)
     :  atm(Module)
@@ -905,40 +902,58 @@ obtain_test_cont(TestRunDir, Opts, Cont) :-
     ( retract_fact(test_output_event(continue_after(TestId))) ->
         % Continue event (e.g., a runner restart)
         Cont = yes(TestId)
-    ; aborted_test(TestId) ->
+    ; missing_output_test(TestId,_Module) ->
         % No continue event and there are tests without output, assume
-        % that they were aborted.
-        fill_aborted_test(TestId, TestRunDir, Opts),
+        % that they were aborted and try to recover its output
+        % TODO: have a less of a hack mechanism to detect this
+        recover_aborted_test(TestId, TestRunDir, Opts),
         Cont = yes(TestId)
     ; Cont = no
     ).
-        
-aborted_test(TestId) :- % TODO: have a less of a hack mechanism to detect this
-    test_attributes_db(TestId0,_Module,_,_,_,_,_,_),
-    \+(test_output_error_db(TestId0,_Output,_Error)), !,
-    % test aborted if no output both in output file and output db
-    TestId = TestId0.
 
-:- use_module(library(unittest/unittest_runner), [get_stdout/3, get_stderr/3, get_stdout_option/2, get_stderr_option/2]).
+% First aborted test (test without output)
+missing_output_test(TestId,Module) :- % (nondet)
+    test_attributes_db(TestId,Module,_,_,_,_,_,_),
+    \+ test_output_error_db(TestId,_,_).
+
+:- use_module(library(unittest/unittest_runner), [
+    get_stdout/3,
+    get_stderr/3,
+    get_stdout_option/2,
+    get_stderr_option/2]).
+
 % TODO: unify with unittest_runner properly
-fill_aborted_test(TestId, TestRunDir, Options) :-
+recover_aborted_test(TestId, TestRunDir, Options) :-
     % recover and possibly dump stdout until crash
     get_stdout_option(Options, OutputMode),
-    get_stdout(OutputMode, TestRunDir, StdoutString),
+    get_stdout(OutputMode, TestRunDir, StdoutStr),
     % recover and possibly dump stderr until crash
     get_stderr_option(Options, ErrorMode),
-    get_stderr(ErrorMode, TestRunDir, StderrString),
+    get_stderr(ErrorMode, TestRunDir, StderrStr),
     % mark the test as aborted
-    TestResult = st(unknown, [], [], aborted(StdoutString, StderrString)),
-    assertz_fact(test_output_db(TestId, TestResult)),
-    assertz_fact(test_output_error_db(TestId, StdoutString, StderrString)).
+    fill_aborted_test(TestId, StdoutStr, StderrStr).
 % (do not mark in file!)
 %    open(OutFile, append, IO),
-%    TestResult = st(unknown, [], [], aborted(StdoutString, StderrString)),
+%    TestResult = st(unknown, [], [], aborted(StdoutStr, StderrStr)),
 %    write_data(IO, test_output_db(TestId, TestResult)),
-%    write_data(IO, test_output_error_db(TestId, StdoutString, StderrString)),
+%    write_data(IO, test_output_error_db(TestId, StdoutStr, StderrStr)),
 %    close(IO).
 % TODO: unify with unittest_runner.pl
+
+fill_aborted_test(TestId, StdoutStr, StderrStr) :-
+    TestResult = st(unknown, [], [], aborted(StdoutStr, StderrStr)),
+    assertz_fact(test_output_db(TestId, TestResult)),
+    assertz_fact(test_output_error_db(TestId, StdoutStr, StderrStr)).
+
+% Mark all tests with missing output as aborted
+mark_missing_as_aborted(Module) :-
+    ( % (failure-driven loop)
+      missing_output_test(TestId,Module),
+      \+ test_output_error_db(TestId,_Output,_Error),
+        fill_aborted_test(TestId, "", ""),
+        fail
+    ; true
+    ).
 
 % creates or updates .testin files for each module
 read_tests([],[]).
