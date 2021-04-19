@@ -198,8 +198,7 @@ print_statistical_summary(Stats) :-
             NTotal,
             NRTCErrors
         ]),
-    display_list(['{Total:\n']),
-    message(note, [$$(S)]).
+    message(note, ['{Total:\n',$$(S)]).
 print_statistical_summary(_). % reached if NTotal=0. Print something?
 
 
