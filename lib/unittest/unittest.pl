@@ -309,6 +309,7 @@ loader_name('ciao_unittest_loader').
 cleanup_unittest(TestRunDir) :-
     cleanup_code_and_related_assertions,
     cleanup_test_attributes,
+    cleanup_test_results,
     cleanup_global_runners(TestRunDir).
 
 :- pred cleanup_global_runners(TestRunDir) : pathname(TestRunDir).
