@@ -1,5 +1,5 @@
 :- bundle(ciaodbg).
-version('1.21.0-alpha.4').
+version('1.21.0').
 depends([core]).
 alias_paths([
     library = 'lib'
