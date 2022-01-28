@@ -771,15 +771,35 @@ current_assr_module(Module) :-
     assertion_read(_A, Module, check, Type, _E, _F, _G, _H, _I),
     unittest_type(Type).
 
+% ---------------------------------------------------------------------------
+
+:- compilation_fact(unittest_runner_process).
+
+:- if(defined(unittest_runner_process)).
+% Separate runner process (more robust)
 
 :- use_module(ciaobld(config_common), [libcmd_path/4]).
 unittest_exec := ~libcmd_path(ciaodbg, plexe, 'unittest_runner').
 
 :- use_module(ciaobld(cpx_process), [cpx_process_call/3]).
-invoke_unittest(Args, Opts) :-
+invoke_unittest(Args, Status) :-
     % TODO: run on background? (process file_runtest_output as it is written)
-    cpx_process_call(~unittest_exec, Args, Opts).
+    cpx_process_call(~unittest_exec, Args, [
+        stdin(null),
+        stdout(default), % dumping/saving/ignoring output options handled in runner
+        stderr(default), % dumping/saving/ignoring/redirecting error options handled in runner
+        status(Status)
+    ]).
 
+:- else. % \+defined(unittest_runner_process)
+% Same process (less robust)
+
+:- use_module(library(unittest/unittest_runner), [main/1]).
+invoke_unittest(Args, Status) :- unittest_runner:main(Args), Status=0.
+
+:- endif.
+
+% ---------------------------------------------------------------------------
 
 :- pred run_test_assertions(+pathname, +list(atm), +cgoal, +list) +
     (not_fails, no_choicepoints).
@@ -867,11 +887,7 @@ do_tests_(Resume, TestRunDir, Modules, WrapperMods, Opts) :-
     RunnerArgs = [dir, TestRunDir | RunnerArgs4],
     % Cleanup runtest output file and call the runner
     runtest_output_file_reset(TestRunDir),
-    invoke_unittest(RunnerArgs,
-                 [stdin(null),
-                  stdout(default), % dumping/saving/ignoring output options handled in runner
-                  stderr(default), % dumping/saving/ignoring/redirecting error options handled in runner
-                  status(Status)]),
+    invoke_unittest(RunnerArgs, Status),
     %
     (Status==101 -> % returned by unittest_runner.pl when a wrapper module does not compile
         message(error, ['Compilation failed. Please make sure all relevant predicates',
