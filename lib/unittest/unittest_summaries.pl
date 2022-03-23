@@ -1,8 +1,6 @@
-:- module(_,[show_test_summaries/1],[assertions, nativeprops]).
+:- module(_,[],[assertions, nativeprops]).
 
-
-:- doc(title,  "Testing summaries").
-
+:- doc(title, "Testing summaries").
 % copied from unittest.pl
 :- doc(author, "Edison Mera").
 :- doc(author, "Pedro L@'{o}pez").
@@ -56,7 +54,6 @@ followings:
 
 @end{itemize}
 
-
 The output for the test is divided in a one-line summary of the test
 results plus an optional detailed output for each test solution. In
 the presence of multiple solutions, multiple tests instances from the
@@ -68,25 +65,22 @@ successfully.
 
 For the detailed output of each solution, the result, runtime-checks
 and signals intercepted are printed.
-
 ").
-
-
 
 :- use_module(library(llists), [flatten/2]).
 :- use_module(library(hiordlib), [foldl/4]).
 :- use_module(engine(messages_basic), [messages/1]).
 :- use_module(library(lists), [append/3, member/2, reverse/2]).
 :- use_module(library(terms), [atom_concat/2]).
-
-:- use_module(library(rtchecks/rtchecks_pretty),
-    [
-        pretty_prop/3,
-        rtcheck_to_message/3
-    ]).
+%
+:- use_module(library(rtchecks/rtchecks_pretty), [
+    pretty_prop/3,
+    rtcheck_to_message/3
+]).
 
 % --------------------------------------------------------------
 
+:- export(show_test_summaries/1).
 :- pred show_test_summaries(TestSummaries) : list(list(test_summary),TestSummaries) % one list per module
 # "Pretty print the test results contained in @var{TestSummaries}.".
 
@@ -123,7 +117,6 @@ result(aborted(Output, Error)) :-
 
 % -------------------------------------------------------------------
 
-
 show_test_summaries(IdxTestSummaries0) :-
     flatten(IdxTestSummaries0, IdxTestSummaries),
     tests_results_to_messages(IdxTestSummaries, Messages, []),
@@ -133,7 +126,6 @@ tests_results_to_messages([], Messages, Messages).
 tests_results_to_messages([TestAttributes-TestResults|IdxTestSummaries], Messages, MessagesTail) :-
     one_test_results_to_messages(TestAttributes, TestResults, Messages, Messages0),
     tests_results_to_messages(IdxTestSummaries, Messages0, MessagesTail).
-
 
 one_test_results_to_messages(TestAttributes, TestResults, Messages, MessagesTail) :-
     one_line_message(TestAttributes, TestResults, Messages, Messages0),
@@ -214,7 +206,6 @@ module_text(_Source,Module,Text) :- % TODO: ignore it anyway?
 descriptor_text("",      '') :- !.
 descriptor_text(Comment, [' "', $$(Comment), '"']).
 
-
 % -----------------------------------------------------------------
 
 one_result_to_messages(Status, TestAttributes, Messages, MessagesTail) :-
@@ -238,7 +229,6 @@ one_result_to_messages(Status, TestAttributes, Messages, MessagesTail) :-
     %% )
     !.
 
-
 % Note that the stronger result has already been output in the
 % one-line summary, where (aborted > fail(precond) = ex(preocond) >
 % ex(poscond) > timeout > rtcheck > ex(pred) > fail(pred) > true)
@@ -255,7 +245,6 @@ specific_result_message(aborted(_Output, []), Msg, Tail) :- !,
 specific_result_message(aborted(_Output, Error), Msg, Tail) :-
     atom_codes(ErrorAtom, Error),
     Msg = ['Test aborted with following message in standard error:\n', ErrorAtom | Tail].
-
 
 signals_text([], Msg, Msg) :- !.
 signals_text(Signals, [' Signals thrown: ', ~~(Signals) | Msg], Msg).

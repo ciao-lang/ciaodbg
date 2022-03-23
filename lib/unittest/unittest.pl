@@ -484,7 +484,6 @@ run_tests(Target, Opt, Actions) :-
 % options because the original design was to pass them as higher order
 % arguments too. Now that they are passed as options, we should get
 % rid of meta_predicates to handle this everywhere
-:- use_module(library(streams)).
 
 :- export(run_tests/4).
 :- meta_predicate run_tests(?,?,?,pred(1)).
