@@ -1,89 +1,4 @@
-:- module(unittest,
-        [
-            run_tests_in_module/1,
-            run_tests_in_module/2,
-            run_tests_in_module/3,
-            run_tests_in_module_check_exp_assrts/1,
-            run_tests_in_dir_rec/2,
-            run_tests_related_modules/1,
-            run_tests/3,
-            run_tests/4,
-
-            show_untested_exp_preds/1,
-            show_test_output/2,
-            show_test_related_output/2,
-
-            % regtypes
-            test_option/1,
-            test_action/1
-        ],
-        [assertions, regtypes, isomodes, nativeprops, dcg, fsyntax, hiord, datafacts, define_flag]).
-
-:- use_module(engine(stream_basic)).
-:- use_module(library(streams), [nl/0]).
-:- use_module(library(stream_utils), [write_string/1, file_to_string/2]).
-:- use_module(engine(messages_basic), [message/2, messages/1]).
-:- use_module(library(unittest/unittest_statistics), [statistical_summary/1]).
-:- use_module(library(terms),      [atom_concat/2]).
-:- use_module(library(sort),       [sort/2]).
-:- use_module(library(aggregates), [findall/3]).
-:- use_module(library(assertions/assrt_lib),
-    [
-        cleanup_code_and_related_assertions/0,
-        assertion_read/9,
-        clause_read/7,
-        get_code_and_related_assertions/5,
-        assertion_body/7
-    ]).
-:- use_module(library(system),   [copy_file/2, file_exists/1]).
-:- use_module(library(hiordlib), [maplist/2]).
-:- use_module(library(compiler/c_itf), [exports/5, defines_module/2, module_from_base/2]).
-:- use_module(library(bundle/bundle_paths), [bundle_shorten_path/2]).
-:- use_module(library(lists),
-    [
-        member/2,
-        append/3,
-        length/2,
-        select/3,
-        intersection/3,
-        difference/3
-    ]).
-:- use_module(library(llists), [flatten/2]).
-:- use_module(library(system_extra), [mkpath/1]).
-:- use_module(library(compiler/exemaker), [make_exec/2]).
-:- use_module(library(hiordlib), [maplist/3]).
-:- use_module(engine(internals), [opt_suff/1]).
-
-:- use_module(library(unittest/unittest_base),
-    [
-        make_test_id/5,
-        runner_global_file_name/1,
-        tmp_dir/1,
-        wrapper_file_name/3,
-        yesno/1,
-        read_data/2,
-        write_data/2,
-        get_stdout_redirection_file/2,
-        get_stderr_redirection_file/2
-    ]).
-:- use_module(library(unittest/unittest_utils),[assert_from_file/2]).
-:- use_module(library(source_tree),
-    [
-        current_file_find/3,
-        remove_dir/1
-    ]).
-:- use_module(library(pathnames), [pathname/1]).
-:- use_module(library(messages),  [note_message/2]).
-:- use_module(library(formulae),  [list_to_conj/2]).
-
-:- use_module(library(unittest/unittest_db)).
-:- use_module(library(unittest/unittest_regression),
-              [
-                  save_output/2,
-                  brief_compare/3,
-                  compare/2,
-                  test_description/6 % move somewhere else
-              ]).
+:- module(unittest, [], [assertions, regtypes, isomodes, nativeprops, dcg, fsyntax, hiord, datafacts, define_flag]).
 
 :- doc(title, "Unit testing").
 
@@ -286,6 +201,67 @@ ciao test
 
 ").
 
+:- use_module(engine(stream_basic)).
+:- use_module(library(streams), [nl/0]).
+:- use_module(library(stream_utils), [write_string/1, file_to_string/2]).
+:- use_module(engine(messages_basic), [message/2, messages/1]).
+:- use_module(library(unittest/unittest_statistics), [statistical_summary/1]).
+:- use_module(library(terms),      [atom_concat/2]).
+:- use_module(library(sort),       [sort/2]).
+:- use_module(library(aggregates), [findall/3]).
+:- use_module(library(assertions/assrt_lib), [
+    cleanup_code_and_related_assertions/0,
+    assertion_read/9,
+    clause_read/7,
+    get_code_and_related_assertions/5,
+    assertion_body/7
+]).
+:- use_module(library(system),   [copy_file/2, file_exists/1]).
+:- use_module(library(hiordlib), [maplist/2]).
+:- use_module(library(compiler/c_itf), [exports/5, defines_module/2, module_from_base/2]).
+:- use_module(library(bundle/bundle_paths), [bundle_shorten_path/2]).
+:- use_module(library(lists), [
+    member/2,
+    append/3,
+    length/2,
+    select/3,
+    intersection/3,
+    difference/3
+]).
+:- use_module(library(llists), [flatten/2]).
+:- use_module(library(system_extra), [mkpath/1]).
+:- use_module(library(compiler/exemaker), [make_exec/2]).
+:- use_module(library(hiordlib), [maplist/3]).
+:- use_module(engine(internals), [opt_suff/1]).
+
+:- use_module(library(unittest/unittest_base), [
+    make_test_id/5,
+    runner_global_file_name/1,
+    tmp_dir/1,
+    wrapper_file_name/3,
+    yesno/1,
+    read_data/2,
+    write_data/2,
+    get_stdout_redirection_file/2,
+    get_stderr_redirection_file/2
+]).
+:- use_module(library(unittest/unittest_utils),[assert_from_file/2]).
+:- use_module(library(source_tree), [
+    current_file_find/3,
+    remove_dir/1
+]).
+:- use_module(library(pathnames), [pathname/1]).
+:- use_module(library(messages),  [note_message/2]).
+:- use_module(library(formulae),  [list_to_conj/2]).
+
+:- use_module(library(unittest/unittest_db)).
+:- use_module(library(unittest/unittest_regression), [
+    save_output/2,
+    brief_compare/3,
+    compare/2,
+    test_description/6 % move somewhere else
+]).
+
 :- doc(bug, "Currently @bf{only the tests defined for exported
    predicates} are executed.  This is a limitation of the current
    implementation that will be corrected in the future.").
@@ -328,6 +304,7 @@ cleanup_global_runners(TestRunDir) :-
 
 % ----------------------------------------------------------------------
 
+:- export(show_untested_exp_preds/1).
 :- pred show_untested_exp_preds(Alias) : sourcename(Alias)
 # "Show any exported predicates that do not have test assertions.
    This is an aid towards ensuring that all exported predicates have
@@ -365,7 +342,7 @@ current_untested_pred(Alias, Message) :-
     Message = message_lns(FileName, LB, LE, warning,
         [Module, ':', F, '/', A, ' does not have any unit test']).
 
-
+:- export(run_tests_in_dir_rec/2).
 :- pred run_tests_in_dir_rec(BaseDir, Opts) : pathname * list(test_option)
 # "Executes all the tests in the modules of the given directory and
    its subdirectories. You can indicate that the modules in a
@@ -375,7 +352,6 @@ current_untested_pred(Alias, Message) :-
 
 run_tests_in_dir_rec(BaseDir, Opts) :-
     run_tests(BaseDir, [dir_rec | Opts], [check, show_output, show_stats]).
-
 
 % ----------------------------------------------------------------------
 :- doc(test_option/1,"A global option that controls the
@@ -398,6 +374,7 @@ run_tests_in_dir_rec(BaseDir, Opts) :-
 
     @end{itemize}").
 
+:- export(test_option/1).
 :- regtype test_option(Opt) # "@var{Opt} is a testing option.".
 
 test_option := rtc_entry.
@@ -414,7 +391,7 @@ test_std_option := show % show
 
 % TODO: missing support for redirecting stdin(_)?
 
-
+:- export(test_action/1).
 :- doc(test_action/1, "A global option that specifies a testing
     routine. The current set of actions is:
 
@@ -451,6 +428,7 @@ get_test_opt(_  , no   , _).
 
 % ----------------------------------------------------------------------
 
+:- export(show_test_output/2).
 :- pred show_test_output(Alias, Format) : (sourcename(Alias), atm(Format))
     # "Given a file @var{Alias}, tries to look up the respective
       unittest output file and print it to the standard output in
@@ -463,6 +441,7 @@ get_test_opt(_  , no   , _).
 show_test_output(Alias, Format) :-
     show_test_output_(Format, Alias, []).
 
+:- export(show_test_related_output/2).
 show_test_related_output(Alias, Format) :-
     show_test_output_(Format, Alias, [treat_related]).
 
@@ -498,13 +477,16 @@ filter_with_options([filter(Filter)|Opts], Test) :- !,
 filter_with_options([_|Opts], Test) :-
     filter_with_options(Opts, Test).
 
+:- export(run_tests/3).
 run_tests(Target, Opt, Actions) :-
     run_tests(Target, Opt, Actions, filter_with_options(Opt)).
 % TODO: filters are implemented with metapredicates but passed as
 % options because the original design was to pass them as higher order
 % arguments too. Now that they are passed as options, we should get
 % rid of meta_predicates to handle this everywhere
+:- use_module(library(streams)).
 
+:- export(run_tests/4).
 :- meta_predicate run_tests(?,?,?,pred(1)).
 run_tests(Target, Opts0, Actions, Filter) :- % TODO: ensure Opts and Actions are valid
     process_options(Opts0, Opts),
@@ -513,7 +495,7 @@ run_tests(Target, Opts0, Actions, Filter) :- % TODO: ensure Opts and Actions are
     read_tests(Modules0, Modules),
     % run the tests
     ( member(check, Actions) ->
-      run_tests_in_all_modules(Modules, Filter, Opts)
+        run_tests_in_all_modules(Modules, Filter, Opts)
     ; true
     ),
     % show tested predicates' output
@@ -705,6 +687,7 @@ show_stderr_(Module, Filter, WhichOutput) :-
 
 % ----------------------------------------------------------------------
 
+:- export(run_tests_in_module/3).
 :- pred run_tests_in_module(Alias, Opts, TestSummaries)
     : (sourcename(Alias), list(test_option,Opts))
     => list(TestSummaries)
@@ -719,6 +702,7 @@ run_tests_in_module(Alias, Opts, TestSummaries) :-
     get_assertion_info(current, Alias, Modules),
     get_all_test_outputs(Modules, filter_with_options(Opts), new, TestSummaries).
 
+:- export(run_tests_in_module/2).
 :- pred run_tests_in_module(Alias, Opts)
     : (sourcename(Alias), list(test_option,Opts))
 # "Run the tests in module @var{Alias}. The results of the tests are
@@ -726,6 +710,7 @@ run_tests_in_module(Alias, Opts, TestSummaries) :-
 run_tests_in_module(Alias, Opts) :-
      run_tests(Alias, Opts, [check, show_output, show_stats]).
 
+:- export(run_tests_in_module/1).
 :- pred run_tests_in_module(Alias) : sourcename(Alias)
 # "Run the tests in module @var{Alias} (using default options).  The
    results of the tests are printed out.".
@@ -733,9 +718,11 @@ run_tests_in_module(Alias, Opts) :-
 run_tests_in_module(Alias) :-
     run_tests(Alias, [], [check, show_output, show_stats]).
 
+:- export(run_tests_in_module_check_exp_assrts/1).
 run_tests_in_module_check_exp_assrts(Alias) :-
     run_tests(Alias, [rtc_entry], [check, show_output, show_stats]).
 
+:- export(run_tests_related_modules/1).
 :- pred run_tests_related_modules(Alias) : sourcename(Alias).
 
 run_tests_related_modules(Alias) :-
