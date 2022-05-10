@@ -1,33 +1,28 @@
 :- module(_,[main/1],[]).
 
 :- use_module(library(compiler), [use_module/2]).
-:- use_module(library(pathnames), [path_concat/3]).
-:- use_module(library(system), [mktemp_in_tmp/2]).
 :- use_module(library(lists), [member/2]).
 :- use_module(library(io_port_reify), [open_std_redirect/3, close_std_redirect/1]).
 :- use_module(library(streams), [open/3, close/1]).
-:- use_module(library(stream_utils), [file_to_string/2, write_string/1]).
 :- use_module(library(assertions/assrt_lib), [assertion_body/7]).
 
-:- use_module(library(unittest/unittest_runner_aux),
-              [
-                  process_runner_args/4,
-                  get_active_test/2,
-                  testing/5,
-                  timed_out/0
-              ]).
-:- use_module(library(unittest/unittest_base),
-              [
-                  write_data/2,
-                  get_stdout_redirection_file/2,
-                  get_stderr_redirection_file/2
-              ]).
-:- use_module(library(unittest/unittest_db),
-              [
-                  runtest_input_file_to_test_attributes_db/1,
-                  file_runtest_output/2,
-                  test_attributes_db/8
-              ]).
+:- use_module(library(unittest/unittest_runner_aux), [
+    process_runner_args/4,
+    get_active_test/2,
+    testing/5,
+    timed_out/0
+]).
+:- use_module(library(unittest/unittest_base), [write_data/2]).
+:- use_module(library(unittest/unittest_base), [
+    test_redirect_mode/3,
+    test_redirect_contents/4,
+    test_redirect_chn/4
+]).
+:- use_module(library(unittest/unittest_db), [
+    runtest_input_file_to_test_attributes_db/1,
+    file_runtest_output/2,
+    test_attributes_db/8
+]).
 
 % stop_on_first_error(false).
 
@@ -81,20 +76,28 @@ runtests(TestRunDir, OutputFile, Args) :-
     ; true
     ).
 
-
 runtest_module(TestRunDir, TestOutputFile, Args, Module, TestId) :-
-    get_stdout_option(Args, OutputMode),
-    get_stderr_option(Args, ErrorMode),
-    redirect_stdout(OutputMode, TestRunDir, OutputRedirect),
-    redirect_stderr(ErrorMode, TestRunDir, ErrorRedirect),
-    (internal_runtest_module(Module, TestId, TestRunDir), fail ; true),
-    close_stderr_redirection(ErrorMode, ErrorRedirect),
-    close_stdout_redirection(OutputMode, OutputRedirect),
-    get_stdout(OutputMode, TestRunDir, Output),
-    get_stderr(ErrorMode, TestRunDir, Error),
+    test_redirect_mode(stdout, Args, OutputMode),
+    test_redirect_mode(stderr, Args, ErrorMode),
+    maybe_redirect(OutputMode, stdout, TestRunDir, OutputRedirect),
+    maybe_redirect(ErrorMode, stderr, TestRunDir, ErrorRedirect),
+    ( internal_runtest_module(Module, TestId, TestRunDir), fail ; true ),
+    maybe_close_redirect(ErrorRedirect),
+    maybe_close_redirect(OutputRedirect),
+    test_redirect_contents(OutputMode, stdout, TestRunDir, Output),
+    test_redirect_contents(ErrorMode, stderr, TestRunDir, Error),
     open(TestOutputFile, append, S),
     write_data(S, test_output_error_db(TestId, Output, Error)),
     close(S).
+
+maybe_redirect(Mode, Std, TestRunDir, Redirect) :-
+    test_redirect_chn(Mode, Std, TestRunDir, Chn),
+    ( Chn = none -> Redirect = none
+    ; open_std_redirect(Std, Chn, Redirect)
+    ).
+
+maybe_close_redirect(none) :- !.
+maybe_close_redirect(Redirect) :- close_std_redirect(Redirect).
 
 :- multifile test_entry/3.
 :- multifile test_check_pred/3.
@@ -103,84 +106,7 @@ runtest_module(TestRunDir, TestOutputFile, Args, Module, TestId) :-
 %% Goal = WrpModule:test_check_pred(Module, TestId),
 %% call(Goal)
 
-% ---------------------------------------------
-% output and error options
-% ---------------------------------------------
-
-get_stdout_option(Args, dump_stdout_rt) :-
-    member(dump_output_real_time, Args), !.
-get_stdout_option(Args, ignore_stdout) :-
-    member(ignore_output, Args), !.
-get_stdout_option(Args, dump_stdout) :-
-    member(dump_output, Args), !.
-get_stdout_option(_, save_stdout). % default
-
-
-get_stderr_option(Args, dump_stderr_rt) :-
-    member(dump_error_real_time, Args), !.
-get_stderr_option(Args, ignore_stderr) :-
-    member(ignore_error, Args), !.
-get_stderr_option(Args, stderr_to_stdout) :-
-    member(error_to_output, Args), !.
-get_stderr_option(Args, dump_stderr) :-
-    member(dump_error, Args), !.
-get_stderr_option(_, save_stderr). % default
-
-
-redirect_stdout(dump_stdout_rt,_,_).
-redirect_stdout(save_stdout,TestRunDir,Redirect) :-
-    get_stdout_redirection_file(TestRunDir, StdoutFile),
-    open_std_redirect(stdout, file(StdoutFile), Redirect).
-redirect_stdout(ignore_stdout,_,Redirect) :-
-    mktemp_in_tmp('tmpXXXXXX', File),
-    open_std_redirect(stdout, file(File), Redirect). % TODO: add null redirection to io_port_reify?
-redirect_stdout(dump_stdout,Dir,Red) :-
-    redirect_stdout(save_stdout,Dir,Red).
-
-redirect_stderr(dump_stderr_rt,_,_).
-redirect_stderr(save_stderr,TestRunDir,Redirect) :-
-    get_stderr_redirection_file(TestRunDir, StderrFile),
-    open_std_redirect(stderr, file(StderrFile), Redirect).
-redirect_stderr(stderr_to_stdout,_,Redirect) :-
-    open_std_redirect(stderr, stdout, Redirect).
-redirect_stderr(ignore_stderr,_,Redirect) :-
-    mktemp_in_tmp('tmpXXXXXX', File),
-    open_std_redirect(stderr, file(File), Redirect).
-redirect_stderr(dump_stderr,Dir,Red) :-
-    redirect_stderr(save_stderr,Dir,Red).
-
-close_stdout_redirection(dump_stdout_rt, _) :- !.
-close_stdout_redirection(_, OutputRedirect) :-
-    close_std_redirect(OutputRedirect).
-
-close_stderr_redirection(dump_stderr_rt, _) :- !.
-close_stderr_redirection(_, ErrorRedirect) :-
-    close_std_redirect(ErrorRedirect).
-
-get_stdout(dump_stdout_rt, _, dumped).
-get_stdout(save_stdout, TestRunDir, OutputString) :-
-    get_stdout_redirection_file(TestRunDir, StdoutFile),
-    file_to_string(StdoutFile, OutputString).
-get_stdout(ignore_stdout, _, ignored).
-get_stdout(dump_stdout, TestRunDir, OutputString) :-
-    get_stdout(save_stdout, TestRunDir, OutputString),
-    write_string(OutputString).
-
-get_stderr(dump_stderr_rt, _, dumped).
-get_stderr(save_stderr, TestRunDir, ErrorString) :-
-    get_stderr_redirection_file(TestRunDir, StderrFile),
-    file_to_string(StderrFile, ErrorString).
-get_stderr(stderr_to_stdout, _, redirected_to_stdout).
-get_stderr(ignore_stderr, _, ignored).
-get_stderr(dump_stderr, TestRunDir, ErrorString) :-
-    get_stderr(save_stderr, TestRunDir, ErrorString),
-    write_string(ErrorString).
-
-:- export(get_stdout/3).
-:- export(get_stderr/3).
-:- export(get_stdout_option/2).
-:- export(get_stderr_option/2).
-% tmp, pending unification with unittest.pl
+% TODO: temporary, pending unification with unittest.pl
 internal_runtest_module(Module, TestId, TestRunDir) :-
     test_attributes_db(TestId, Module, _, _, _, Options, Body, _),
     assertion_body(Pred,_,_,_,_,_,Body),
@@ -188,3 +114,4 @@ internal_runtest_module(Module, TestId, TestRunDir) :-
             test_entry(Module,TestId,Pred), % calls field of Pred
             test_check_pred(Module, TestId, Pred), % rtcheck version of Pred
             Options).
+

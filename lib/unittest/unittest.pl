@@ -236,14 +236,9 @@ ciao test
 
 :- use_module(library(unittest/unittest_base), [
     make_test_id/5,
-    runner_global_file_name/1,
     tmp_dir/1,
     wrapper_file_name/3,
-    yesno/1,
-    read_data/2,
-    write_data/2,
-    get_stdout_redirection_file/2,
-    get_stderr_redirection_file/2
+    write_data/2
 ]).
 :- use_module(library(unittest/unittest_utils),[assert_from_file/2]).
 :- use_module(library(source_tree), [
@@ -919,20 +914,18 @@ missing_output_test(TestId,Module) :- % (nondet)
     test_attributes_db(TestId,Module,_,_,_,_,_,_),
     \+ test_output_error_db(TestId,_,_).
 
-:- use_module(library(unittest/unittest_runner), [
-    get_stdout/3,
-    get_stderr/3,
-    get_stdout_option/2,
-    get_stderr_option/2]).
+:- use_module(library(unittest/unittest_base), [
+    test_redirect_mode/3,
+    test_redirect_contents/4
+]).
 
 % TODO: unify with unittest_runner properly
 recover_aborted_test(TestId, TestRunDir, Options) :-
-    % recover and possibly dump stdout until crash
-    get_stdout_option(Options, OutputMode),
-    get_stdout(OutputMode, TestRunDir, StdoutStr),
-    % recover and possibly dump stderr until crash
-    get_stderr_option(Options, ErrorMode),
-    get_stderr(ErrorMode, TestRunDir, StderrStr),
+    % recover and possibly dump stdout,stderr until crash
+    test_redirect_mode(stdout, Options, OutputMode),
+    test_redirect_mode(stderr, Options, ErrorMode),
+    test_redirect_contents(OutputMode, stdout, TestRunDir, StdoutStr),
+    test_redirect_contents(ErrorMode, stderr, TestRunDir, StderrStr),
     % mark the test as aborted
     fill_aborted_test(TestId, StdoutStr, StderrStr).
 % (do not mark in file!)
