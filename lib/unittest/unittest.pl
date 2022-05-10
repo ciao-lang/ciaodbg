@@ -261,18 +261,13 @@ ciao test
    predicates} are executed.  This is a limitation of the current
    implementation that will be corrected in the future.").
 
-:- push_prolog_flag(write_strings, on).
+:- push_prolog_flag(write_strings, on). % TODO: useless here?
 
 % -----------------------------
 
 :- use_module(engine(runtime_control), [current_prolog_flag/2]).
 
 define_flag(unittest_default_timeout, integer, 600000). % TODO: move somewhere else?
-
-% -------------------------------
-    
-%% put to unittest_base together with other file names?
-loader_name('ciao_unittest_loader').
 
 % ----------------------------------------------------------------------
 
@@ -286,14 +281,13 @@ cleanup_unittest(TestRunDir) :-
 :- pred cleanup_global_runners(TestRunDir) : pathname(TestRunDir).
 cleanup_global_runners(TestRunDir) :-
     % tests directory must exist
-    ( file_exists(TestRunDir)
-    -> file_runtest_input(TestRunDir, InputFile),
-       % tests directory must always contain input files
-       ( file_exists(InputFile)
-       -> remove_dir(TestRunDir)
-       ; note_message("~w does not look like a tests source directory, aborting.",[TestRunDir]),
-         throw(error(existence_error(source_sink,InputFile), cleanup_global_runners/1-1))
-       )
+    ( file_exists(TestRunDir) ->
+        file_runtest_input(TestRunDir, InputFile),
+        % tests directory must always contain input files
+        ( file_exists(InputFile) -> remove_dir(TestRunDir)
+        ; note_message("~w does not look like a tests source directory, aborting.",[TestRunDir]),
+          throw(error(existence_error(source_sink,InputFile), cleanup_global_runners/1-1))
+        )
     ; true % nothing to clean
     ).
 
@@ -753,17 +747,16 @@ current_assr_module(Module) :-
     unittest_type(Type).
 
 % ---------------------------------------------------------------------------
+% Call 
 
-:- compilation_fact(unittest_runner_process).
-
-:- if(defined(unittest_runner_process)).
-% Separate runner process (more robust)
-
-:- use_module(ciaobld(config_common), [libcmd_path/4]).
-unittest_exec := ~libcmd_path(ciaodbg, plexe, 'unittest_runner').
+:- use_module(engine(system_info), [get_arch/1]).
 
 :- use_module(ciaobld(cpx_process), [cpx_process_call/3]).
+invoke_unittest(Args, Status) :- get_arch(x86_JS), !,
+    % Run in same process (when processes not available)
+    invoke_unittest_sameproc(Args, Status).
 invoke_unittest(Args, Status) :-
+    % Separate runner process (more robust)
     % TODO: run on background? (process file_runtest_output as it is written)
     cpx_process_call(~unittest_exec, Args, [
         stdin(null),
@@ -772,13 +765,12 @@ invoke_unittest(Args, Status) :-
         status(Status)
     ]).
 
-:- else. % \+defined(unittest_runner_process)
-% Same process (less robust)
+:- use_module(ciaobld(config_common), [libcmd_path/4]).
+unittest_exec := ~libcmd_path(ciaodbg, plexe, 'unittest_runner').
 
+% TODO: load unittest_runner dynamically? use actmod?
 :- use_module(library(unittest/unittest_runner), [main/1]).
-invoke_unittest(Args, Status) :- unittest_runner:main(Args), Status=0.
-
-:- endif.
+invoke_unittest_sameproc(Args, Status) :- unittest_runner:main(Args), Status=0.
 
 % ---------------------------------------------------------------------------
 

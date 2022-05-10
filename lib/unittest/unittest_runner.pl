@@ -1,4 +1,4 @@
-:- module(_,[main/1],[]).
+:- module(_,[],[]).
 
 :- use_module(library(compiler), [use_module/2]).
 :- use_module(library(lists), [member/2]).
@@ -26,6 +26,7 @@
 
 % stop_on_first_error(false).
 
+:- export(main/1).
 % Expected arguments in main/1:
 %   --begin_module_wrappers-- Mods --end_module_wappers--: List of Wrappers for modules under test.
 %   dir TestRunDir: Temporary directory for test files.
