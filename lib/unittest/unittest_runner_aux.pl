@@ -1,14 +1,9 @@
-:- module(unittest_runner_aux,
-    [
-      get_active_test/2,
-      process_runner_args/4,
-      testing/5
-    ],
-    [assertions, hiord, datafacts]).
+:- module(unittest_runner_aux, [], [assertions, hiord, datafacts]).
 
 :- doc(title,"Testing support lib (runner)").
 
-:- doc(author, "Edison Mera").
+:- doc(author, "Edison Mera (original)").
+:- doc(author, "The Ciao Development Team").
 
 % TODO: postcondition failure treating?
 % TODO: how rtchecks deals with exceptions in pre/postconditins
@@ -43,20 +38,24 @@ test_id_db(ARef, Mod) :-
 
 % TODO: simplify
 :- data active_test/0.
+
+:- export(get_active_test/2).
 get_active_test(ARef, Mod) :-
     (\+ skip_tests_before(_)), !,
-     test_id_db(ARef, Mod).
+    test_id_db(ARef, Mod).
 get_active_test(ARef, Mod) :-
     retractall_fact(active_test),
     test_id_db(ARef0, Mod0),
-    (  skip_tests_before(ARef0)
-    -> assertz_fact(active_test),
-       fail
-    ; true ),
+    ( skip_tests_before(ARef0) ->
+        assertz_fact(active_test), fail
+    ; true
+    ),
     active_test,
     ARef = ARef0,
     Mod  = Mod0.
 
+:- export(process_runner_args/4).
+% Decode and process runner arguments
 process_runner_args([],_,_,[]) :- !.
 process_runner_args([dir, TestRunDir | Args0], TestRunDir, WrpModules, Args) :- !,
     process_runner_args(Args0, TestRunDir, WrpModules, Args).
@@ -78,6 +77,10 @@ process_runner_args([timeout, TimeoutAtm | Args0], TestRunDir, WrpModules, Args)
 process_runner_args([suff, Suff | Args0], TestRunDir, WrpModules, Args) :- !,
     opt_suffix(_,Suff), % save and restore old suffix?
     process_runner_args(Args0, TestRunDir, WrpModules, Args).
+process_runner_args([stdout, Mode | Args0], TestRunDir, WrpModules, [stdout(Mode)|Args]) :- !,
+    process_runner_args(Args0, TestRunDir, WrpModules, Args).
+process_runner_args([stderr, Mode | Args0], TestRunDir, WrpModules, [stderr(Mode)|Args]) :- !,
+    process_runner_args(Args0, TestRunDir, WrpModules, Args).
 process_runner_args([Arg|Args0], TestRunDir, WrpModules, [Arg|Args]) :- % abort? warning?
     process_runner_args(Args0, TestRunDir, WrpModules, Args).
 
@@ -92,6 +95,7 @@ get_wrapper_modules([WrpM | WrpMs], [WrpM | WrpModules], Args) :-
 
 % TODO: call testing/5 from runner, instrument in wrapper Pred instead
 
+:- export(testing/5).
 :- meta_predicate testing(?, ?, goal, goal, ?).
 
 testing(ARef, TestRunDir, Precond, Pred, Options) :-

@@ -33,8 +33,8 @@
 %   timeout Timeout: Default timeout for tests.
 %   resume_after ARef: Optional argument to skip tests until test with id ARef.
 %   suff Suff. Optional argument to set optional suffix (internals:opt_suff/1) in runner
-%   Stdout Mode: dump_output_real_time, ignore_output...
-%   Stderr Mode: dump_error_real_time, ignore_error, error_to_output...
+%   stdout Mode: stdout redirection mode
+%   stderr Mode: stderr redirection mode
 %   load Module: Additional module to load. Unused. Obsolete?
 %   other unittest driver options (unittest:test_option/1) might be passed down to the runner aside from stdout and stderr options. They are ignored.
 main(Args0) :-

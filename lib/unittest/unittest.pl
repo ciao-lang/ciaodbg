@@ -348,9 +348,15 @@ run_tests_in_dir_rec(BaseDir, Opts) :-
 
     @begin{itemize}
 
-    @item @tt{dump_output}: Show the standard output of the test execution.
+    @item @tt{stdout(save)}: Save stdout as test output, do not show
+    @item @tt{stdout(dump)}: Save stdout as test output, then show
+    @item @tt{stdout(show)}: Just show stdout (do not save)
+    @item @tt{stdout(null)}: Ignore stdout
+    @item @tt{stderr(Opt)}: (same as above)
+    @item @tt{stderr(stdout)}: redirect stderr to stdout
 
-    @item @tt{dump_error}: Show the standard error of the test execution.
+    @item @tt{dump_output}: Equivalent to @tt{stdout(dump)}
+    @item @tt{dump_error}: Equivalent to @tt{stderr(dump)}
 
     @item @tt{rtc_entry}: Force run-time checking of at least exported
           assertions even if the runtime_checks flag has not been
@@ -367,16 +373,18 @@ run_tests_in_dir_rec(BaseDir, Opts) :-
 :- regtype test_option(Opt) # "@var{Opt} is a testing option.".
 
 test_option := rtc_entry.
-test_option := stdout(~test_std_option).
-test_option := stderr(~test_std_option).
+% TODO: document above
+test_option := stdout(~test_redirect_opt).
+test_option := stderr(~test_redirect_opt).
 test_option := dump_output | dump_error. % backwards compatible, equivalent to save+show
 test_option := treat_related | dir_rec.
 
-% handling of standard stream for testing
-test_std_option := show % show
-                 | save % save (for regression). Default
-                 | null % throw away
-                 | stdout. % redirect to stdout (only for stderr)
+% stdout/stderr redirection
+test_redirect_opt := save % save (for regression). Default
+                   | dump % save then show
+                   | show % show (do not save)
+                   | null % throw away
+                   | stdout. % redirect to stdout (only for stderr)
 
 % TODO: missing support for redirecting stdin(_)?
 
@@ -411,9 +419,6 @@ test_std_option := show % show
 test_action := check | show_output | show_stats .
 % test_action := show_output_short | show_output_full % TODO: verbosity control
 test_action := save | briefcompare | compare .
-
-get_test_opt(Opt, YesNo, Opts) :- member(Opt, Opts), !, YesNo = yes.
-get_test_opt(_  , no   , _).
 
 % ----------------------------------------------------------------------
 
@@ -477,7 +482,7 @@ run_tests(Target, Opt, Actions) :-
 :- export(run_tests/4).
 :- meta_predicate run_tests(?,?,?,pred(1)).
 run_tests(Target, Opts0, Actions, Filter) :- % TODO: ensure Opts and Actions are valid
-    process_options(Opts0, Opts),
+    norm_test_opts(Opts0, Opts),
     cleanup_modules_under_test,
     decide_modules_to_test(Target, Opts, Modules0),
     read_tests(Modules0, Modules),
@@ -787,9 +792,9 @@ run_test_assertions(TestRunDir, Modules, Filter, Opts) :-
     write_all_test_outputs(Modules), % (Initial empty outputs)
     %
     ( test_attributes_db(_, _, _, _, _, _, _, _) ->
-      get_test_opt(rtc_entry, RtcEntry, Opts),
-      create_wrapper_mods(Modules, TestRunDir, RtcEntry, WrapperMods),
-      do_tests(TestRunDir, Modules, WrapperMods, Opts)
+        ( member(rtc_entry, Opts) -> RtcEntry = yes ; RtcEntry = no ),
+        create_wrapper_mods(Modules, TestRunDir, RtcEntry, WrapperMods),
+        do_tests(TestRunDir, Modules, WrapperMods, Opts)
     ; true
     ),
     write_all_test_outputs(Modules). % TODO: mark them as finished?
@@ -847,7 +852,9 @@ do_tests(TestRunDir, Modules, WrapperMods, Opts) :-
 do_tests_(Resume, TestRunDir, Modules, WrapperMods, Opts) :-
     current_prolog_flag(unittest_default_timeout,TimeoutN),
     atom_number(TimeoutAtm,TimeoutN),
-    RunnerArgs1 = [timeout,TimeoutAtm |Opts],
+    RunnerArgs1 = [timeout,TimeoutAtm |RunnerOpts],
+    serialize_runner_opts(Opts, RunnerOpts),
+    %
     ( Resume = resume_after(ContIdx) ->
         RunnerArgs2 = [resume_after,ContIdx |RunnerArgs1]
     ; RunnerArgs2 = RunnerArgs1
@@ -1012,6 +1019,7 @@ create_test_input(TestRunDir, Modules, Filter) :-
 %% atom_concat(FileTestInput, '.bak', FileTestInput0),
 %% copy_file(FileTestInput, FileTestInput0).
 
+% (extend current options with defaults for ModuleBase)
 get_test_options(Options, _, Options) :-
     member(timeout(_,_), Options), !.
 get_test_options(Options, ModuleBase, [timeout(_,Timeout)|Options]) :-
@@ -1062,16 +1070,9 @@ collect_test_modules(Src) :=
 % In that way the original modules are not polluted with test code.
 create_module_wrapper(Module, RtcEntry, Src, WrapperFile) :-
     Header = [
-            (:- module(_, _, [assertions, nativeprops, rtchecks])),
-            (:- use_module(library(unittest/unittest_runner_aux))),
-            (:- use_module(library(rtchecks/rtchecks_rt))),
-            (:- use_module(library(rtchecks/rtchecks_basic))),
-            (:- use_module(library(unittest/unittest_props))),
-            (:- use_module(Src)),
-            (:- discontiguous test_entry/3),
-            (:- multifile test_entry/3),
-            (:- discontiguous test_check_pred/3),
-            (:- multifile test_check_pred/3)
+        (:- module(_, _, [assertions, nativeprops, rtchecks])),
+        (:- include(library(unittest/unittest_wrapper))),
+        (:- use_module(Src))
     ],
     collect_test_modules(Src, TestModules),
     % here link the TestEntry clause with the ARef test identifier
@@ -1220,27 +1221,27 @@ unittest_print_clauses(Term, S, Dict) :-
     maplist(unittest_print_clause(S, Dict), Term),
     set_output(CO).
 
+% ---------------------------------------------------------------------------
+% normalize test options
 
-% --------------------------------
-% Unittest options
-% -------------------------------
+norm_test_opts([],[]).
+norm_test_opts([Opt0|Opts0],[Opt|Opts]) :-
+    ( var(Opt0) -> throw(error(norm_test_opts/2, instantiation))
+    ; Opt0 = dump_output -> Opt = stdout(dump)
+    ; Opt0 = dump_error -> Opt = stderr(dump)
+    ; test_option(Opt0) -> Opt = Opt0
+    ; throw(error(norm_test_opts/2, unknown_option(Opt)))
+    ),
+    norm_test_opts(Opts0, Opts).
 
-process_options([],[]).
-process_options([Opt0|Opts0],[Opt|Opts]) :-
-    nonvar(Opt0),
-    test_option(Opt0), !,
-    process_option(Opt0,Opt),
-    process_options(Opts0,Opts).
-process_options([Opt|Opts0],Opts) :-
-    message(warning, ['Unknown unittest option ', Opt, '.\n']),
-    process_options(Opts0,Opts).
+% ---------------------------------------------------------------------------
+% serialize opts for runner
 
-% options are passed down as runner args, which must be atoms
-process_option(stdout(show), dump_output_real_time).
-process_option(stdout(save), save_output).
-process_option(stdout(null), ignore_output).
-process_option(stderr(show), dump_error_real_time).
-process_option(stderr(save), save_error).
-process_option(stderr(null), ignore_error).
-process_option(stderr(stdout), error_to_output).
-process_option(Opt, Opt).
+% (options are passed down as runner args, which must be atoms)
+serialize_runner_opts([],[]).
+serialize_runner_opts([stdout(Mode)|Opts0],[stdout, Mode|Opts]) :- !,
+    serialize_runner_opts(Opts0, Opts).
+serialize_runner_opts([stderr(Mode)|Opts0],[stderr, Mode|Opts]) :- !,
+    serialize_runner_opts(Opts0, Opts).
+serialize_runner_opts([Opt|Opts0],[Opt|Opts]) :-
+    serialize_runner_opts(Opts0, Opts).
