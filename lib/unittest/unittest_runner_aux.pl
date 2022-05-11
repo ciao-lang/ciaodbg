@@ -248,6 +248,7 @@ run_test_exception(Ex,exception(predicate,Ex)).
 % TODO: do we really need that much to distinguish between an
 % exception in the postcondition and a normal exception?
 
+:- use_module(engine(system_info), [get_arch/1]).
 
 get_option(Opt,Options,Value) :-
     functor(Option,Opt,2),
@@ -255,6 +256,8 @@ get_option(Opt,Options,Value) :-
     arg(2,Option,Value).
 get_option(times,_,1).
 get_option(try_sols,_,2). % enough to capture determinism
+get_option(timeout,_,Timeout) :- get_arch(x86_JS), !, % TODO: fix timeout for this arch
+    Timeout = 0.
 get_option(timeout,_,Timeout) :-
     default_timeout(Timeout).
 get_option(generate_from_calls_n,_,1).
