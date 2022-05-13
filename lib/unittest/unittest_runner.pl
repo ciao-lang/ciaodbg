@@ -1,4 +1,4 @@
-:- module(_,[],[]).
+:- module(_,[],[datafacts]).
 
 :- use_module(library(compiler), [use_module/2]).
 :- use_module(library(lists), [member/2]).
@@ -38,21 +38,34 @@
 %   load Module: Additional module to load. Unused. Obsolete?
 %   other unittest driver options (unittest:test_option/1) might be passed down to the runner aside from stdout and stderr options. They are ignored.
 main(Args0) :-
-    process_runner_args(Args0, TestRunDir, WrpModules, Args),
-    import_modules(WrpModules),
-    runtest_input_file_to_test_attributes_db(TestRunDir), % asserts test inputs as test_attributes_db/n
-    file_runtest_output(TestRunDir, FileTestOutput),
-    runtests(TestRunDir, FileTestOutput, Args).
+    unittest_runner(Args0, Status),
+    ( Status = 0 -> true ; halt(Status) ).
 
+:- export(unittest_runner/2).
+unittest_runner(Args0, Status) :-
+    process_runner_args(Args0, TestRunDir, WrpModules, Args), % TODO: call from outside
+    retractall_fact(compilation_error),
+    import_modules(WrpModules),
+    ( retract_fact(compilation_error) ->
+        Status = 101 % error in import modules
+    ; runtest_input_file_to_test_attributes_db(TestRunDir), % asserts test inputs as test_attributes_db/n
+      file_runtest_output(TestRunDir, FileTestOutput),
+      runtests(TestRunDir, FileTestOutput, Args),
+      Status = 0
+    ).
+
+:- data compilation_error/0.
+
+% TODO: distinguish which is the module that does not compile?
+import_modules(_) :- compilation_error, !. % (stop here)
 import_modules([]).
 import_modules([M|Ms]) :-
     intercept(
         use_module(M,[]), % we only care about multifiles test_check_pred/3 and test_entry/3
         compilation_error,
-        halt(101) % return code handled by unittest.pl
+        assertz_fact(compilation_error)
     ),
     import_modules(Ms).
-% TODO: distinguish which is the module that does not compile
 
 runtests(TestRunDir, OutputFile, Args) :-
     ( % (failure-driven loop)

@@ -774,8 +774,8 @@ invoke_unittest(Args, Status) :-
 unittest_exec := ~libcmd_path(ciaodbg, plexe, 'unittest_runner').
 
 % TODO: load unittest_runner dynamically? use actmod?
-:- use_module(library(unittest/unittest_runner), [main/1]).
-invoke_unittest_sameproc(Args, Status) :- unittest_runner:main(Args), Status=0.
+:- use_module(library(unittest/unittest_runner), [unittest_runner/2]).
+invoke_unittest_sameproc(Args, Status) :- unittest_runner:unittest_runner(Args, Status).
 
 % ---------------------------------------------------------------------------
 
@@ -869,7 +869,7 @@ do_tests_(Resume, TestRunDir, Modules, WrapperMods, Opts) :-
     runtest_output_file_reset(TestRunDir),
     invoke_unittest(RunnerArgs, Status),
     %
-    (Status==101 -> % returned by unittest_runner.pl when a wrapper module does not compile
+    ( Status==101 -> % returned by unittest_runner.pl when a wrapper module does not compile
         message(error, ['Compilation failed. Please make sure all relevant predicates',
                         ' and properties for testing are exported.'])
         % Note: Syntactic compilation errors of the modules under test
