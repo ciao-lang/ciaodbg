@@ -757,7 +757,7 @@ current_assr_module(Module) :-
 :- use_module(engine(system_info), [get_arch/1]).
 
 :- use_module(ciaobld(cpx_process), [cpx_process_call/3]).
-invoke_unittest(Args, Status) :- get_arch(x86_JS), !,
+invoke_unittest(Args, Status) :- get_arch(wasm32), !,
     % Run in same process (when processes not available)
     invoke_unittest_sameproc(Args, Status).
 invoke_unittest(Args, Status) :-
