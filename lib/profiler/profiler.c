@@ -198,21 +198,22 @@ CVOID__PROTO(profile__hook_cut_)
   choice_t *cp_older=w->previous_choice;
   int i=0;
   try_node_t *next_alt;
-  if (cp_younger->next_alt)
+  if (cp_younger->next_alt) {
     next_alt = cp_younger->next_alt;
-  else
+  } else {
     next_alt = w->next_alt;
-  cp_younger = ChoiceCharOffset(cp_younger, -next_alt->choice_offset);
+  }
+  cp_younger = GEN_ChoiceCont00(cp_younger, GEN_TryNodeOffset(next_alt));
   while(ChoiceYounger(cp_younger, cp_older)) {
     get_cc_item(active_ecc->cc_item_table,cp_younger->functor)->prof.skips++;
     cp_younger = ChoiceCont(cp_younger);
-  };
+  }
   if (!ChoiceYounger(cp_older, cp_younger)) {
     get_cc_item(active_ecc->cc_item_table,cp_younger->functor)->prof.skips++;
     active_ecc->entry_cuts++;
-  }
-  else
+  } else {
     active_ecc->entry_scuts++;
+  }
 }
 
 #if defined(PROFILE__TRACER)
