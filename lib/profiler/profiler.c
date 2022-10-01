@@ -203,7 +203,7 @@ CVOID__PROTO(profile__hook_cut_)
   } else {
     next_alt = w->next_alt;
   }
-  cp_younger = GEN_ChoiceCont00(cp_younger, GEN_TryNodeOffset(next_alt));
+  cp_younger = ChoiceCont0(cp_younger, next_alt->arity);
   while(ChoiceYounger(cp_younger, cp_older)) {
     get_cc_item(active_ecc->cc_item_table,cp_younger->functor)->prof.skips++;
     cp_younger = ChoiceCont(cp_younger);
