@@ -194,16 +194,15 @@ CVOID__PROTO(profile__hook_redo_)
 CVOID__PROTO(profile__hook_cut_)
 {
 /*   show_nodes(w, w->choice, w->previous_choice); */
-  choice_t *cp_younger=w->choice;
   choice_t *cp_older=w->previous_choice;
   int i=0;
   try_node_t *next_alt;
-  if (cp_younger->next_alt) {
-    next_alt = cp_younger->next_alt;
-  } else {
+  if (IsShallowTry0(w->choice)) {
     next_alt = w->next_alt;
+  } else {
+    next_alt = w->choice->next_alt;
   }
-  cp_younger = ChoiceCont0(cp_younger, next_alt->arity);
+  choice_t *cp_younger = ChoiceCont0(w->choice, next_alt->arity);
   while(ChoiceYounger(cp_younger, cp_older)) {
     get_cc_item(active_ecc->cc_item_table,cp_younger->functor)->prof.skips++;
     cp_younger = ChoiceCont(cp_younger);
