@@ -60,8 +60,8 @@ CBOOL__PROTO(prolog_cc_redo_1)
     n2=ChoiceFromTagged(X(1));
     if (n1==n2) {
       DEREF(X(2),X(2));
-      w->choice=ChoiceFromTagged(X(2));
-      SetShadowregsF(w->choice);
+      choice_t *b=ChoiceFromTagged(X(2));
+      SetChoiceF(b);
     }
     PROFILE__TIME_END;
   } else {
@@ -82,8 +82,7 @@ CBOOL__PROTO(prolog_cc_redo_1_nf)
     n1=ChoiceFromTagged(X(1));
     n2=ChoiceFromTagged(X(0));
     if (n1==n2) {
-      w->choice=n1;
-      SetShadowregsF(w->choice);
+      SetChoiceF(n1);
     }
     PROFILE__TIME_END;
   } else {
@@ -243,8 +242,8 @@ CBOOL__PROTO(prolog_cc_exit_nc)
     PROFILE__TIME_INI;
     prolog_cc_exit_common(Arg);
     DEREF(X(1),X(1));
-    w->choice=ChoiceFromTagged(X(1));
-    SetShadowregsF(w->choice);
+    choice_t *b=ChoiceFromTagged(X(1));
+    SetChoiceF(b);
     PROFILE__TIME_END;
   }
   return TRUE;
