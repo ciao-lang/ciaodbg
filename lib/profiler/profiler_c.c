@@ -61,7 +61,7 @@ CBOOL__PROTO(prolog_cc_redo_1)
     if (n1==n2) {
       DEREF(X(2),X(2));
       choice_t *b=ChoiceFromTagged(X(2));
-      SetChoiceF(b);
+      SetChoice(b);
     }
     PROFILE__TIME_END;
   } else {
@@ -82,7 +82,7 @@ CBOOL__PROTO(prolog_cc_redo_1_nf)
     n1=ChoiceFromTagged(X(1));
     n2=ChoiceFromTagged(X(0));
     if (n1==n2) {
-      SetChoiceF(n1);
+      SetChoice(n1);
     }
     PROFILE__TIME_END;
   } else {
@@ -243,7 +243,7 @@ CBOOL__PROTO(prolog_cc_exit_nc)
     prolog_cc_exit_common(Arg);
     DEREF(X(1),X(1));
     choice_t *b=ChoiceFromTagged(X(1));
-    SetChoiceF(b);
+    SetChoice(b);
     PROFILE__TIME_END;
   }
   return TRUE;
