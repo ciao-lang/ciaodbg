@@ -197,10 +197,11 @@ CVOID__PROTO(profile__hook_cut_)
   choice_t *cp_older=w->previous_choice;
   int i=0;
   try_node_t *next_alt;
-  if (IsShallowTry0(w->choice)) {
+  // TODO:[oc-merge] was "IsShallowTry(w->choice)"
+  if (!IsDeep()) {
     next_alt = w->next_alt;
   } else {
-    next_alt = w->choice->next_alt;
+    next_alt = cp_younger->next_alt;
   }
   choice_t *cp_younger = ChoiceCont0(w->choice, next_alt->arity);
   while(ChoiceYounger(cp_younger, cp_older)) {
