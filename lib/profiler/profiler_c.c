@@ -107,7 +107,7 @@ CBOOL__PROTO(prolog_cc_redo_2)
 #endif
       d=tick_ini_profiling-tick_profiling;
     active_ecc->entry_time-=d;
-    active_ecc=(edge_cc_t *)TermToPointer(X(0));
+    active_ecc=TermToPointer(edge_cc_t, X(0));
 #if defined(PROFILE)
     if (profile_hooks) {
       if (active_ecc->hooks)
@@ -150,7 +150,7 @@ CVOID__PROTO(prolog_cc_exit_common)
   active_ecc->entry_cuts=0;
   active_ecc->entry_scuts=0;
 #endif
-  active_ecc=(edge_cc_t *)TermToPointer(X(0));
+  active_ecc=TermToPointer(edge_cc_t, X(0));
 #if defined(PROFILE)
   if (profile_hooks) {
     if (active_ecc->hooks)
@@ -218,7 +218,7 @@ CBOOL__PROTO(prolog_cc_fail_2)
     active_ecc->entry_cuts=0;
     active_ecc->entry_scuts=0;
 #endif
-    active_ecc=(edge_cc_t *)TermToPointer(X(0));
+    active_ecc=TermToPointer(edge_cc_t, X(0));
 #if defined(PROFILE)
     if (profile_hooks) {
       if (active_ecc->hooks)
