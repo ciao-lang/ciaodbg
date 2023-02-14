@@ -331,16 +331,19 @@ current_untested_pred(Alias, Message) :-
     Message = message_lns(FileName, LB, LE, warning,
         [Module, ':', F, '/', A, ' does not have any unit test']).
 
-:- export(run_tests_in_dir_rec/2).
-:- pred run_tests_in_dir_rec(BaseDir, Opts) : pathname * list(test_option)
+:- export(run_tests_in_dir_rec/3).
+:- pred run_tests_in_dir_rec(BaseDir, Opts, S) : pathname * list(test_option) * var
 # "Executes all the tests in the modules of the given directory and
    its subdirectories. You can indicate that the modules in a
    sub-directory should not be tested by placing an empty NOTEST file
    in that sub-directory.  Also, if a NOTESTFILES file is present,
-   containing patterns for modules, those modules will not be tested.".
+   containing patterns for modules, those modules will not be tested.
+   Unittest's statistical summary is summarised in S, which is given
+   value 0 if there are as many successes as expected, and 1 otherwise.".
 
-run_tests_in_dir_rec(BaseDir, Opts) :-
-    run_tests(BaseDir, [dir_rec | Opts], [check, show_output, show_stats]).
+
+run_tests_in_dir_rec(BaseDir, Opts, S) :-
+    run_tests(BaseDir, [dir_rec | Opts], [check, show_output, show_stats, status(S)]).
 
 % ----------------------------------------------------------------------
 :- doc(test_option/1,"A global option that controls the
@@ -362,7 +365,7 @@ run_tests_in_dir_rec(BaseDir, Opts) :-
           assertions even if the runtime_checks flag has not been
           activated. (This is a workaround since currently we cannot
           enable runtime checks in system libraries smoothly).
-   
+
     @item @tt{treat_related} : Run tests in current and all related modules;
 
     @item @tt{dir_rec} : Run tests in a specified directory recursively.
