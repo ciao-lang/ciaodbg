@@ -47,7 +47,6 @@ CVOID__PROTO(profile__hook_redo_);
 CVOID__PROTO(profile__hook_call_, definition_t *);
 CVOID__PROTO(profile__hook_cut_);
 CVOID__PROTO(profile__hook_proceed_);
-CVOID__PROTO(profile__hook_neck_proceed_);
 
 void profile_dump(prof_frame_t *frame, FILE *);
 char *functor_name(char *buffer, definition_t *functor);

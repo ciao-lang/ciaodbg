@@ -136,7 +136,6 @@ void disable_hooks(void) {
 # if defined(PROFILE__TRACER)
     profile__hook_fail=profile__hook_noop;
     profile__hook_proceed=profile__hook_noop;
-    profile__hook_neck_proceed=profile__hook_noop;
 # endif
     hooks_enabled=FALSE;
   }
@@ -150,7 +149,6 @@ void enable_hooks(void) {
 # if defined(PROFILE__TRACER)
     profile__hook_fail=profile__hook_fail_;
     profile__hook_proceed=profile__hook_proceed_;
-    profile__hook_neck_proceed=profile__hook_neck_proceed_;
 # endif
     hooks_enabled=TRUE;
   }
@@ -233,15 +231,6 @@ CVOID__PROTO(profile__hook_proceed_)
   PROFILE__TIME_INI;
   ShowFuncPoint(Output_Stream_Ptr->streamfile,"-proc",0,0,w->choice->functor);
   ShowFuncPoint2(Output_Stream_Ptr->streamfile," proc",0,0,
-                 active_ecc->functor[0], active_ecc->functor[1]);
-  PROFILE__TIME_END;
-}
-
-CVOID__PROTO(profile__hook_neck_proceed_)
-{
-  PROFILE__TIME_INI;
-  ShowFuncPoint(Output_Stream_Ptr->streamfile,"-nprc",0,0,w->choice->functor);
-  ShowFuncPoint2(Output_Stream_Ptr->streamfile," nprc",0,0,
                  active_ecc->functor[0], active_ecc->functor[1]);
   PROFILE__TIME_END;
 }
