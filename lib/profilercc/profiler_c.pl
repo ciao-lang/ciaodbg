@@ -6,7 +6,7 @@
 :- use_foreign_source(library(hrtime/hrtime)).
 % Add library(hashtable) and library(hrtime) to .h include paths
 % (see profilercc:prepare_build_bin at profilercc.hooks.pl)
-:- include(.(profiler_decl_auto)).
+:- include(.(profilercc_decl_auto)).
 
 :- use_foreign_source(profiler).
 :- use_foreign_source(library(profilercc/profiler_c)).
