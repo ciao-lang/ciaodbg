@@ -14,5 +14,5 @@
 % ===========================================================================
 % (nested)
 
-'$builder_hook'(item_nested(profiler)).
-:- include(.('profiler.hooks')).
+'$builder_hook'(item_nested(profilercc)).
+:- include(.('profilercc.hooks')).

@@ -20,11 +20,11 @@ doc_structure :=
             % 'unittest/unittest_utils',
             'unittest/unittest_statistics',
             'unittest/unittest_examples'],
-        % Profiling
-        'profiler/profiler_doc'-[
-            'profiler/profiler_utils',
-            'profiler/profiler_extra',
-            'profiler/profiler_auto_conf'],
+        % Profiler with cost centers
+        'profilercc/profiler_doc'-[
+            'profilercc/profiler_utils',
+            'profilercc/profiler_extra',
+            'profilercc/profiler_auto_conf'],
         % Debugging (instrumentation based)
         'tracing/traces'-[
           'byrdbox/byrd'
