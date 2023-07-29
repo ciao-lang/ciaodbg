@@ -1233,7 +1233,7 @@ norm_test_opts([Opt0|Opts0],[Opt|Opts]) :-
     ; Opt0 = dump_output -> Opt = stdout(dump)
     ; Opt0 = dump_error -> Opt = stderr(dump)
     ; test_option(Opt0) -> Opt = Opt0
-    ; throw(error(norm_test_opts/2, unknown_option(Opt)))
+    ; throw(error(norm_test_opts/2, unknown_option(Opt0)))
     ),
     norm_test_opts(Opts0, Opts).
 
