@@ -8,6 +8,7 @@
 :- doc(author, "Alvaro Sevilla San Mateo").
 :- doc(author, "Nataliia Stulova").
 :- doc(author, "Ignacio Casso").
+:- doc(author, "Jose Luis Bueno").
 
 :- doc(summary, "Ciao provides an integrated assertion-based
    verification and debugging framework, which includes unit tests.
@@ -989,6 +990,7 @@ create_input_file(Module) :-
         intersection(Comp0, ~valid_texec_comp_props, TestOptions0),
         difference(Comp0, ~valid_texec_comp_props, Comp),
         texec_warning(Type, Comp, Pred, asrloc(loc(Src,LB,LE))),
+        check_noexvar_succ(Pred, Succ, asrloc(loc(Src,LB,LE))),
         assertion_body(Pred,Compat,Calls,Succ,Comp,Comment,Body),
         functor(Pred, F, A),
         get_test_options(TestOptions0,Base,TestOptions),
@@ -1162,6 +1164,23 @@ texec_warning(_, _, _, _).
 
 comp_prop_to_name(C0, C) :- C0 =.. [F, _|A], C =.. [F|A].
 
+:- use_module(library(sets), [ord_subset/2]).
+:- use_module(library(terms_vars), [varset/2]).
+
+:- pred check_noexvar_succ(Head, Succ, AsrLoc)
+   : (list(Head), list(Succ), struct(AsrLoc))
+   # "The success part of a test, @var{Succ}, cannot contain existential
+     variables that are not found in the head, @var{Head}.
+     The user is notified by means of a warning.".
+
+check_noexvar_succ(Head, Succ,_) :-
+    varset(Head, HeadVars),
+    varset(Succ, SuccVars),
+    ord_subset(SuccVars, HeadVars),
+    !.
+check_noexvar_succ(Head, _, asrloc(loc(_Src, ALB, ALE))) :-
+    functor(Head, PredName, Arity),
+    message(warning, ['(lns ', ALB,'-',ALE, ')', ' unexpected existential variables in the success part of ', PredName, '/', Arity]).
 
 % ---------------------------------------------------------------------------
 % Generate modules from terms
